@@ -24,8 +24,6 @@ const Dashboard: React.FC = () => {
         params: { endpoint: `dashboard/province-summary?lang=${lang}` },
       });
 
-      // console.log('Project Location', response.data);
-
       return response.data.data.map((item: any) => ({
         ...item,
         color: getRandomColor(),

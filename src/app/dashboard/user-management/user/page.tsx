@@ -650,21 +650,6 @@ const UserManagementUserPage = () => {
               },
             }}
           />
-          {/* <CustomDataGrid
-            rows={transformedData}
-            columns={columns}
-            rowCount={rowSize}
-            loading={isTableLoading}
-            paginationModel={paginationModel}
-            filterModel={filterModel}
-            onPaginationModelChange={setPaginationModel}
-            onFilterModelChange={handleFilterModelChange}
-            columnVisibilityModel={{
-              roles: canViewRole,
-              action: canEditUser || canDeleteUser ? true : false,
-            }}
-            pageSizeOptions={[10, 25, 50, 100]}
-          /> */}
         </Grid>
       </Grid>
     </AuthorizationCheck>

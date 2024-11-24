@@ -57,6 +57,7 @@ const fetchFilterFunctions = async () => {
 const CreateProjectPage: React.FC<CreateProjectPageProps> = () => {
   // const queryClient = useQueryClient();
   const lang = useLang(state => state.lang);
+
   const [steps, setSteps] = useState<string[]>([
     GetContext('project_detail', lang),
     GetContext('location selection', lang),
@@ -64,6 +65,7 @@ const CreateProjectPage: React.FC<CreateProjectPageProps> = () => {
     GetContext('indicator_design', lang),
     GetContext('assign_user', lang),
   ]);
+
   const [activeStep, setActiveStep] = usePersistentState('activeStep', 0);
   const [completed, setCompleted] = usePersistentState<{ [k: number]: boolean }>('completed', {});
   const [projectTitle, setProjectTitle] = usePersistentState('projectTitle', '');
@@ -71,6 +73,7 @@ const CreateProjectPage: React.FC<CreateProjectPageProps> = () => {
   const [dataDesignForms, setDataDesignForms] = usePersistentState<DataDesignForm[]>('dataDesignForms', []);
   const [indicators, setIndicators] = usePersistentState<Indicator[]>('indicators', []);
   const [facilitators, setFacilitators] = usePersistentState<UserProfile[]>('facilitators', []);
+
   const totalSteps = () => steps.length;
   const completedSteps = () => Object.keys(completed).length;
   const isLastStep = () => activeStep === totalSteps() - 1;
@@ -179,16 +182,6 @@ const CreateProjectPage: React.FC<CreateProjectPageProps> = () => {
       console.error('Error Updating project:', error);
     },
   });
-
-  // const handleComplete = async () => {
-  //   try {
-  //     const response = await handleCreateProject();
-  //     console.log(response);
-  //     enqueueSnackbar('Project successfully created', { variant: 'success' });
-  //   } catch (error) {
-  //     console.error('Error creating project:', error);
-  //   }
-  // };
 
   const handleComplete = async () => {
     const selectedLocations = {
