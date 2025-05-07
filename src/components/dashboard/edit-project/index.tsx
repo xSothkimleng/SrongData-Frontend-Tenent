@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import LocationSelectionTabs from '@/components/dashboard/create-project/location-select-tab';
-import DatasetDesignTabs from '@/components/dashboard/create-project/dataset-design-tab';
+import DatasetDesignTabs from '@/components/dashboard/create-project/datasetDesignTab';
 import IndicatorDesignTab from '@/components/dashboard/create-project/indicator-tab';
 import AssignFacilitatorTab from '@/components/dashboard/create-project/assign-filcilitator-tab';
 import ProjectDetailTab from '@/components/dashboard/create-project/project-detail-tab';
@@ -15,7 +15,6 @@ import { Box, Stepper, Step, StepButton, Button, LinearProgress } from '@mui/mat
 import { SetItemToLocal, GetLocationIdsFromLocal } from '@/utils/localItem';
 import { GetContext } from '@/utils/language';
 import useLang from '@/store/lang';
-import showSnackbar from '@/utils/snackbarHelper';
 
 interface EditProjectPageProps {
   projectId: string;

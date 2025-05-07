@@ -319,9 +319,6 @@ const ReportPage = () => {
                   <Button onClick={() => setOpenPickChartDialog(false)} variant='outlined'>
                     Close
                   </Button>
-                  {/* <Button variant='contained' onClick={() => setOpenPickChartDialog(false)}>
-                    Save
-                  </Button> */}
                 </DialogActions>
               </Dialog>
             </Box>

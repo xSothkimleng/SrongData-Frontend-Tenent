@@ -282,7 +282,7 @@ const ActionCell: React.FC<{
       {canEditProject && (
         <Tooltip title={GetContext('edit_project', lang)}>
           <Button
-            disabled={row.status == 'Completed' || row.data_collected > 0 ? true : false}
+            // disabled={row.status == 'Completed' || row.data_collected > 0 ? true : false}
             variant='contained'
             onClick={() => setOpenEditProjectDialog(true)}
             color='warning'
@@ -333,7 +333,6 @@ const ActionCell: React.FC<{
             getOptionLabel={option => option.first_name + ' ' + option.last_name}
             value={selectedUsers}
             onChange={(event, newValue) => {
-              // console.log('newValue:', newValue);
               setSelectedUsers(newValue);
             }}
             renderOption={(props, option) => (

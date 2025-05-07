@@ -4,14 +4,13 @@ import axios from 'axios';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Box, Stepper, Step, StepButton, Button } from '@mui/material';
 import LocationSelectionTabs from '@/components/dashboard/create-project/location-select-tab';
-import DatasetDesignTabs from '@/components/dashboard/create-project/dataset-design-tab';
+import DatasetDesignTabs from '@/components/dashboard/create-project/datasetDesignTab';
 import IndicatorDesignTab from '@/components/dashboard/create-project/indicator-tab';
 import AssignFacilitatorTab from '@/components/dashboard/create-project/assign-filcilitator-tab';
 import ProjectDetailTab from '@/components/dashboard/create-project/project-detail-tab';
 import usePersistentState from '@/hooks/usePersistentState';
 import { DataDesignForm } from '@/types/dataDesignForm';
 import { UserProfile } from '@/types/user';
-import { enqueueSnackbar } from 'notistack';
 import { GetLocationIdsFromLocal } from '@/utils/localItem';
 import useLang from '@/store/lang';
 import { GetContext } from '@/utils/language';
@@ -26,7 +25,6 @@ import showSnackbar from '@/utils/snackbarHelper';
 const fetchUsersWithStatus = async (): Promise<UserProfile[]> => {
   try {
     const response = await axios.get('/api/get-all-user?status=1');
-    // console.log('Fetched users with status 1:', response.data.data.user);
     return response.data.data.user;
   } catch (error) {
     console.error('Error fetching users with status 1:', error);
@@ -69,6 +67,7 @@ const CreateProjectPage: React.FC<CreateProjectPageProps> = () => {
   const [activeStep, setActiveStep] = usePersistentState('activeStep', 0);
   const [completed, setCompleted] = usePersistentState<{ [k: number]: boolean }>('completed', {});
   const [projectTitle, setProjectTitle] = usePersistentState('projectTitle', '');
+  const [isLocalizationEnabled, setIsLocalizationEnabled] = usePersistentState('isLocalizationEnabled', false);
   const [projectDescription, setProjectDescription] = usePersistentState('projectDescription', '');
   const [dataDesignForms, setDataDesignForms] = usePersistentState<DataDesignForm[]>('dataDesignForms', []);
   const [indicators, setIndicators] = usePersistentState<Indicator[]>('indicators', []);
@@ -199,7 +198,9 @@ const CreateProjectPage: React.FC<CreateProjectPageProps> = () => {
       users: facilitators.map(user => user.id),
       indicators: indicators,
     };
-    // console.log('Updating Project:', body.project_location.villages);
+
+    console.log('Project body:', body);
+
     createProjectMutation.mutate(body);
   };
 
@@ -239,6 +240,8 @@ const CreateProjectPage: React.FC<CreateProjectPageProps> = () => {
               setProjectTitle={setProjectTitle}
               projectDescription={projectDescription}
               setProjectDescription={setProjectDescription}
+              isLocalizationEnabled={isLocalizationEnabled}
+              setIsLocalizationEnabled={setIsLocalizationEnabled}
             />
           )}
 
@@ -249,6 +252,7 @@ const CreateProjectPage: React.FC<CreateProjectPageProps> = () => {
               questionTypes={questionTypesData}
               dataDesignForms={dataDesignForms}
               setDataDesignForms={setDataDesignForms}
+              isLocalizationEnabled={isLocalizationEnabled}
             />
           )}
 
