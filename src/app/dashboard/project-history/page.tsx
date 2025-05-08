@@ -49,20 +49,22 @@ import ConfirmationDialog from '@/components/dashboard/confirmation-dialog';
 import CustomToolbar from '@/components/DataGridToolbar';
 import HeaderTitle from '@/components/HeaderTitle';
 import TopicIcon from '@mui/icons-material/Topic';
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
+import { useRouter } from 'next/navigation';
 
-interface Filter {
+export interface Filter {
   index: number;
   function: string;
   values: any[];
 }
 
-interface Indicator {
+export interface Indicator {
   label: string;
   description: string;
   filters: Filter[];
 }
 
-interface Project {
+export interface Project {
   id: string;
   projectId: string;
   name: string;
@@ -87,12 +89,14 @@ const ActionCell: React.FC<{
   canDeleteProject: boolean;
   canUpdateProjectStatus: boolean;
 }> = ({ row, users, canAssignUser, canCloneProject, canDeleteProject, canEditProject, canUpdateProjectStatus }) => {
+  const router = useRouter();
   const lang = useLang(state => state.lang);
   const queryClient = useQueryClient();
   const [selectedUsers, setSelectedUsers] = useState<UserProfile[]>([]);
   const [password, setPassword] = useState('');
   const [openAssignUserDialog, setOpenAssignUserDialog] = useState(false);
   const [openProjectStatusDialog, setOpenProjectStatusDialog] = useState(false);
+  const [openViewProjectDetailsDialog, setOpenViewProjectDetailsDialog] = useState(false);
   const [openDeleteProjectDialog, setOpenDeleteProjectDialog] = useState(false);
   const [openCloneProjectDialog, setOpenCloneProjectDialog] = useState(false);
   const [openEditProjectDialog, setOpenEditProjectDialog] = useState(false);
@@ -198,11 +202,10 @@ const ActionCell: React.FC<{
 
   const cloneProjectMutation = useMutation<Error>({
     mutationFn: async () => {
-      // console.log('row', row);
       // @ts-ignore
       const encodedIds = encodeURIComponent(`${row.projectId}`);
       const res = await axios.post(`/api/clone-project/${encodedIds}`);
-      // console.log('Clone project:', res.data);
+
       return res.data;
     },
     // @ts-ignore
@@ -232,7 +235,6 @@ const ActionCell: React.FC<{
   });
 
   const handleUpdateProjectStatus = (row: Project) => {
-    // console.log('Update project status:', row);
     // @ts-ignore
     updateProjectStatusMutation.mutate({ projectId: row.projectId });
   };
@@ -240,15 +242,14 @@ const ActionCell: React.FC<{
   const handleAssignUser = () => {
     try {
       const allUser = users;
-      // console.log('All users:', allUser);
-      // Preselect users based on the row's users
+
       const preselectedUsers = row.users
         .map(user => {
           // @ts-ignore
           return allUser.find(u => u.id === user.id);
         })
         .filter(Boolean) as UserProfile[];
-      // console.log('Preselected users:', preselectedUsers);
+
       setSelectedUsers(preselectedUsers);
     } catch (e) {
       console.log('Error:', e);
@@ -265,8 +266,17 @@ const ActionCell: React.FC<{
     cloneProjectMutation.mutate();
   };
 
+  const handleViewProject = (projectId: string) => {
+    router.push(`/dashboard/project-history/project-detail/${projectId}`);
+  };
+
   return (
-    <div>
+    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+      <Tooltip title='View Project Details'>
+        <Button variant='contained' color='info' sx={{ borderRadius: '28px' }} onClick={() => handleViewProject(row.projectId)}>
+          <VisibilityOutlinedIcon />
+        </Button>
+      </Tooltip>
       {canUpdateProjectStatus && (
         <Tooltip title={GetContext('update_project_status', lang)}>
           <Button
@@ -282,11 +292,10 @@ const ActionCell: React.FC<{
       {canEditProject && (
         <Tooltip title={GetContext('edit_project', lang)}>
           <Button
-            // disabled={row.status == 'Completed' || row.data_collected > 0 ? true : false}
             variant='contained'
             onClick={() => setOpenEditProjectDialog(true)}
             color='warning'
-            sx={{ borderRadius: '28px', margin: '0 0.5rem' }}>
+            sx={{ borderRadius: '28px' }}>
             <EditIcon />
           </Button>
         </Tooltip>
@@ -297,7 +306,7 @@ const ActionCell: React.FC<{
             disabled={row.status == 'Completed' ? true : false}
             variant='contained'
             color='success'
-            sx={{ borderRadius: '28px', margin: '0 0.5rem' }}
+            sx={{ borderRadius: '28px' }}
             onClick={() => handleAssignUser()}>
             <StopCircleIcon />
           </Button>
@@ -308,7 +317,7 @@ const ActionCell: React.FC<{
           <Button
             variant='contained'
             color='secondary'
-            sx={{ borderRadius: '28px', margin: '0 0.5rem' }}
+            sx={{ borderRadius: '28px' }}
             onClick={() => setOpenDeleteProjectDialog(true)}>
             <DeleteIcon />
           </Button>
@@ -408,14 +417,13 @@ const ActionCell: React.FC<{
           <EditProjectPage projectId={row.projectId} setOpenEditProjectDialog={setOpenEditProjectDialog} />
         </Box>
       </Dialog>
-    </div>
+    </Box>
   );
 };
 
 const fetchUsersWithStatus = async (): Promise<UserProfile[]> => {
   try {
     const response = await axios.get('/api/get-all-user');
-    // console.log('Fetched users:', response.data.data.user);
     return response.data.data.user;
   } catch (error) {
     console.error('Error fetching users with status 1:', error);
