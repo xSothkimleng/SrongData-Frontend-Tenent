@@ -108,6 +108,7 @@ const AssignFacilitatorTab: React.FC<AssignFacilitatorTabProps> = ({
           </FormControl>
         </Grid>
       )}
+
       <Grid item xs={12}>
         {dataCollectionMethod === PROJECT_DATA_COLLECTION_METHOD.WEB && dataCollectionSetting.isAnonymous ? (
           <AnonymousSurveyMessage />

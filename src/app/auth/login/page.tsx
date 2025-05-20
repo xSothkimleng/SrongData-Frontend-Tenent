@@ -37,8 +37,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (status === 'authenticated') {
-      // router.push('/dashboard');
-      window.location.href = 'https://pornhub.com';
+      router.push('/dashboard');
     }
   }, [status, router]);
 

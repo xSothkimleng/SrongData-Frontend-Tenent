@@ -63,18 +63,32 @@ const ProjectDetailTab: React.FC<ProjectDetailTabProps> = ({
     setIsSurveyLanguageInKhmer(checked);
   };
 
-  const handleCapiSetting = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setDataCollectionSetting({
-      isRequiredNID: true,
-      isAnonymous: false,
-    });
+  const handleCapiSetting = (event: React.ChangeEvent<HTMLInputElement>, checked: boolean) => {
+    if (checked) {
+      setDataCollectionSetting({
+        isRequiredNID: checked,
+        isAnonymous: false,
+      });
+    } else {
+      setDataCollectionSetting({
+        isRequiredNID: false,
+        isAnonymous: false,
+      });
+    }
   };
 
-  const handleWebSetting = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setDataCollectionSetting({
-      isRequiredNID: false,
-      isAnonymous: true,
-    });
+  const handleWebSetting = (event: React.ChangeEvent<HTMLInputElement>, checked: boolean) => {
+    if (checked) {
+      setDataCollectionSetting({
+        isRequiredNID: false,
+        isAnonymous: checked,
+      });
+    } else {
+      setDataCollectionSetting({
+        isRequiredNID: false,
+        isAnonymous: false,
+      });
+    }
   };
 
   return (
