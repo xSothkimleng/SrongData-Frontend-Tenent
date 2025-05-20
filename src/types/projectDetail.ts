@@ -1,15 +1,26 @@
+// constants
+export const PROJECT_DATA_COLLECTION_METHOD = {
+  CAPI: 'capi',
+  WEB: 'web',
+};
+
+export type DataCollectionSetting = {
+  isRequiredNID: boolean;
+  isAnonymous: boolean;
+};
+
 // Skip logic definition for questions
 interface SkipLogic {
-  answer: string; // option value
-  action: string; // jump_to
-  target: string; // section ID
+  answer: string;
+  action: string;
+  target: string;
 }
 
 // Filter definition for indicators
 interface Filter {
-  function: string; // e.g., "isempty", "btw"
+  function: string;
   index: number;
-  values: any[]; // Can be empty or contain values like numbers
+  values: any[];
 }
 
 // For the indicators array
@@ -43,7 +54,7 @@ interface Question {
     description: string;
     order: number;
   };
-  skip_logics: SkipLogic[] | null; // Updated to use the SkipLogic interface
+  skip_logics: SkipLogic[] | null;
   type: string;
   updated_at: string;
 }

@@ -1,11 +1,8 @@
-'use client';
+// SampleSurvey.jsx
 import { useState } from 'react';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
-import { Box } from '@mui/material';
-import SurveyContainer from '@/components/dashboard/WebSurvey';
+import SurveyContainer from './SurveyContainer';
 
-// Create sample survey data
+// Sample survey data structure
 const sampleSurvey = {
   title: 'Paragon FYP Survey',
   description: 'This is fyp project survey about school systems',
@@ -129,56 +126,13 @@ const sampleSurvey = {
   ],
 };
 
-// Create a custom theme to match the design
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#6b5de3', // Purple color from the buttons
-    },
-    secondary: {
-      main: '#ff6b6b', // Red color from the chart
-    },
-    background: {
-      default: '#f7f7f7', // Light gray background
-    },
-  },
-  typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-    fontSize: 14,
-  },
-  components: {
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: 20, // Rounded buttons
-          textTransform: 'none', // No uppercase text
-        },
-      },
-    },
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          borderRadius: 12, // Rounded corners for papers
-        },
-      },
-    },
-  },
-});
-
-const App = () => {
+// Sample usage
+const SampleSurveyApp = () => {
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Box
-        sx={{
-          minHeight: '100vh',
-          background: 'linear-gradient(to bottom, #f7f7f7, #e0e0e0)',
-          py: 2,
-        }}>
-        <SurveyContainer survey={sampleSurvey} />
-      </Box>
-    </ThemeProvider>
+    <div>
+      <SurveyContainer survey={sampleSurvey} />
+    </div>
   );
 };
 
-export default App;
+export default SampleSurveyApp;

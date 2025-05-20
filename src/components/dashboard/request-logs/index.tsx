@@ -124,7 +124,7 @@ const RequestNotification: React.FC<RequestNotificationProps> = ({
           <span className='font-bold underline text-cyan-600 cursor-pointer' onClick={() => setOpenDialog(true)}>
             {GetContext('record', lang)}
           </span>{' '}
-          {lang == 'en' ?? 'of'} <span className='font-bold'>{project?.name}</span>
+          {lang == 'en' ? 'of' : ''} <span className='font-bold'>{project?.name}</span>
         </Box>
         <Box className='mb-3'>{time}</Box>
         <Grid container spacing={2}>

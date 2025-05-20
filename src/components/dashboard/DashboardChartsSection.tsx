@@ -14,6 +14,8 @@ import {
   SelectChangeEvent,
   Divider,
   DialogActions,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import axios from 'axios';
@@ -29,6 +31,7 @@ import useLang from '@/store/lang';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import CloseIcon from '@mui/icons-material/Close';
 import Legend from '../ChartLegend';
+import ActivityLogs from './activity-logs';
 
 interface ChartsSectionProps {
   barChartData: any[];
@@ -67,6 +70,18 @@ const DashboardInfoSection: React.FC<ChartsSectionProps> = ({
   const [selectedProject, setSelectedProject] = useState<Project>({ id: '', name: '' });
   const [openDialog, setOpenDialog] = useState(false);
   const [allProjects, setAllProjects] = useState<Project[]>([]);
+  const [requestLogsTabValue, setRequestLogsTabValue] = React.useState(0);
+
+  function a11yProps(index: number) {
+    return {
+      id: `simple-tab-${index}`,
+      'aria-controls': `simple-tabpanel-${index}`,
+    };
+  }
+
+  const handleChangeTab = (event: React.SyntheticEvent, newValue: number) => {
+    setRequestLogsTabValue(newValue);
+  };
 
   const [openFullPieChartDialog, setOpenFullPieChartDialog] = useState(false);
 
@@ -190,7 +205,19 @@ const DashboardInfoSection: React.FC<ChartsSectionProps> = ({
       </Grid>
       {isOpenRequestLog && (
         <Grid item xs={3.5}>
-          <RequestLogs />
+          <Box sx={{ width: '100%' }}>
+            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+              <Tabs value={requestLogsTabValue} onChange={handleChangeTab} aria-label='basic tabs example'>
+                <Tab label='Request' {...a11yProps(0)} />
+                <Tab label='Activity' {...a11yProps(1)} />
+              </Tabs>
+            </Box>
+
+            <Box>
+              {requestLogsTabValue === 0 && <RequestLogs />}
+              {requestLogsTabValue === 1 && <ActivityLogs />}
+            </Box>
+          </Box>
         </Grid>
       )}
       <Dialog fullWidth open={openDialog} onClose={() => setOpenDialog(!openDialog)}>

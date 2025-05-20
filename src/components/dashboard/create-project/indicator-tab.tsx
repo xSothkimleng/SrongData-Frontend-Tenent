@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { styled } from '@mui/material/styles';
 import { Add, Delete, Remove } from '@mui/icons-material';
 import { DataDesignForm } from '@/types/dataDesignForm';
@@ -28,10 +28,21 @@ interface IndicatorProps {
   setIndicators: React.Dispatch<React.SetStateAction<Indicator[]>>;
   dataDesignForms: DataDesignForm[];
   filterFunctions: any;
+  isSurveyLanguageInEnglish: boolean;
+  isSurveyLanguageInKhmer: boolean;
 }
 
-const IndicatorDesignTab: React.FC<IndicatorProps> = ({ indicators, setIndicators, dataDesignForms, filterFunctions }) => {
+const IndicatorDesignTab: React.FC<IndicatorProps> = ({
+  indicators,
+  setIndicators,
+  dataDesignForms,
+  filterFunctions,
+  isSurveyLanguageInEnglish,
+  isSurveyLanguageInKhmer,
+}) => {
   const lang = useLang(state => state.lang);
+  const [isSurveyInBothLanguages, setIsSurveyInBothLanguages] = useState(isSurveyLanguageInEnglish && isSurveyLanguageInKhmer);
+
   const addIndicator = () => {
     setIndicators([...indicators, { label: '', description: '', filters: [] }]);
   };
@@ -42,7 +53,6 @@ const IndicatorDesignTab: React.FC<IndicatorProps> = ({ indicators, setIndicator
   };
 
   const addIndicatorFilterAt = (index: number) => {
-    // console.log('Add Indicator Index');
     const newIndicators = [...indicators];
     newIndicators[index].filters.push({
       index: index,
@@ -60,13 +70,8 @@ const IndicatorDesignTab: React.FC<IndicatorProps> = ({ indicators, setIndicator
 
   const getFilterFunctions = (index: number) => {
     const form = dataDesignForms.find(f => f.order === index + 1);
-    // console.log('Form', form);
-    // console.log('Filter Functions', filterFunctions);
     if (form && filterFunctions) {
       const dataType = form.data_type as keyof typeof filterFunctions;
-      // console.log('Filter DataType', dataType);
-      // console.log('Filter DataType', filterFunctions[dataType]);
-      // console.log('Filter Functions', filterFunctions);
       return filterFunctions[dataType] || [];
     }
     return [];
@@ -89,35 +94,69 @@ const IndicatorDesignTab: React.FC<IndicatorProps> = ({ indicators, setIndicator
           <AccordionContainer title={`${GetContext('indicator_no', lang)} ${indicatorIndex + 1}`}>
             <Box sx={{ marginBottom: '1rem' }}>
               <Grid container spacing={3}>
-                <Grid item xs={12}>
-                  <TextField
-                    variant='outlined'
-                    label={GetContext('indicator_name', lang)}
-                    value={indicator.label}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                      const newIndicators = [...indicators];
-                      newIndicators[indicatorIndex].label = e.target.value;
-                      setIndicators(newIndicators);
-                    }}
-                    fullWidth
-                    required
-                  />
+                <Grid item xs={isSurveyInBothLanguages ? 12 : 6} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  {isSurveyLanguageInEnglish && (
+                    <TextField
+                      required
+                      sx={{ width: isSurveyLanguageInKhmer ? '50%' : '100%' }}
+                      variant='outlined'
+                      label={GetContext('indicator_name', lang)}
+                      value={indicator.label}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        const newIndicators = [...indicators];
+                        newIndicators[indicatorIndex].label = e.target.value;
+                        setIndicators(newIndicators);
+                      }}
+                    />
+                  )}
+                  {isSurveyLanguageInKhmer && (
+                    <TextField
+                      required
+                      sx={{ width: isSurveyLanguageInEnglish ? '50%' : '100%' }}
+                      variant='outlined'
+                      label='ឈ្មោះរបាយការណ៍'
+                      value={indicator.label}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        const newIndicators = [...indicators];
+                        newIndicators[indicatorIndex].label = e.target.value;
+                        setIndicators(newIndicators);
+                      }}
+                    />
+                  )}
                 </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    multiline
-                    rows={4}
-                    variant='outlined'
-                    label={GetContext('indicator_description', lang)}
-                    value={indicator.description}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                      const newIndicators = [...indicators];
-                      newIndicators[indicatorIndex].description = e.target.value;
-                      setIndicators(newIndicators);
-                    }}
-                    fullWidth
-                    required
-                  />
+                <Grid item xs={isSurveyInBothLanguages ? 12 : 6} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  {isSurveyLanguageInEnglish && (
+                    <TextField
+                      multiline
+                      sx={{ width: isSurveyLanguageInKhmer ? '50%' : '100%' }}
+                      required
+                      rows={4}
+                      variant='outlined'
+                      label={GetContext('indicator_description', lang)}
+                      value={indicator.description}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        const newIndicators = [...indicators];
+                        newIndicators[indicatorIndex].description = e.target.value;
+                        setIndicators(newIndicators);
+                      }}
+                    />
+                  )}
+                  {isSurveyLanguageInKhmer && (
+                    <TextField
+                      multiline
+                      sx={{ width: isSurveyLanguageInKhmer ? '50%' : '100%' }}
+                      required
+                      rows={4}
+                      variant='outlined'
+                      label='ការពិពណ៌នារបាយការណ៍'
+                      value={indicator.description}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        const newIndicators = [...indicators];
+                        newIndicators[indicatorIndex].description = e.target.value;
+                        setIndicators(newIndicators);
+                      }}
+                    />
+                  )}
                 </Grid>
               </Grid>
             </Box>

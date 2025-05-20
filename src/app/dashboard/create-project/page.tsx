@@ -1,6 +1,6 @@
 'use client';
-import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import React, { useState, useEffect } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Box, Stepper, Step, StepButton, Button } from '@mui/material';
 import LocationSelectionTabs from '@/components/dashboard/create-project/location-select-tab';
@@ -14,13 +14,11 @@ import { UserProfile } from '@/types/user';
 import { GetLocationIdsFromLocal } from '@/utils/localItem';
 import useLang from '@/store/lang';
 import { GetContext } from '@/utils/language';
-
-interface CreateProjectPageProps {}
-
 import { Indicator } from '@/types/indicatorOperation';
 import AuthorizationCheck from '@/components/AuthorizationCheck';
 import { permissionCode } from '@/utils/permissionCode';
 import showSnackbar from '@/utils/snackbarHelper';
+import { PROJECT_DATA_COLLECTION_METHOD } from '@/types/projectDetail';
 
 const fetchUsersWithStatus = async (): Promise<UserProfile[]> => {
   try {
@@ -35,7 +33,6 @@ const fetchUsersWithStatus = async (): Promise<UserProfile[]> => {
 const fetchQuestionTypes = async () => {
   try {
     const response = await axios.get('/api/question-types');
-    // console.log(response.data.data);
     return response.data.data;
   } catch (error) {
     console.error('Error fetching question types:', error);
@@ -52,7 +49,7 @@ const fetchFilterFunctions = async () => {
   }
 };
 
-const CreateProjectPage: React.FC<CreateProjectPageProps> = () => {
+const CreateProjectPage = () => {
   // const queryClient = useQueryClient();
   const lang = useLang(state => state.lang);
 
@@ -64,13 +61,27 @@ const CreateProjectPage: React.FC<CreateProjectPageProps> = () => {
     GetContext('assign_user', lang),
   ]);
 
+  // project creation status
   const [activeStep, setActiveStep] = usePersistentState('activeStep', 0);
   const [completed, setCompleted] = usePersistentState<{ [k: number]: boolean }>('completed', {});
+  //project detail
   const [projectTitle, setProjectTitle] = usePersistentState('projectTitle', '');
-  const [isLocalizationEnabled, setIsLocalizationEnabled] = usePersistentState('isLocalizationEnabled', false);
   const [projectDescription, setProjectDescription] = usePersistentState('projectDescription', '');
+  // project setting
+  const [isSurveyLanguageInEnglish, setIsSurveyLanguageInEnglish] = usePersistentState('isSurveyLanguageInEnglish', true);
+  const [isSurveyLanguageInKhmer, setIsSurveyLanguageInKhmer] = usePersistentState('isSurveyLanguageInKhmer', false);
+  const [dataCollectionMethod, setDataCollectionMethod] = usePersistentState(
+    'dataCollectionMethod',
+    PROJECT_DATA_COLLECTION_METHOD.CAPI,
+  );
+  const [dataCollectionSetting, setDataCollectionSetting] = usePersistentState('dataCollectionSetting', {
+    isRequiredNID: false,
+    isAnonymous: true,
+  });
+  // project Question
   const [dataDesignForms, setDataDesignForms] = usePersistentState<DataDesignForm[]>('dataDesignForms', []);
   const [indicators, setIndicators] = usePersistentState<Indicator[]>('indicators', []);
+  // project user
   const [facilitators, setFacilitators] = usePersistentState<UserProfile[]>('facilitators', []);
 
   const totalSteps = () => steps.length;
@@ -240,8 +251,14 @@ const CreateProjectPage: React.FC<CreateProjectPageProps> = () => {
               setProjectTitle={setProjectTitle}
               projectDescription={projectDescription}
               setProjectDescription={setProjectDescription}
-              isLocalizationEnabled={isLocalizationEnabled}
-              setIsLocalizationEnabled={setIsLocalizationEnabled}
+              isSurveyLanguageInEnglish={isSurveyLanguageInEnglish}
+              setIsSurveyLanguageInEnglish={setIsSurveyLanguageInEnglish}
+              isSurveyLanguageInKhmer={isSurveyLanguageInKhmer}
+              setIsSurveyLanguageInKhmer={setIsSurveyLanguageInKhmer}
+              dataCollectionMethod={dataCollectionMethod}
+              setDataCollectionMethod={setDataCollectionMethod}
+              dataCollectionSetting={dataCollectionSetting}
+              setDataCollectionSetting={setDataCollectionSetting}
             />
           )}
 
@@ -252,7 +269,8 @@ const CreateProjectPage: React.FC<CreateProjectPageProps> = () => {
               questionTypes={questionTypesData}
               dataDesignForms={dataDesignForms}
               setDataDesignForms={setDataDesignForms}
-              isLocalizationEnabled={isLocalizationEnabled}
+              isSurveyLanguageInEnglish={isSurveyLanguageInEnglish}
+              isSurveyLanguageInKhmer={isSurveyLanguageInKhmer}
             />
           )}
 
@@ -262,10 +280,19 @@ const CreateProjectPage: React.FC<CreateProjectPageProps> = () => {
               setIndicators={setIndicators}
               dataDesignForms={dataDesignForms}
               filterFunctions={filterFunctionsData}
+              isSurveyLanguageInEnglish={isSurveyLanguageInEnglish}
+              isSurveyLanguageInKhmer={isSurveyLanguageInKhmer}
             />
           )}
 
-          {activeStep === 4 && <AssignFacilitatorTab facilitators={fetchedFacilitators} setFacilitators={setFacilitators} />}
+          {activeStep === 4 && (
+            <AssignFacilitatorTab
+              facilitators={fetchedFacilitators}
+              setFacilitators={setFacilitators}
+              dataCollectionMethod={dataCollectionMethod}
+              dataCollectionSetting={dataCollectionSetting}
+            />
+          )}
 
           <Box className='flex justify-between mt-[1%]'>
             <Button variant='contained' disabled={activeStep === 0} onClick={handleBack}>

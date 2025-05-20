@@ -29,16 +29,19 @@ interface DatasetDesignTabProps {
   questionTypes: QuestionType[];
   dataDesignForms: DataDesignForm[];
   setDataDesignForms: React.Dispatch<React.SetStateAction<DataDesignForm[]>>;
-  isLocalizationEnabled: boolean;
+  isSurveyLanguageInEnglish: boolean;
+  isSurveyLanguageInKhmer: boolean;
 }
 
 const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
   questionTypes,
   dataDesignForms,
   setDataDesignForms,
-  isLocalizationEnabled,
+  isSurveyLanguageInEnglish,
+  isSurveyLanguageInKhmer,
 }) => {
   const lang = useLang(state => state.lang);
+  const [isSurveyInBothLanguages, setIsSurveyInBothLanguages] = useState(isSurveyLanguageInEnglish && isSurveyLanguageInKhmer);
 
   // Skip logic dialog state
   const [activeDialog, setActiveDialog] = useState<{
@@ -426,18 +429,23 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                           title={form.label ? form.label : 'Question Not Set'}
                           onRemove={() => handleRemoveForm(form.order)}>
                           <Grid container spacing={2}>
-                            <Grid item xs={isLocalizationEnabled ? 8 : 6} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                              <TextField
-                                sx={{ width: isLocalizationEnabled ? '50%' : '100%' }}
-                                label={GetContext('question', lang)}
-                                name='label'
-                                value={form.label}
-                                onChange={event => handleInputChange(form.order, event)}
-                                required
-                              />
-                              {isLocalizationEnabled && (
+                            <Grid
+                              item
+                              xs={isSurveyInBothLanguages ? 8 : 6}
+                              sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                              {isSurveyLanguageInEnglish && (
                                 <TextField
-                                  sx={{ width: '50%' }}
+                                  sx={{ width: isSurveyLanguageInKhmer ? '50%' : '100%' }}
+                                  label={GetContext('question', lang)}
+                                  name='label'
+                                  value={form.label}
+                                  onChange={event => handleInputChange(form.order, event)}
+                                  required
+                                />
+                              )}
+                              {isSurveyLanguageInKhmer && (
+                                <TextField
+                                  sx={{ width: isSurveyLanguageInEnglish ? '50%' : '100%' }}
                                   label='សំណួរ'
                                   name='label'
                                   value={form.label}
@@ -446,7 +454,7 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                                 />
                               )}
                             </Grid>
-                            <Grid item xs={isLocalizationEnabled ? 2 : 4}>
+                            <Grid item xs={isSurveyInBothLanguages ? 2 : 4}>
                               <TextField
                                 fullWidth
                                 select
@@ -508,18 +516,20 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                                         <Radio disabled />
                                       </Grid>
                                       <Grid item xs={8.5} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                        <TextField
-                                          sx={{ width: isLocalizationEnabled ? '50%' : '100%' }}
-                                          label={GetContext('option', lang)}
-                                          value={optionValue}
-                                          onChange={event => {
-                                            handleOptionValueChange(form.order, optionIndex, event.target.value);
-                                          }}
-                                          required
-                                        />
-                                        {isLocalizationEnabled && (
+                                        {isSurveyLanguageInEnglish && (
                                           <TextField
-                                            sx={{ width: '50%' }}
+                                            sx={{ width: isSurveyLanguageInKhmer ? '50%' : '100%' }}
+                                            label={GetContext('option', lang)}
+                                            value={optionValue}
+                                            onChange={event => {
+                                              handleOptionValueChange(form.order, optionIndex, event.target.value);
+                                            }}
+                                            required
+                                          />
+                                        )}
+                                        {isSurveyLanguageInKhmer && (
+                                          <TextField
+                                            sx={{ width: isSurveyLanguageInEnglish ? '50%' : '100%' }}
                                             label='ជម្រើស'
                                             value={optionValue}
                                             onChange={event => {
@@ -568,18 +578,20 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                                       key={optionIndex}
                                       sx={{ marginBottom: '0.5rem' }}>
                                       <Grid item xs={9} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                        <TextField
-                                          sx={{ width: isLocalizationEnabled ? '50%' : '100%' }}
-                                          label={GetContext('option', lang)}
-                                          value={optionValue}
-                                          onChange={event => {
-                                            handleOptionValueChange(form.order, optionIndex, event.target.value);
-                                          }}
-                                          required
-                                        />
-                                        {isLocalizationEnabled && (
+                                        {isSurveyLanguageInEnglish && (
                                           <TextField
-                                            sx={{ width: '50%' }}
+                                            sx={{ width: isSurveyLanguageInKhmer ? '50%' : '100%' }}
+                                            label={GetContext('option', lang)}
+                                            value={optionValue}
+                                            onChange={event => {
+                                              handleOptionValueChange(form.order, optionIndex, event.target.value);
+                                            }}
+                                            required
+                                          />
+                                        )}
+                                        {isSurveyLanguageInKhmer && (
+                                          <TextField
+                                            sx={{ width: isSurveyLanguageInEnglish ? '50%' : '100%' }}
                                             label='ជម្រើស'
                                             value={optionValue}
                                             onChange={event => {
@@ -634,18 +646,20 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                                         <Checkbox disabled />
                                       </Grid>
                                       <Grid item xs={8.5} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                        <TextField
-                                          sx={{ width: isLocalizationEnabled ? '50%' : '100%' }}
-                                          label={GetContext('option', lang)}
-                                          value={optionValue}
-                                          onChange={event => {
-                                            handleOptionValueChange(form.order, optionIndex, event.target.value);
-                                          }}
-                                          required
-                                        />
-                                        {isLocalizationEnabled && (
+                                        {isSurveyLanguageInEnglish && (
                                           <TextField
-                                            sx={{ width: '50%' }}
+                                            sx={{ width: isSurveyLanguageInKhmer ? '50%' : '100%' }}
+                                            label={GetContext('option', lang)}
+                                            value={optionValue}
+                                            onChange={event => {
+                                              handleOptionValueChange(form.order, optionIndex, event.target.value);
+                                            }}
+                                            required
+                                          />
+                                        )}
+                                        {isSurveyLanguageInKhmer && (
+                                          <TextField
+                                            sx={{ width: isSurveyLanguageInEnglish ? '50%' : '100%' }}
                                             label='ជម្រើស'
                                             value={optionValue}
                                             onChange={event => {

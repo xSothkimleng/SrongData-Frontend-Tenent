@@ -1,14 +1,4 @@
 {
-  "cSpell.words": [
-    "Formater",
-    "indexs",
-    "NEXTAUTH",
-    "notistack",
-    "qrcode",
-    "RGIS",
-    "Srong",
-    "tailwindcss",
-    "tanstack"
-  ],
+  "cSpell.words": ["Capi", "Formater", "indexs", "NEXTAUTH", "notistack", "qrcode", "RGIS", "Srong", "tailwindcss", "tanstack"],
   "nuxt.isNuxtApp": false
 }

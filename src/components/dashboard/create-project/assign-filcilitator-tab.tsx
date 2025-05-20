@@ -5,20 +5,38 @@ import { UserProfile } from '@/types/user';
 import { usePathname } from 'next/navigation';
 import { GetContext } from '@/utils/language';
 import useLang from '@/store/lang';
+import { DataCollectionSetting, PROJECT_DATA_COLLECTION_METHOD } from '@/types/projectDetail';
+import AnonymousSurveyMessage from './assignFacilitatorTab/anonymousSurveyMessage';
+import WhitelistEmail from './assignFacilitatorTab/whitelistEmail';
 
 interface AssignFacilitatorTabProps {
   facilitators: UserProfile[];
   setFacilitators: React.Dispatch<React.SetStateAction<UserProfile[]>>;
   assignedUserId?: string[];
+  dataCollectionMethod: string;
+  dataCollectionSetting: DataCollectionSetting;
 }
 
-const AssignFacilitatorTab: React.FC<AssignFacilitatorTabProps> = ({ facilitators, setFacilitators, assignedUserId }) => {
+const AssignFacilitatorTab: React.FC<AssignFacilitatorTabProps> = ({
+  facilitators,
+  setFacilitators,
+  assignedUserId,
+  dataCollectionMethod,
+  dataCollectionSetting,
+}) => {
   const lang = useLang(state => state.lang);
   const pathname = usePathname();
   const [selectedUsersPersisted, setSelectedUsersPersisted] = usePersistentState<UserProfile[]>('selectedUsers', []);
   const [selectedUsersNotPersisted, setSelectedUsersNotPersisted] = useState<UserProfile[]>([]);
   const [isPathnameCreateProject, setIsPathnameCreateProject] = useState<boolean>(false);
   const [currentFacilitators, setCurrentFacilitators] = useState<UserProfile[]>([]);
+  const [whitelistedEmails, setWhitelistedEmails] = useState<string[]>([]);
+
+  const handleEmailsChange = (emails: string[]) => {
+    setWhitelistedEmails(emails);
+    // You might want to pass this to a parent component or save it
+    console.log('Updated emails:', emails);
+  };
 
   useEffect(() => {
     if (pathname === '/dashboard/create-project') {
@@ -59,34 +77,43 @@ const AssignFacilitatorTab: React.FC<AssignFacilitatorTabProps> = ({ facilitator
 
   return (
     <Grid container>
+      {dataCollectionMethod === PROJECT_DATA_COLLECTION_METHOD.CAPI && (
+        <Grid item xs={12}>
+          <FormControl sx={{ width: '100%', marginBottom: 2 }}>
+            <InputLabel id='user-filter-label'>{GetContext('user', lang)}</InputLabel>
+            <Select
+              multiple
+              labelId='user-filter-label'
+              id='users-filter'
+              variant='standard'
+              value={currentFacilitators.map(user => user.id)}
+              onChange={handleUserChange}
+              renderValue={selected => (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  {selected.map(userId => {
+                    const user = facilitators.find(fac => fac.id === userId);
+                    if (user) {
+                      return <Chip key={user.id} label={`${user.last_name} ${user.first_name}`} />;
+                    }
+                    return null;
+                  })}
+                </Box>
+              )}>
+              {facilitators.map(user => (
+                <MenuItem key={user.id} value={user.id}>
+                  {`${user.last_name} ${user.first_name}`}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+      )}
       <Grid item xs={12}>
-        <FormControl sx={{ width: '100%', marginBottom: 2 }}>
-          <InputLabel id='user-filter-label'>{GetContext('user', lang)}</InputLabel>
-          <Select
-            multiple
-            labelId='user-filter-label'
-            id='users-filter'
-            variant='standard'
-            value={currentFacilitators.map(user => user.id)}
-            onChange={handleUserChange}
-            renderValue={selected => (
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                {selected.map(userId => {
-                  const user = facilitators.find(fac => fac.id === userId);
-                  if (user) {
-                    return <Chip key={user.id} label={`${user.last_name} ${user.first_name}`} />;
-                  }
-                  return null;
-                })}
-              </Box>
-            )}>
-            {facilitators.map(user => (
-              <MenuItem key={user.id} value={user.id}>
-                {`${user.last_name} ${user.first_name}`}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        {dataCollectionMethod === PROJECT_DATA_COLLECTION_METHOD.WEB && dataCollectionSetting.isAnonymous ? (
+          <AnonymousSurveyMessage />
+        ) : (
+          <WhitelistEmail onEmailsChange={handleEmailsChange} initialEmails={whitelistedEmails} />
+        )}
       </Grid>
     </Grid>
   );
