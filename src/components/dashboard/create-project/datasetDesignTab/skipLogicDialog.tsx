@@ -74,7 +74,7 @@ const SkipLogicDialog: React.FC<LogicDialogProps> = ({
         <Grid container spacing={2} sx={{ marginTop: 1 }}>
           <Grid item xs={12}>
             <Typography variant='subtitle1' gutterBottom>
-              For question: <strong>{currentForm?.label || 'Unknown Question'}</strong>
+              For question: <strong>{currentForm?.label.en || 'Unknown Question'}</strong>
             </Typography>
             <Typography variant='subtitle2' gutterBottom>
               When option <strong>{optionValue}</strong> is selected:

@@ -7,22 +7,23 @@ export interface OptionLocalizationType {
   km: string;
 }
 interface skipLogic {
-  answer: string; // option value
-  action: string; // jump_to
-  target: string; // section ID
+  answer: string;
+  action: string;
+  target: string;
 }
 export interface SectionType {
   order: number;
   title: string;
   description: string;
 }
+
 export interface DataDesignForm {
   order: number;
-  label: string;
+  label: { en: string; km: string };
   is_required: boolean;
   type: string;
   data_type: string;
-  options: string[];
+  options: { en: string; km: string }[];
   section: SectionType;
   skip_logics: skipLogic[] | null;
 }

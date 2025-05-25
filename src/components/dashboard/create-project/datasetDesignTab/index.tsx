@@ -66,7 +66,10 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
         setDataDesignForms([
           {
             order: 1,
-            label: '',
+            label: {
+              en: '',
+              km: '',
+            },
             type: '',
             data_type: '',
             is_required: true,
@@ -191,7 +194,10 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
         ...prevQuestion,
         {
           order: prevQuestion.length + 1,
-          label: '',
+          label: {
+            en: '',
+            km: '',
+          },
           type: '',
           data_type: '',
           is_required: true,
@@ -276,15 +282,15 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
         if (formIndex === -1) return prevForms;
 
         const newForms = [...prevForms];
-        // Adding a string option now, not an object
-        newForms[formIndex].options = [...newForms[formIndex].options, ''];
+
+        newForms[formIndex].options = [...newForms[formIndex].options, { en: '', km: ' ' }];
         return newForms;
       });
     },
     [setDataDesignForms],
   );
 
-  const handleOptionValueChange = useCallback(
+  const handleOptionValueChangeEn = useCallback(
     (formOrder: number, optionIndex: number, value: string) => {
       setDataDesignForms(prevForms => {
         const formIndex = prevForms.findIndex(form => form.order === formOrder);
@@ -292,7 +298,23 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
 
         const newForms = [...prevForms];
         // Update option as string
-        newForms[formIndex].options[optionIndex] = value;
+        newForms[formIndex].options[optionIndex].en = value;
+
+        return newForms;
+      });
+    },
+    [setDataDesignForms],
+  );
+
+  const handleOptionValueChangeKm = useCallback(
+    (formOrder: number, optionIndex: number, value: string) => {
+      setDataDesignForms(prevForms => {
+        const formIndex = prevForms.findIndex(form => form.order === formOrder);
+        if (formIndex === -1) return prevForms;
+
+        const newForms = [...prevForms];
+        // Update option as string
+        newForms[formIndex].options[optionIndex].km = value;
 
         return newForms;
       });
@@ -350,7 +372,7 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
 
         // Remove any skip logic associated with this option
         if (newForms[formIndex].skip_logics) {
-          newForms[formIndex].skip_logics = newForms[formIndex].skip_logics!.filter(logic => logic.answer !== optionValue);
+          newForms[formIndex].skip_logics = newForms[formIndex].skip_logics!.filter(logic => logic.answer !== optionValue.en);
 
           // If skip_logic is now empty, set it to null
           if (newForms[formIndex].skip_logics.length === 0) {
@@ -364,7 +386,7 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
     [setDataDesignForms],
   );
 
-  const handleInputChange = useCallback(
+  const handleInputChangeEn = useCallback(
     (formOrder: number, event: React.ChangeEvent<HTMLInputElement | { name?: string | undefined; value: unknown }>) => {
       const { name, value } = event.target;
       setDataDesignForms(prevForms => {
@@ -373,7 +395,26 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
 
         const newForms = [...prevForms];
         if (name === 'label') {
-          newForms[formIndex].label = value as string;
+          newForms[formIndex].label.en = value as string;
+        } else if (name === 'data_type') {
+          handleDataTypeChange(formOrder, value as string);
+        }
+        return newForms;
+      });
+    },
+    [handleDataTypeChange, setDataDesignForms],
+  );
+
+  const handleInputChangeKm = useCallback(
+    (formOrder: number, event: React.ChangeEvent<HTMLInputElement | { name?: string | undefined; value: unknown }>) => {
+      const { name, value } = event.target;
+      setDataDesignForms(prevForms => {
+        const formIndex = prevForms.findIndex(form => form.order === formOrder);
+        if (formIndex === -1) return prevForms;
+
+        const newForms = [...prevForms];
+        if (name === 'label') {
+          newForms[formIndex].label.km = value as string;
         } else if (name === 'data_type') {
           handleDataTypeChange(formOrder, value as string);
         }
@@ -426,7 +467,7 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                       <Grid item xs={12} key={form.order}>
                         <SortableQuestionContainer
                           order={form.order}
-                          title={form.label ? form.label : 'Question Not Set'}
+                          title={form.label.en ? form.label.en : 'Question Not Set'}
                           onRemove={() => handleRemoveForm(form.order)}>
                           <Grid container spacing={2}>
                             <Grid
@@ -438,8 +479,8 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                                   sx={{ width: isSurveyLanguageInKhmer ? '50%' : '100%' }}
                                   label={GetContext('question', lang)}
                                   name='label'
-                                  value={form.label}
-                                  onChange={event => handleInputChange(form.order, event)}
+                                  value={form.label.en}
+                                  onChange={event => handleInputChangeEn(form.order, event)}
                                   required
                                 />
                               )}
@@ -448,8 +489,8 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                                   sx={{ width: isSurveyLanguageInEnglish ? '50%' : '100%' }}
                                   label='សំណួរ'
                                   name='label'
-                                  value={form.label}
-                                  onChange={event => handleInputChange(form.order, event)}
+                                  value={form.label.km}
+                                  onChange={event => handleInputChangeKm(form.order, event)}
                                   required
                                 />
                               )}
@@ -500,7 +541,7 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                                 {form.options.map((optionValue, optionIndex) => {
                                   const formIndex = dataDesignForms.findIndex(f => f.order === form.order);
                                   const hasSkipLogic =
-                                    formIndex >= 0 && form.skip_logics?.some(logic => logic.answer === optionValue);
+                                    formIndex >= 0 && form.skip_logics?.some(logic => logic.answer === optionValue.en);
 
                                   return (
                                     <Grid
@@ -520,9 +561,9 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                                           <TextField
                                             sx={{ width: isSurveyLanguageInKhmer ? '50%' : '100%' }}
                                             label={GetContext('option', lang)}
-                                            value={optionValue}
+                                            value={optionValue.en}
                                             onChange={event => {
-                                              handleOptionValueChange(form.order, optionIndex, event.target.value);
+                                              handleOptionValueChangeEn(form.order, optionIndex, event.target.value);
                                             }}
                                             required
                                           />
@@ -531,9 +572,9 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                                           <TextField
                                             sx={{ width: isSurveyLanguageInEnglish ? '50%' : '100%' }}
                                             label='ជម្រើស'
-                                            value={optionValue}
+                                            value={optionValue.km}
                                             onChange={event => {
-                                              handleOptionValueChange(form.order, optionIndex, event.target.value);
+                                              handleOptionValueChangeKm(form.order, optionIndex, event.target.value);
                                             }}
                                             required
                                           />
@@ -548,7 +589,7 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                                             setActiveDialog({
                                               isOpen: true,
                                               formIndex: formIndex,
-                                              optionValue: optionValue,
+                                              optionValue: optionValue.en,
                                             });
                                           }}>
                                           {hasSkipLogic ? 'Edit Skip Logic' : 'Add Skip Logic'}
@@ -568,7 +609,7 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                                 {form.options.map((optionValue, optionIndex) => {
                                   const formIndex = dataDesignForms.findIndex(f => f.order === form.order);
                                   const hasSkipLogic =
-                                    formIndex >= 0 && form.skip_logics?.some(logic => logic.answer === optionValue);
+                                    formIndex >= 0 && form.skip_logics?.some(logic => logic.answer === optionValue.en);
 
                                   return (
                                     <Grid
@@ -582,9 +623,9 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                                           <TextField
                                             sx={{ width: isSurveyLanguageInKhmer ? '50%' : '100%' }}
                                             label={GetContext('option', lang)}
-                                            value={optionValue}
+                                            value={optionValue.en}
                                             onChange={event => {
-                                              handleOptionValueChange(form.order, optionIndex, event.target.value);
+                                              handleOptionValueChangeEn(form.order, optionIndex, event.target.value);
                                             }}
                                             required
                                           />
@@ -593,9 +634,9 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                                           <TextField
                                             sx={{ width: isSurveyLanguageInEnglish ? '50%' : '100%' }}
                                             label='ជម្រើស'
-                                            value={optionValue}
+                                            value={optionValue.km}
                                             onChange={event => {
-                                              handleOptionValueChange(form.order, optionIndex, event.target.value);
+                                              handleOptionValueChangeKm(form.order, optionIndex, event.target.value);
                                             }}
                                             required
                                           />
@@ -610,7 +651,7 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                                             setActiveDialog({
                                               isOpen: true,
                                               formIndex: formIndex,
-                                              optionValue: optionValue,
+                                              optionValue: optionValue.en,
                                             });
                                           }}>
                                           {hasSkipLogic ? 'Edit Skip Logic' : 'Add Skip Logic'}
@@ -630,7 +671,7 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                                 {form.options.map((optionValue, optionIndex) => {
                                   const formIndex = dataDesignForms.findIndex(f => f.order === form.order);
                                   const hasSkipLogic =
-                                    formIndex >= 0 && form.skip_logics?.some(logic => logic.answer === optionValue);
+                                    formIndex >= 0 && form.skip_logics?.some(logic => logic.answer === optionValue.en);
 
                                   return (
                                     <Grid
@@ -650,9 +691,9 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                                           <TextField
                                             sx={{ width: isSurveyLanguageInKhmer ? '50%' : '100%' }}
                                             label={GetContext('option', lang)}
-                                            value={optionValue}
+                                            value={optionValue.en}
                                             onChange={event => {
-                                              handleOptionValueChange(form.order, optionIndex, event.target.value);
+                                              handleOptionValueChangeEn(form.order, optionIndex, event.target.value);
                                             }}
                                             required
                                           />
@@ -661,9 +702,9 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                                           <TextField
                                             sx={{ width: isSurveyLanguageInEnglish ? '50%' : '100%' }}
                                             label='ជម្រើស'
-                                            value={optionValue}
+                                            value={optionValue.km}
                                             onChange={event => {
-                                              handleOptionValueChange(form.order, optionIndex, event.target.value);
+                                              handleOptionValueChangeKm(form.order, optionIndex, event.target.value);
                                             }}
                                             required
                                           />
@@ -678,7 +719,7 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                                             setActiveDialog({
                                               isOpen: true,
                                               formIndex: formIndex,
-                                              optionValue: optionValue,
+                                              optionValue: optionValue.en,
                                             });
                                           }}>
                                           {hasSkipLogic ? 'Edit Skip Logic' : 'Add Skip Logic'}

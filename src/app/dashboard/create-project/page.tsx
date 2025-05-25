@@ -18,7 +18,7 @@ import { Indicator } from '@/types/indicatorOperation';
 import AuthorizationCheck from '@/components/AuthorizationCheck';
 import { permissionCode } from '@/utils/permissionCode';
 import showSnackbar from '@/utils/snackbarHelper';
-import { PROJECT_DATA_COLLECTION_METHOD } from '@/types/projectDetail';
+import { PROJECT_DATA_COLLECTION_METHOD, ProjectDescription, ProjectDetail } from '@/types/projectDetail';
 
 const fetchUsersWithStatus = async (): Promise<UserProfile[]> => {
   try {
@@ -42,7 +42,6 @@ const fetchQuestionTypes = async () => {
 const fetchFilterFunctions = async () => {
   try {
     const response = await axios.get('/api/filter-function');
-    // console.log(response.data.data);
     return response.data.data;
   } catch (error) {
     console.error('Error fetching filter functions:', error);
@@ -65,18 +64,20 @@ const CreateProjectPage = () => {
   const [activeStep, setActiveStep] = usePersistentState('activeStep', 0);
   const [completed, setCompleted] = usePersistentState<{ [k: number]: boolean }>('completed', {});
   //project detail
-  const [projectTitle, setProjectTitle] = usePersistentState('projectTitle', '');
-  const [projectDescription, setProjectDescription] = usePersistentState('projectDescription', '');
+  const [projectTitle, setProjectTitle] = usePersistentState<ProjectDetail>('projectTitle', {
+    en: '',
+    km: '',
+  });
+  const [projectDescription, setProjectDescription] = usePersistentState<ProjectDescription>('projectDescription', {
+    en: '',
+    km: '',
+  });
   // project setting
   const [isSurveyLanguageInEnglish, setIsSurveyLanguageInEnglish] = usePersistentState('isSurveyLanguageInEnglish', true);
   const [isSurveyLanguageInKhmer, setIsSurveyLanguageInKhmer] = usePersistentState('isSurveyLanguageInKhmer', false);
-  const [dataCollectionMethod, setDataCollectionMethod] = usePersistentState(
-    'dataCollectionMethod',
-    PROJECT_DATA_COLLECTION_METHOD.CAPI,
-  );
-  const [dataCollectionSetting, setDataCollectionSetting] = usePersistentState('dataCollectionSetting', {
+  const [dataCollectionMethod, setDataCollectionMethod] = usePersistentState('dataCollectionMethod', {
+    method: PROJECT_DATA_COLLECTION_METHOD.CAPI,
     isRequiredNID: false,
-    isAnonymous: true,
   });
   // project Question
   const [dataDesignForms, setDataDesignForms] = usePersistentState<DataDesignForm[]>('dataDesignForms', []);
@@ -102,7 +103,7 @@ const CreateProjectPage = () => {
   const handleNext = () => {
     switch (activeStep) {
       case 0:
-        if (projectTitle.length < 3 || projectDescription.length < 3) {
+        if (projectTitle.en.length < 3 || projectDescription.en.length < 3) {
           showSnackbar('Project title and description must be at least 3 characters long', 'warning');
           return;
         }
@@ -125,7 +126,7 @@ const CreateProjectPage = () => {
           return;
         }
 
-        if (dataDesignForms.some(form => form.label.length < 0 || dataDesignForms.some(form => form.type == ''))) {
+        if (dataDesignForms.some(form => form.label.en.length < 0 || dataDesignForms.some(form => form.type == ''))) {
           showSnackbar('Please fill all question fields', 'warning');
           return;
         }
@@ -170,20 +171,17 @@ const CreateProjectPage = () => {
   const createProjectMutation = useMutation<unknown, Error, any>({
     mutationFn: async (data: any) => {
       const res = await axios.post(`/api/create-project`, data);
-      // console.log('Update project users:', res.data);
       return res.data;
     },
     // @ts-ignore
     onSuccess: async data => {
-      // Reset all state variables
-      setProjectTitle('');
-      setProjectDescription('');
+      setProjectTitle({ en: '', km: '' });
+      setProjectDescription({ en: '', km: '' });
       setDataDesignForms([]);
       setIndicators([]);
       setFacilitators([]);
       setCompleted({});
       setActiveStep(0);
-
       // @ts-ignore
       showSnackbar(data.message ?? 'Project successfully created', 'success');
     },
@@ -235,13 +233,19 @@ const CreateProjectPage = () => {
       <main>
         <Box sx={{ width: '100%' }} className='border-1 boxShadow-1 p-4'>
           <Stepper nonLinear activeStep={activeStep}>
-            {steps.map((label, index) => (
-              <Step key={label} completed={completed[index]} disabled>
-                <StepButton color='inherit' onClick={handleStep(index)}>
-                  {label}
-                </StepButton>
-              </Step>
-            ))}
+            {steps.map((label, index) => {
+              if (dataCollectionMethod.method == PROJECT_DATA_COLLECTION_METHOD.WEB && index === 4) {
+                return null; // Skip the last step for web method
+              } else {
+                return (
+                  <Step key={label} completed={completed[index]} disabled>
+                    <StepButton color='inherit' onClick={handleStep(index)}>
+                      {label}
+                    </StepButton>
+                  </Step>
+                );
+              }
+            })}
           </Stepper>
         </Box>
         <Box className='w-full mt-[1%] p-4 border-1 boxShadow-1'>
@@ -257,8 +261,6 @@ const CreateProjectPage = () => {
               setIsSurveyLanguageInKhmer={setIsSurveyLanguageInKhmer}
               dataCollectionMethod={dataCollectionMethod}
               setDataCollectionMethod={setDataCollectionMethod}
-              dataCollectionSetting={dataCollectionSetting}
-              setDataCollectionSetting={setDataCollectionSetting}
             />
           )}
 
@@ -285,13 +287,8 @@ const CreateProjectPage = () => {
             />
           )}
 
-          {activeStep === 4 && (
-            <AssignFacilitatorTab
-              facilitators={fetchedFacilitators}
-              setFacilitators={setFacilitators}
-              dataCollectionMethod={dataCollectionMethod}
-              dataCollectionSetting={dataCollectionSetting}
-            />
+          {activeStep === 4 && dataCollectionMethod.method == PROJECT_DATA_COLLECTION_METHOD.CAPI && (
+            <AssignFacilitatorTab facilitators={fetchedFacilitators} setFacilitators={setFacilitators} />
           )}
 
           <Box className='flex justify-between mt-[1%]'>
@@ -299,11 +296,16 @@ const CreateProjectPage = () => {
               {GetContext('back', lang)}
             </Button>
 
-            {activeStep !== 4 && (
-              <Button variant='contained' onClick={handleNext}>
-                {GetContext('next', lang)}
-              </Button>
-            )}
+            {activeStep !== 4 &&
+              (activeStep === 3 && dataCollectionMethod.method == PROJECT_DATA_COLLECTION_METHOD.WEB ? (
+                <Button variant='contained' onClick={() => handleComplete()}>
+                  {GetContext('create', lang)}
+                </Button>
+              ) : (
+                <Button variant='contained' onClick={handleNext}>
+                  {GetContext('next', lang)}
+                </Button>
+              ))}
 
             {activeStep === 4 && (
               <Button variant='contained' onClick={() => handleComplete()}>

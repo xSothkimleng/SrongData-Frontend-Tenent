@@ -3,6 +3,12 @@ import React from 'react';
 import { GetContext } from '@/utils/language';
 import useLang from '@/store/lang';
 import {
+  DataCollectionMethodType,
+  PROJECT_DATA_COLLECTION_METHOD,
+  ProjectDescription,
+  ProjectDetail,
+} from '@/types/projectDetail';
+import {
   Box,
   Grid,
   Typography,
@@ -16,23 +22,18 @@ import {
   RadioGroup,
   Radio,
 } from '@mui/material';
-import { DataCollectionSetting, PROJECT_DATA_COLLECTION_METHOD } from '@/types/projectDetail';
 
 interface ProjectDetailTabProps {
-  projectTitle: string;
-  setProjectTitle: (title: string) => void;
-  projectDescription: string;
-  setProjectDescription: (description: string) => void;
+  projectTitle: ProjectDetail;
+  setProjectTitle: (name: ProjectDetail) => void;
+  projectDescription: ProjectDescription;
+  setProjectDescription: (description: ProjectDescription) => void;
   isSurveyLanguageInEnglish: boolean;
   setIsSurveyLanguageInEnglish: (isEnabled: boolean) => void;
   isSurveyLanguageInKhmer: boolean;
   setIsSurveyLanguageInKhmer: (isEnabled: boolean) => void;
-  dataCollectionMethod: string;
-  setDataCollectionMethod: (method: string) => void;
-  dataCollectionSetting: DataCollectionSetting;
-  setDataCollectionSetting: (
-    setting: DataCollectionSetting | ((prevSetting: DataCollectionSetting) => DataCollectionSetting),
-  ) => void;
+  dataCollectionMethod: DataCollectionMethodType;
+  setDataCollectionMethod: (method: DataCollectionMethodType) => void;
 }
 
 const ProjectDetailTab: React.FC<ProjectDetailTabProps> = ({
@@ -46,13 +47,14 @@ const ProjectDetailTab: React.FC<ProjectDetailTabProps> = ({
   setIsSurveyLanguageInKhmer,
   dataCollectionMethod,
   setDataCollectionMethod,
-  dataCollectionSetting,
-  setDataCollectionSetting,
 }) => {
   const lang = useLang(state => state.lang);
 
   const handleChangeDataCollectionType = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setDataCollectionMethod((event.target as HTMLInputElement).value);
+    setDataCollectionMethod({
+      method: (event.target as HTMLInputElement).value,
+      isRequiredNID: dataCollectionMethod.isRequiredNID || false,
+    });
   };
 
   const handleSetEnglishLanguageSurvey = (_event: React.SyntheticEvent, checked: boolean) => {
@@ -63,32 +65,11 @@ const ProjectDetailTab: React.FC<ProjectDetailTabProps> = ({
     setIsSurveyLanguageInKhmer(checked);
   };
 
-  const handleCapiSetting = (event: React.ChangeEvent<HTMLInputElement>, checked: boolean) => {
-    if (checked) {
-      setDataCollectionSetting({
-        isRequiredNID: checked,
-        isAnonymous: false,
-      });
-    } else {
-      setDataCollectionSetting({
-        isRequiredNID: false,
-        isAnonymous: false,
-      });
-    }
-  };
-
-  const handleWebSetting = (event: React.ChangeEvent<HTMLInputElement>, checked: boolean) => {
-    if (checked) {
-      setDataCollectionSetting({
-        isRequiredNID: false,
-        isAnonymous: checked,
-      });
-    } else {
-      setDataCollectionSetting({
-        isRequiredNID: false,
-        isAnonymous: false,
-      });
-    }
+  const handleSetCapiRequiredNid = (_event: React.SyntheticEvent, checked: boolean) => {
+    setDataCollectionMethod({
+      ...dataCollectionMethod,
+      isRequiredNID: checked,
+    });
   };
 
   return (
@@ -127,19 +108,19 @@ const ProjectDetailTab: React.FC<ProjectDetailTabProps> = ({
                   <RadioGroup
                     aria-labelledby='demo-controlled-radio-buttons-group'
                     name='controlled-radio-buttons-group'
-                    value={dataCollectionMethod}
+                    value={dataCollectionMethod.method}
                     onChange={handleChangeDataCollectionType}>
                     <FormControlLabel
                       value={PROJECT_DATA_COLLECTION_METHOD.CAPI}
                       control={<Radio />}
                       label='Computer-Assisted Personal Interviewing (CAPI)'
                     />
-                    {dataCollectionMethod === PROJECT_DATA_COLLECTION_METHOD.CAPI && (
+                    {dataCollectionMethod.method === PROJECT_DATA_COLLECTION_METHOD.CAPI && (
                       <Box sx={{ marginLeft: '3rem' }}>
                         <Typography variant='body1'>Setting</Typography>
                         <FormControlLabel
-                          control={<Switch checked={dataCollectionSetting.isRequiredNID} onChange={handleCapiSetting} />}
-                          label='Required NID'
+                          control={<Switch checked={dataCollectionMethod.isRequiredNID} onChange={handleSetCapiRequiredNid} />}
+                          label='Required ID'
                         />
                       </Box>
                     )}
@@ -148,15 +129,6 @@ const ProjectDetailTab: React.FC<ProjectDetailTabProps> = ({
                       control={<Radio />}
                       label='Web-based Survey Questionnaire'
                     />
-                    {dataCollectionMethod === PROJECT_DATA_COLLECTION_METHOD.WEB && (
-                      <Box sx={{ marginLeft: '3rem' }}>
-                        <Typography variant='body1'>Setting</Typography>
-                        <FormControlLabel
-                          control={<Switch checked={dataCollectionSetting.isAnonymous} onChange={handleWebSetting} />}
-                          label='Anonymous'
-                        />
-                      </Box>
-                    )}
                   </RadioGroup>
                 </FormControl>
               </Box>
@@ -172,14 +144,14 @@ const ProjectDetailTab: React.FC<ProjectDetailTabProps> = ({
                   sx={{ width: isSurveyLanguageInKhmer ? '50%' : '100%' }}
                   id='outlined-required'
                   label={GetContext('project_name', lang)}
-                  value={projectTitle}
-                  onChange={e => setProjectTitle(e.target.value)}
+                  value={projectTitle.en}
+                  onChange={e => setProjectTitle({ en: e.target.value, km: projectTitle.km })}
                   inputProps={{ minLength: 3, maxLength: 200 }}
                   helperText={
                     <div className='flex justify-between'>
                       <Typography className='text-[14px]'>{GetContext('project_name_msg', lang)}</Typography>
                       <Typography color='textSecondary' className='text-[14px]'>
-                        {projectTitle.length}/200
+                        {projectTitle.en?.length}/200
                       </Typography>
                     </div>
                   }
@@ -191,14 +163,14 @@ const ProjectDetailTab: React.FC<ProjectDetailTabProps> = ({
                   sx={{ width: isSurveyLanguageInEnglish ? '50%' : '100%' }}
                   id='outlined-required'
                   label='ឈ្មោះគម្រោង'
-                  value={projectTitle}
-                  onChange={e => setProjectTitle(e.target.value)}
+                  value={projectTitle.km}
+                  onChange={e => setProjectTitle({ en: projectTitle.en, km: e.target.value })}
                   inputProps={{ minLength: 3, maxLength: 200 }}
                   helperText={
                     <div className='flex justify-between'>
                       <Typography className='text-[14px]'>{GetContext('project_name_msg', lang)}</Typography>
                       <Typography color='textSecondary' className='text-[14px]'>
-                        {projectTitle.length}/200
+                        {projectTitle.km?.length}/200
                       </Typography>
                     </div>
                   }
@@ -214,14 +186,14 @@ const ProjectDetailTab: React.FC<ProjectDetailTabProps> = ({
                   id='outlined-multiline-static'
                   rows={10}
                   label={GetContext('project_description', lang)}
-                  value={projectDescription}
-                  onChange={e => setProjectDescription(e.target.value)}
+                  value={projectDescription.en}
+                  onChange={e => setProjectDescription({ en: e.target.value, km: projectDescription.km })}
                   inputProps={{ minLength: 3, maxLength: 500 }}
                   helperText={
                     <div className='flex justify-between'>
                       <Typography className='text-[14px]'>{GetContext('project_name_msg', lang)}</Typography>
                       <Typography className='text-[14px]' color='textSecondary'>
-                        {projectDescription.length}/500
+                        {projectDescription.en?.length}/500
                       </Typography>
                     </div>
                   }
@@ -235,14 +207,14 @@ const ProjectDetailTab: React.FC<ProjectDetailTabProps> = ({
                   id='outlined-multiline-static'
                   rows={10}
                   label='ព័ត៌មានលំអិតនៃគម្រោង'
-                  value={projectDescription}
-                  onChange={e => setProjectDescription(e.target.value)}
+                  value={projectDescription.km}
+                  onChange={e => setProjectDescription({ en: projectDescription.en, km: e.target.value })}
                   inputProps={{ minLength: 3, maxLength: 500 }}
                   helperText={
                     <div className='flex justify-between'>
                       <Typography className='text-[14px]'>{GetContext('project_name_msg', lang)}</Typography>
                       <Typography className='text-[14px]' color='textSecondary'>
-                        {projectDescription.length}/500
+                        {projectDescription.km?.length}/500
                       </Typography>
                     </div>
                   }

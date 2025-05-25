@@ -4,10 +4,22 @@ export const PROJECT_DATA_COLLECTION_METHOD = {
   WEB: 'web',
 };
 
-export type DataCollectionSetting = {
-  isRequiredNID: boolean;
-  isAnonymous: boolean;
+// project detail
+export type ProjectDetail = {
+  en: string;
+  km: string;
 };
+
+export type ProjectDescription = {
+  en: string;
+  km: string;
+};
+
+// Data collection method
+export interface DataCollectionMethodType {
+  method: string;
+  isRequiredNID: boolean;
+}
 
 // Skip logic definition for questions
 interface SkipLogic {

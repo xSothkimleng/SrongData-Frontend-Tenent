@@ -186,7 +186,7 @@ const IndicatorDesignTab: React.FC<IndicatorProps> = ({
                       }}>
                       {dataDesignForms.map(form => (
                         <MenuItem key={form.order} value={form.order - 1}>
-                          {form.label}
+                          {form.label.en}
                         </MenuItem>
                       ))}
                     </TextField>
@@ -242,13 +242,13 @@ const IndicatorDesignTab: React.FC<IndicatorProps> = ({
                                 renderValue={(selected: unknown) => (
                                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                                     {(selected as number[]).map(index => (
-                                      <Chip key={index} label={form?.options[index]} />
+                                      <Chip key={index} label={form?.options[index].en} />
                                     ))}
                                   </Box>
                                 )}>
                                 {form?.options.map((option, index) => (
                                   <MenuItem key={index} value={index}>
-                                    {option}
+                                    {option.en}
                                   </MenuItem>
                                 ))}
                               </Select>
