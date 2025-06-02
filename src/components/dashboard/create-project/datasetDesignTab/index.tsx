@@ -323,7 +323,7 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
   );
 
   const handleSkipLogicSave = useCallback(
-    (formIndex: number, optionValue: string, action: string, targetSectionId: string) => {
+    (formIndex: number, optionValue: number, action: string, targetSectionId: string) => {
       setDataDesignForms(prevForms => {
         const newForms = [...prevForms];
         const form = newForms[formIndex];
@@ -334,19 +334,19 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
         }
 
         // Check if we already have a skip logic entry for this option
-        const existingLogicIndex = form.skip_logics.findIndex(logic => logic.answer === optionValue);
+        const existingLogicIndex = form.skip_logics.findIndex(logic => logic.answer_index === optionValue);
 
         if (existingLogicIndex >= 0) {
           // Update existing skip logic
           form.skip_logics[existingLogicIndex] = {
-            answer: optionValue,
+            answer_index: optionValue,
             action: action,
             target: targetSectionId,
           };
         } else {
           // Add new skip logic
           form.skip_logics.push({
-            answer: optionValue,
+            answer_index: optionValue,
             action: action,
             target: targetSectionId,
           });
@@ -365,14 +365,14 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
         if (formIndex === -1) return prevForms;
 
         const newForms = [...prevForms];
-        const optionValue = prevForms[formIndex].options[optionIndex];
+        // const optionValue = prevForms[formIndex].options[optionIndex];
 
         // Remove the option
         newForms[formIndex].options = newForms[formIndex].options.filter((_, index) => index !== optionIndex);
 
         // Remove any skip logic associated with this option
         if (newForms[formIndex].skip_logics) {
-          newForms[formIndex].skip_logics = newForms[formIndex].skip_logics!.filter(logic => logic.answer !== optionValue.en);
+          newForms[formIndex].skip_logics = newForms[formIndex].skip_logics!.filter(logic => logic.answer_index !== optionIndex);
 
           // If skip_logic is now empty, set it to null
           if (newForms[formIndex].skip_logics.length === 0) {
@@ -426,11 +426,11 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
 
   // Helper function to get skip logic for an option
   const getSkipLogicForOption = useCallback(
-    (formIndex: number, optionValue: string) => {
+    (formIndex: number, optionValue: number) => {
       const form = dataDesignForms[formIndex];
       if (!form.skip_logics) return null;
 
-      return form.skip_logics.find(logic => logic.answer === optionValue) || null;
+      return form.skip_logics.find(logic => logic.answer_index === optionValue) || null;
     },
     [dataDesignForms],
   );
@@ -541,7 +541,7 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                                 {form.options.map((optionValue, optionIndex) => {
                                   const formIndex = dataDesignForms.findIndex(f => f.order === form.order);
                                   const hasSkipLogic =
-                                    formIndex >= 0 && form.skip_logics?.some(logic => logic.answer === optionValue.en);
+                                    formIndex >= 0 && form.skip_logics?.some(logic => logic.answer_index === optionIndex);
 
                                   return (
                                     <Grid
@@ -609,7 +609,7 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                                 {form.options.map((optionValue, optionIndex) => {
                                   const formIndex = dataDesignForms.findIndex(f => f.order === form.order);
                                   const hasSkipLogic =
-                                    formIndex >= 0 && form.skip_logics?.some(logic => logic.answer === optionValue.en);
+                                    formIndex >= 0 && form.skip_logics?.some(logic => logic.answer_index === optionIndex);
 
                                   return (
                                     <Grid
@@ -671,7 +671,7 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                                 {form.options.map((optionValue, optionIndex) => {
                                   const formIndex = dataDesignForms.findIndex(f => f.order === form.order);
                                   const hasSkipLogic =
-                                    formIndex >= 0 && form.skip_logics?.some(logic => logic.answer === optionValue.en);
+                                    formIndex >= 0 && form.skip_logics?.some(logic => logic.answer_index === optionIndex);
 
                                   return (
                                     <Grid
@@ -784,10 +784,10 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
           onClose={() => setActiveDialog({ isOpen: false, formIndex: null, optionValue: null })}
           formList={dataDesignForms}
           sectionList={sections}
-          optionValue={activeDialog.optionValue}
+          optionValue={activeDialog.formIndex}
           formIndex={activeDialog.formIndex}
           handleSkipLogicSave={handleSkipLogicSave}
-          currentSkipLogic={getSkipLogicForOption(activeDialog.formIndex, activeDialog.optionValue)}
+          currentSkipLogic={getSkipLogicForOption(activeDialog.formIndex, activeDialog.formIndex)}
         />
       )}
     </Box>

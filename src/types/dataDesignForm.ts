@@ -6,8 +6,8 @@ export interface OptionLocalizationType {
   en: string;
   km: string;
 }
-interface skipLogic {
-  answer: string;
+export interface skipLogic {
+  answer_index: number;
   action: string;
   target: string;
 }
@@ -27,6 +27,7 @@ export interface DataDesignForm {
   section: SectionType;
   skip_logics: skipLogic[] | null;
 }
+
 type QuestionDataType = 'string' | 'number' | 'array' | 'date' | 'time';
 export interface QuestionType {
   type: 'text' | 'number' | 'decimal' | 'text_area' | 'multiple' | 'single' | 'dropdown' | 'date' | 'time';

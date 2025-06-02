@@ -16,7 +16,7 @@ import {
   Select,
   MenuItem,
 } from '@mui/material';
-import { DataDesignForm, SectionType } from '@/types/dataDesignForm';
+import { DataDesignForm, SectionType, skipLogic } from '@/types/dataDesignForm';
 
 interface LogicDialogProps {
   open: boolean;
@@ -24,9 +24,9 @@ interface LogicDialogProps {
   formList: DataDesignForm[];
   sectionList: SectionType[];
   formIndex: number;
-  optionValue: string;
-  currentSkipLogic: { answer: string; action: string; target: string } | null;
-  handleSkipLogicSave: (formIndex: number, optionValue: string, action: string, targetSectionId: string) => void;
+  optionValue: number;
+  currentSkipLogic: skipLogic | null;
+  handleSkipLogicSave: (formIndex: number, optionValue: number, action: string, targetSectionId: string) => void;
 }
 
 const SkipLogicDialog: React.FC<LogicDialogProps> = ({

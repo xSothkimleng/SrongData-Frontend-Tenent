@@ -77,7 +77,7 @@ const CreateProjectPage = () => {
   const [isSurveyLanguageInKhmer, setIsSurveyLanguageInKhmer] = usePersistentState('isSurveyLanguageInKhmer', false);
   const [dataCollectionMethod, setDataCollectionMethod] = usePersistentState('dataCollectionMethod', {
     method: PROJECT_DATA_COLLECTION_METHOD.CAPI,
-    isRequiredNID: false,
+    isRequiredNID: true,
   });
   // project Question
   const [dataDesignForms, setDataDesignForms] = usePersistentState<DataDesignForm[]>('dataDesignForms', []);
@@ -199,6 +199,22 @@ const CreateProjectPage = () => {
       villages: GetLocationIdsFromLocal('selectedVillages'),
     };
 
+    const localeSetting = [];
+    let methodSetting = -1;
+
+    if (isSurveyLanguageInEnglish) {
+      localeSetting.push('en');
+    }
+    if (isSurveyLanguageInKhmer) {
+      localeSetting.push('km');
+    }
+
+    if (dataCollectionMethod.method === PROJECT_DATA_COLLECTION_METHOD.WEB) {
+      methodSetting = 1; // Web method
+    } else if (dataCollectionMethod.method === PROJECT_DATA_COLLECTION_METHOD.CAPI) {
+      methodSetting = 0; // CAPI method
+    }
+
     const body = {
       name: projectTitle,
       description: projectDescription,
@@ -206,6 +222,9 @@ const CreateProjectPage = () => {
       questions: dataDesignForms,
       users: facilitators.map(user => user.id),
       indicators: indicators,
+      required_nid: dataCollectionMethod.isRequiredNID,
+      locales: localeSetting,
+      method: methodSetting,
     };
 
     console.log('Project body:', body);

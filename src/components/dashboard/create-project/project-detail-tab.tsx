@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 import { GetContext } from '@/utils/language';
 import useLang from '@/store/lang';
 import {
@@ -21,6 +21,12 @@ import {
   FormLabel,
   RadioGroup,
   Radio,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Button,
 } from '@mui/material';
 
 interface ProjectDetailTabProps {
@@ -49,6 +55,7 @@ const ProjectDetailTab: React.FC<ProjectDetailTabProps> = ({
   setDataCollectionMethod,
 }) => {
   const lang = useLang(state => state.lang);
+  const [openConfirmNidDialog, setOpenConfirmNidDialog] = useState<boolean>(false);
 
   const handleChangeDataCollectionType = (event: React.ChangeEvent<HTMLInputElement>) => {
     setDataCollectionMethod({
@@ -70,6 +77,7 @@ const ProjectDetailTab: React.FC<ProjectDetailTabProps> = ({
       ...dataCollectionMethod,
       isRequiredNID: checked,
     });
+    setOpenConfirmNidDialog(false);
   };
 
   return (
@@ -119,9 +127,31 @@ const ProjectDetailTab: React.FC<ProjectDetailTabProps> = ({
                       <Box sx={{ marginLeft: '3rem' }}>
                         <Typography variant='body1'>Setting</Typography>
                         <FormControlLabel
-                          control={<Switch checked={dataCollectionMethod.isRequiredNID} onChange={handleSetCapiRequiredNid} />}
+                          control={
+                            <Switch
+                              checked={dataCollectionMethod.isRequiredNID}
+                              onChange={e =>
+                                dataCollectionMethod.isRequiredNID
+                                  ? setOpenConfirmNidDialog(true)
+                                  : handleSetCapiRequiredNid(e, true)
+                              }
+                            />
+                          }
                           label='Required ID'
                         />
+                        <Dialog open={openConfirmNidDialog} onClose={() => setOpenConfirmNidDialog(false)}>
+                          <DialogTitle>Warning</DialogTitle>
+                          <DialogContent>
+                            <DialogContentText>
+                              Turn off required nid would lose the ability for data collector to request edit response. We
+                              recommend turnning that on if you want the data collector to request edit the response or record
+                            </DialogContentText>
+                          </DialogContent>
+                          <DialogActions>
+                            <Button onClick={e => handleSetCapiRequiredNid(e, false)}>Confirm</Button>
+                            <Button onClick={() => setOpenConfirmNidDialog(false)}>Close</Button>
+                          </DialogActions>
+                        </Dialog>
                       </Box>
                     )}
                     <FormControlLabel
