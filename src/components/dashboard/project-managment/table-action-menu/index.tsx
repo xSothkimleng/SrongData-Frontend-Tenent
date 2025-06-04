@@ -454,11 +454,13 @@ const TableActionMenu: React.FC<{
               <CloseIcon />
             </IconButton>
             <Typography sx={{ ml: 2, flex: 1 }} variant='h6' component='div'>
-              {GetContext('edit_project_title', lang)} {row.name}
+              {/* {GetContext('edit_project_title', lang)} {row.name} */}
+              Edit Project
             </Typography>
           </Toolbar>
         </AppBar>
         <Box sx={{ padding: '2%' }}>
+          <div>Edit Project</div>
           <EditProjectPage projectId={row.projectId} setOpenEditProjectDialog={setOpenEditProjectDialog} />
         </Box>
       </Dialog>
@@ -467,7 +469,7 @@ const TableActionMenu: React.FC<{
         <DialogTitle>
           <p>Share Link</p>
         </DialogTitle>
-        <DialogContent>Share Link Dialog Content</DialogContent>
+        <DialogContent>{row.projectId}</DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenShareLinkDialog(false)}>{GetContext('cancel', lang)}</Button>
         </DialogActions>

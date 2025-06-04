@@ -1,145 +1,21 @@
 'use client';
-import { useState } from 'react';
+import React from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Box } from '@mui/material';
 import SurveyContainer from '@/components/dashboard/WebSurvey';
 
-// Create sample survey data
-const sampleSurvey = {
-  title: 'Paragon FYP Survey',
-  description: 'This is fyp project survey about school systems',
-  sections: [
-    {
-      id: 'section1',
-      title: 'Section I: Introduction',
-      description: "This online trivial questionnaire has been made to get valuable insight from you. I'm tired.",
-      questions: [
-        {
-          id: 'q1',
-          type: 'text',
-          label: 'What is your name?',
-          required: true,
-        },
-        {
-          id: 'q2',
-          type: 'text_area',
-          label: 'Describe your name in full sentences',
-          required: false,
-        },
-        {
-          id: 'q3',
-          type: 'single',
-          label: 'Gender',
-          required: true,
-          options: ['I identify as Female', 'I identify as Male', 'I identify as Non-binary', 'I identify as Other'],
-        },
-        {
-          id: 'q4',
-          type: 'multiple',
-          label: 'How much do I love me?',
-          required: false,
-          options: [
-            'I identify that you love me',
-            'I identify you love me a lot',
-            'I identify you love me to the moon',
-            'I identify you love me to the mars',
-            'I identify you love me through life',
-          ],
-        },
-      ],
-    },
-    {
-      id: 'section2',
-      title: 'Section II: Dong Kloun',
-      description: "This online trivial questionnaire has been made to get valuable insight from you. I'm tired.",
-      questions: [
-        {
-          id: 'q5',
-          type: 'text',
-          label: 'What is your name?',
-          required: true,
-        },
-        {
-          id: 'q6',
-          type: 'text_area',
-          label: 'Describe your name in full sentences',
-          required: false,
-        },
-        {
-          id: 'q7',
-          type: 'single',
-          label: 'Gender',
-          required: true,
-          options: ['I identify as Female', 'I identify as Male', 'I identify as Non-binary', 'I identify as Other'],
-        },
-        {
-          id: 'q8',
-          type: 'multiple',
-          label: 'How much do I love me?',
-          required: false,
-          options: [
-            'I identify that you love me',
-            'I identify you love me a lot',
-            'I identify you love me to the moon',
-            'I identify you love me to the mars',
-            'I identify you love me through life',
-          ],
-        },
-      ],
-    },
-    {
-      id: 'section3',
-      title: 'Section III: Conclusion Hz Miz tt',
-      description: '',
-      questions: [
-        {
-          id: 'q9',
-          type: 'text',
-          label: 'What is your name?',
-          required: true,
-        },
-        {
-          id: 'q10',
-          type: 'text_area',
-          label: 'Describe your name in full sentences',
-          required: false,
-        },
-        {
-          id: 'q11',
-          type: 'single',
-          label: 'Gender',
-          required: true,
-          options: ['I identify as Female', 'I identify as Male', 'I identify as Non-binary', 'I identify as Other'],
-        },
-        {
-          id: 'q12',
-          type: 'multiple',
-          label: 'How much do I love me?',
-          required: false,
-          options: [
-            'I identify that you love me',
-            'I identify you love me a lot',
-            'I identify you love me to the moon',
-            'I identify you love me through life',
-          ],
-        },
-      ],
-    },
-  ],
-};
-
 // Create a custom theme to match the design
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#6b5de3', // Purple color from the buttons
+      main: '#6b5de3',
     },
     secondary: {
-      main: '#ff6b6b', // Red color from the chart
+      main: '#ff6b6b',
     },
     background: {
-      default: '#f7f7f7', // Light gray background
+      default: '#f7f7f7',
     },
   },
   typography: {
@@ -150,22 +26,22 @@ const theme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: 20, // Rounded buttons
-          textTransform: 'none', // No uppercase text
+          borderRadius: 20,
+          textTransform: 'none',
         },
       },
     },
     MuiPaper: {
       styleOverrides: {
         root: {
-          borderRadius: 12, // Rounded corners for papers
+          borderRadius: 12,
         },
       },
     },
   },
 });
 
-const App = () => {
+const App: React.FC = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -175,7 +51,7 @@ const App = () => {
           background: 'linear-gradient(to bottom, #f7f7f7, #e0e0e0)',
           py: 2,
         }}>
-        <SurveyContainer survey={sampleSurvey} />
+        <SurveyContainer surveyId='683b04f07eadb773b81e5358' />
       </Box>
     </ThemeProvider>
   );

@@ -31,6 +31,84 @@ import {
 } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 
+// Updated interfaces to match new API structure
+interface MultilingualText {
+  en: string;
+  km: string;
+}
+
+interface MultilingualOption {
+  en: string;
+  km: string;
+}
+
+interface SkipLogic {
+  answer_index: number;
+  action: string;
+  target: number;
+}
+
+interface Section {
+  id: string;
+  title: string;
+  description: string;
+  order: number;
+}
+
+interface Question {
+  id: string;
+  label: MultilingualText;
+  order: number;
+  is_required: boolean;
+  type: string;
+  data_type: string;
+  options: MultilingualOption[];
+  skip_logics: SkipLogic[];
+  section: Section;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+interface SectionWithQuestions {
+  id: string;
+  title: string;
+  description: string;
+  order: number;
+  questions: Question[];
+}
+
+interface Filter {
+  index: number;
+  function: string;
+  values: (string | number)[];
+}
+
+interface Indicator {
+  label: string;
+  description: string;
+  filters: Filter[];
+}
+
+interface LocationDetails {
+  id: string;
+  provinces: string[] | null;
+  districts: string[] | null;
+  communes: string[] | null;
+  villages: string[] | null;
+}
+
+interface ProjectData {
+  id: string;
+  name: MultilingualText;
+  description: MultilingualText;
+  questions: Question[];
+  indicators: Indicator[];
+  location_details: LocationDetails;
+  sections_questions: SectionWithQuestions[];
+  locales: string[];
+}
+
 interface ProjectDetailPageProps {
   params: {
     projectId: string;
@@ -42,6 +120,20 @@ const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ params }) => {
   const router = useRouter();
   const [projectDetails, setProjectDetails] = useState<ProjectData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [currentLocale, setCurrentLocale] = useState<'en' | 'km'>('en');
+
+  // Utility function to get text in current locale with fallback
+  const getLocalizedText = (text: MultilingualText | string | undefined): string => {
+    if (!text) return '';
+    if (typeof text === 'string') return text;
+    return text[currentLocale] || text.en || Object.values(text)[0] || '';
+  };
+
+  // Utility function to get option text in current locale
+  const getLocalizedOption = (option: MultilingualOption | string): string => {
+    if (typeof option === 'string') return option;
+    return option[currentLocale] || option.en || Object.values(option)[0] || '';
+  };
 
   const handleBack = () => {
     router.back();
@@ -50,6 +142,7 @@ const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ params }) => {
   const getProjectDetails = async (id: string) => {
     setLoading(true);
     try {
+      console.log('Fetching project details for ID:', id);
       const projectRes = await axios.get('/api/config', {
         params: { endpoint: `project/project-details/${id}?edit_project=0` },
       });
@@ -76,6 +169,7 @@ const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ params }) => {
     switch (type) {
       case 'text':
       case 'text_area':
+      case 'decimal':
         return <TextFieldIcon />;
       case 'single':
         return <RadioIcon />;
@@ -120,6 +214,9 @@ const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ params }) => {
       case 'in':
         operation = 'is one of';
         break;
+      case 'isempty':
+        operation = 'is empty';
+        break;
       default:
         operation = filter.function;
     }
@@ -128,39 +225,61 @@ const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ params }) => {
     if (filter.values && filter.values.length > 0) {
       if (question.options && filter.values.some(v => typeof v === 'number')) {
         // For options-based questions, show the actual option text
-        valueStr = filter.values.map(v => (typeof v === 'number' ? question.options[v] || v : v)).join(', ');
+        valueStr = filter.values
+          .map(v => {
+            if (typeof v === 'number' && question.options[v - 1]) {
+              return getLocalizedOption(question.options[v - 1]);
+            }
+            return v.toString();
+          })
+          .join(', ');
       } else {
         valueStr = filter.values.join(' and ');
       }
     }
 
-    // return `${question.label} ${operation} ${valueStr}`;
-
     return (
       <Box>
         <Typography variant='body2' sx={{ fontWeight: 500 }}>
-          {question.label}
+          {getLocalizedText(question.label)}
         </Typography>
         <Typography variant='body2'>Operation : {operation}</Typography>
-        <Typography variant='body2'>Value : {valueStr}</Typography>
+        {valueStr && <Typography variant='body2'>Value : {valueStr}</Typography>}
       </Box>
     );
   };
 
   return (
     <Box sx={{ p: 3 }}>
-      <Button variant='outlined' startIcon={<ArrowBackIcon />} onClick={handleBack} sx={{ mb: 3 }}>
-        Back
-      </Button>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Button variant='outlined' startIcon={<ArrowBackIcon />} onClick={handleBack}>
+          Back
+        </Button>
+
+        {/* Language Toggle */}
+        {projectDetails.locales && projectDetails.locales.length > 1 && (
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            {projectDetails.locales.map(locale => (
+              <Button
+                key={locale}
+                variant={currentLocale === locale ? 'contained' : 'outlined'}
+                size='small'
+                onClick={() => setCurrentLocale(locale as 'en' | 'km')}>
+                {locale.toUpperCase()}
+              </Button>
+            ))}
+          </Box>
+        )}
+      </Box>
 
       {/* Project Header */}
       <Card elevation={1} sx={{ mb: 3 }}>
         <CardContent>
           <Typography variant='h4' gutterBottom sx={{ fontWeight: 500 }}>
-            {projectDetails.name}
+            {getLocalizedText(projectDetails.name)}
           </Typography>
           <Typography variant='body1' color='text.secondary' paragraph>
-            {projectDetails.description || 'No description available'}
+            {getLocalizedText(projectDetails.description) || 'No description available'}
           </Typography>
         </CardContent>
       </Card>
@@ -290,7 +409,7 @@ const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ params }) => {
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
                               {getQuestionTypeIcon(question.type)}
                               <Typography variant='subtitle1' sx={{ ml: 1, fontWeight: 500 }}>
-                                {question.order}. {question.label}
+                                {question.order}. {getLocalizedText(question.label)}
                               </Typography>
                               {question.is_required && <Chip label='Required' size='small' color='primary' sx={{ ml: 2 }} />}
                             </Box>
@@ -307,13 +426,13 @@ const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ params }) => {
                                 </Typography>
                                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                                   {question.options.map((option, optIndex) => {
-                                    // Check if this option has skip logic
-                                    const skipLogic = question.skip_logics?.find(logic => logic.answer === option);
+                                    // Check if this option has skip logic (using answer_index which is 1-based)
+                                    const skipLogic = question.skip_logics?.find(logic => logic.answer_index === optIndex + 1);
 
                                     return (
                                       <Chip
                                         key={optIndex}
-                                        label={option}
+                                        label={getLocalizedOption(option)}
                                         variant={skipLogic ? 'outlined' : 'filled'}
                                         color={skipLogic ? 'success' : 'default'}
                                         sx={{
@@ -324,7 +443,6 @@ const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ params }) => {
                                             padding: skipLogic ? '5px 8px' : undefined,
                                           },
                                         }}
-                                        onClick={skipLogic ? undefined : undefined}
                                       />
                                     );
                                   })}
@@ -340,8 +458,14 @@ const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ params }) => {
                                   Skip Logic:
                                 </Typography>
                                 {question.skip_logics.map((logic, logicIndex) => {
-                                  // Find the target section
-                                  const targetSection = projectDetails.sections_questions?.find(s => s.id === logic.target);
+                                  // Find the target section by order
+                                  const targetSection = projectDetails.sections_questions?.find(s => s.order === logic.target);
+
+                                  // Get the option text for this answer_index
+                                  const optionText =
+                                    question.options && question.options[logic.answer_index - 1]
+                                      ? getLocalizedOption(question.options[logic.answer_index - 1])
+                                      : `Option ${logic.answer_index}`;
 
                                   return (
                                     <Box
@@ -351,14 +475,16 @@ const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ params }) => {
                                         alignItems: 'center',
                                         mb: 0.5,
                                       }}>
-                                      <Chip label={logic.answer} size='small' variant='outlined' sx={{ mr: 1 }} />
+                                      <Chip label={optionText} size='small' variant='outlined' sx={{ mr: 1 }} />
                                       <ArrowRightIcon fontSize='small' sx={{ mx: 1 }} />
                                       <Typography variant='body2'>
                                         {logic.action === 'jump_to' ? 'Jump to' : logic.action}
                                       </Typography>
                                       <Chip
                                         label={
-                                          targetSection ? `Section ${targetSection.order}: ${targetSection.title}` : logic.target
+                                          targetSection
+                                            ? `Section ${targetSection.order}: ${targetSection.title}`
+                                            : `Section ${logic.target}`
                                         }
                                         size='small'
                                         color='primary'

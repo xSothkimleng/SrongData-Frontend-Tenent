@@ -42,7 +42,10 @@ interface ChartsSectionProps {
 
 type Project = {
   id: string;
-  name: string;
+  name: {
+    en: string;
+    km: string;
+  };
 };
 
 const fetchProjectData = async (): Promise<Project[]> => {
@@ -67,7 +70,13 @@ const DashboardInfoSection: React.FC<ChartsSectionProps> = ({
   isOpenRequestLog,
 }) => {
   const lang = useLang(state => state.lang);
-  const [selectedProject, setSelectedProject] = useState<Project>({ id: '', name: '' });
+  const [selectedProject, setSelectedProject] = useState<Project>({
+    id: '',
+    name: {
+      en: '',
+      km: '',
+    },
+  });
   const [openDialog, setOpenDialog] = useState(false);
   const [allProjects, setAllProjects] = useState<Project[]>([]);
   const [requestLogsTabValue, setRequestLogsTabValue] = React.useState(0);
@@ -95,7 +104,7 @@ const DashboardInfoSection: React.FC<ChartsSectionProps> = ({
       const response = await axios.get('/api/config', {
         params: { endpoint: `dashboard/project-virtualization/${selectedProject.id}?lang=${lang}` },
       });
-      console.log(response);
+      console.log('barChartResponse', response);
       return response.data.data;
     },
     enabled: selectedProject?.id !== '',
@@ -104,6 +113,7 @@ const DashboardInfoSection: React.FC<ChartsSectionProps> = ({
   useEffect(() => {
     const fetchProjects = async () => {
       const projects = await fetchProjectData();
+      console.log('Fetched projects:', projects);
       setAllProjects(projects);
       setSelectedProject(projects[0]);
     };
@@ -133,7 +143,7 @@ const DashboardInfoSection: React.FC<ChartsSectionProps> = ({
                   <div className='boxShadow-1 border-1 h-full flex flex-col p-[1rem]'>
                     <Box className='flex justify-between items-center'>
                       <Typography className='text-[1.4rem] w-fit font-medium px-[20px] bg-[#72d6d6] text-[white] rounded-[14px] rounded-tl-none rounded-bl-none'>
-                        {GetContext('virtualize_project', lang)} {selectedProject?.name}
+                        {GetContext('virtualize_project', lang)} {selectedProject?.name?.en || selectedProject?.name.km}
                       </Typography>
                       <Box className='flex'>
                         <IconButton onClick={() => setOpenDialog(!openDialog)} sx={{ padding: '0' }}>
@@ -233,7 +243,7 @@ const DashboardInfoSection: React.FC<ChartsSectionProps> = ({
               onChange={handleSelectProject}>
               {allProjects.map(project => (
                 <MenuItem key={project.id} value={JSON.stringify(project)}>
-                  {project.name}
+                  {project.name.en || project.name.km}
                 </MenuItem>
               ))}
             </Select>

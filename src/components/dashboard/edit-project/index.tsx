@@ -8,13 +8,14 @@ import IndicatorDesignTab from '@/components/dashboard/create-project/indicator-
 import AssignFacilitatorTab from '@/components/dashboard/create-project/assign-filcilitator-tab';
 import ProjectDetailTab from '@/components/dashboard/create-project/project-detail-tab';
 import { UserProfile } from '@/types/user';
-import { enqueueSnackbar } from 'notistack';
 import { DataDesignForm } from '@/types/dataDesignForm';
 import { Indicator } from '@/types/indicatorOperation';
 import { Box, Stepper, Step, StepButton, Button, LinearProgress } from '@mui/material';
 import { SetItemToLocal, GetLocationIdsFromLocal } from '@/utils/localItem';
 import { GetContext } from '@/utils/language';
 import useLang from '@/store/lang';
+import showSnackbar from '@/utils/snackbarHelper';
+import { PROJECT_DATA_COLLECTION_METHOD, ProjectDescription, ProjectDetail } from '@/types/projectDetail';
 
 interface EditProjectPageProps {
   projectId: string;
@@ -24,7 +25,6 @@ interface EditProjectPageProps {
 const fetchUsersWithStatus = async (): Promise<UserProfile[]> => {
   try {
     const response = await axios.get('/api/get-all-user?status=1');
-    // console.log('Fetched users with status 1:', response.data.data.user);
     return response.data.data.user;
   } catch (error) {
     console.error('Error fetching users with status 1:', error);
@@ -47,7 +47,6 @@ const fetchProjectDetail = async (projectId: string) => {
 const fetchQuestionTypes = async () => {
   try {
     const response = await axios.get('/api/question-types');
-    // console.log(response.data.data);
     return response.data.data;
   } catch (error) {
     console.error('Error fetching question types:', error);
@@ -57,7 +56,6 @@ const fetchQuestionTypes = async () => {
 const fetchFilterFunctions = async () => {
   try {
     const response = await axios.get('/api/filter-function');
-    // console.log(response.data.data);
     return response.data.data;
   } catch (error) {
     console.error('Error fetching filter functions:', error);
@@ -66,17 +64,37 @@ const fetchFilterFunctions = async () => {
 
 const EditProjectPage: React.FC<EditProjectPageProps> = ({ projectId, setOpenEditProjectDialog }) => {
   const lang = useLang(state => state.lang);
-  const [steps] = useState<string[]>([
+
+  const [steps, setSteps] = useState<string[]>([
     GetContext('project_detail', lang),
     GetContext('location selection', lang),
     GetContext('dataset_design', lang),
     GetContext('indicator_design', lang),
     GetContext('assign_user', lang),
   ]);
+
   const [activeStep, setActiveStep] = useState(0);
   const [completed, setCompleted] = useState<{ [k: number]: boolean }>({});
-  const [projectTitle, setProjectTitle] = useState('');
-  const [projectDescription, setProjectDescription] = useState('');
+
+  // Project detail with multi-language support
+  const [projectTitle, setProjectTitle] = useState<ProjectDetail>({
+    en: '',
+    km: '',
+  });
+  const [projectDescription, setProjectDescription] = useState<ProjectDescription>({
+    en: '',
+    km: '',
+  });
+
+  // Project settings
+  const [isSurveyLanguageInEnglish, setIsSurveyLanguageInEnglish] = useState(true);
+  const [isSurveyLanguageInKhmer, setIsSurveyLanguageInKhmer] = useState(false);
+  const [dataCollectionMethod, setDataCollectionMethod] = useState({
+    method: PROJECT_DATA_COLLECTION_METHOD.CAPI,
+    isRequiredNID: true,
+  });
+
+  // Project data
   const [dataDesignForms, setDataDesignForms] = useState<DataDesignForm[]>([]);
   const [indicators, setIndicators] = useState<Indicator[]>([]);
   const [facilitators, setFacilitators] = useState<UserProfile[]>([]);
@@ -84,20 +102,46 @@ const EditProjectPage: React.FC<EditProjectPageProps> = ({ projectId, setOpenEdi
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
+    setSteps([
+      GetContext('project_detail', lang),
+      GetContext('location selection', lang),
+      GetContext('dataset_design', lang),
+      GetContext('indicator_design', lang),
+      GetContext('assign_user', lang),
+    ]);
+  }, [lang]);
+
+  useEffect(() => {
     fetchProjectDetail(projectId).then(data => {
       SetItemToLocal('locationTabValueEdit', 0);
       setProjectDetail(data.project);
+
+      // Set multi-language project details
       setProjectTitle(data.project.name);
       setProjectDescription(data.project.description);
+
+      // Set language settings based on locales
+      if (data.project.locales) {
+        setIsSurveyLanguageInEnglish(data.project.locales.includes('en'));
+        setIsSurveyLanguageInKhmer(data.project.locales.includes('km'));
+      }
+
+      // Set data collection method
+      if (data.project.method !== undefined) {
+        setDataCollectionMethod({
+          method: data.project.method === 1 ? PROJECT_DATA_COLLECTION_METHOD.WEB : PROJECT_DATA_COLLECTION_METHOD.CAPI,
+          isRequiredNID: data.project.required_nid ?? true,
+        });
+      }
+
       setDataDesignForms(data.project.questions);
       setIndicators(data.project.indicators);
       SetItemToLocal('selectedProvinces-edit', data.selected_provinces);
       SetItemToLocal('selectedCommunes-edit', data.selected_communes);
       SetItemToLocal('selectedDistricts-edit', data.selected_districts);
-      setIsReady(true);
       SetItemToLocal('selectedVillages-edit', data.selected_villages);
+      setIsReady(true);
     });
-    // console.log('Project Detail:', projectDetail);
   }, [projectId]);
 
   const totalSteps = () => steps.length;
@@ -106,60 +150,57 @@ const EditProjectPage: React.FC<EditProjectPageProps> = ({ projectId, setOpenEdi
   const allStepsCompleted = () => completedSteps() === totalSteps();
 
   const handleNext = () => {
-    // switch (activeStep) {
-    //   case 0:
-    //     if (projectTitle.length < 3 || projectDescription.length < 3) {
-    //       showSnackbar('Project title and description must be at least 3 characters long', 'warning');
-    //       return;
-    //     }
-    //     break;
-    //   case 1:
-    //     if (
-    //       GetLocationIdsFromLocal('selectedProvinces').length === 0 ||
-    //       GetLocationIdsFromLocal('selectedDistricts').length === 0 ||
-    //       GetLocationIdsFromLocal('selectedCommunes').length === 0 ||
-    //       GetLocationIdsFromLocal('selectedVillages').length === 0
-    //     ) {
-    //       showSnackbar('Please select at least one location from each region', 'warning');
-    //       return;
-    //     }
-    //     break;
-    //   case 2:
-    //     console.log('data set design form', dataDesignForms);
-    //     if (dataDesignForms.length === 0) {
-    //       showSnackbar('Please add at least one question', 'warning');
-    //       return;
-    //     }
+    switch (activeStep) {
+      case 0:
+        if (projectTitle.en.length < 3 || projectDescription.en.length < 3) {
+          showSnackbar('Project title and description must be at least 3 characters long', 'warning');
+          return;
+        }
+        break;
+      case 1:
+        if (
+          GetLocationIdsFromLocal('selectedProvinces-edit').length === 0 ||
+          GetLocationIdsFromLocal('selectedDistricts-edit').length === 0 ||
+          GetLocationIdsFromLocal('selectedCommunes-edit').length === 0 ||
+          GetLocationIdsFromLocal('selectedVillages-edit').length === 0
+        ) {
+          showSnackbar('Please select at least one location from each region', 'warning');
+          return;
+        }
+        break;
+      case 2:
+        if (dataDesignForms.length === 0) {
+          showSnackbar('Please add at least one question', 'warning');
+          return;
+        }
 
-    //     if (dataDesignForms.some(form => form.label.length < 0 || dataDesignForms.some(form => form.type == ''))) {
-    //       showSnackbar('Please fill all question fields', 'warning');
-    //       return;
-    //     }
-    //     break;
-    //   case 3:
-    //     console.log('indicator', indicators);
-    //     if (indicators.length === 0) {
-    //       showSnackbar('Please add at least one indicator', 'warning');
-    //       return;
-    //     }
+        if (dataDesignForms.some(form => form.label.en.length < 0 || dataDesignForms.some(form => form.type == ''))) {
+          showSnackbar('Please fill all question fields', 'warning');
+          return;
+        }
+        break;
+      case 3:
+        if (indicators.length === 0) {
+          showSnackbar('Please add at least one indicator', 'warning');
+          return;
+        }
 
-    //     if (
-    //       indicators.some(
-    //         indicator => indicator.label.length < 0 || indicator.description.length < 0 || indicator.filters.length == 0,
-    //       )
-    //     ) {
-    //       showSnackbar('Please fill all indicator field', 'warning');
-    //       return;
-    //     }
-
-    //     break;
-    //   case 4:
-    //     if (facilitators.length === 0) {
-    //       showSnackbar('Please assign at least one facilitator', 'warning');
-    //       return;
-    //     }
-    //     break;
-    // }
+        if (
+          indicators.some(
+            indicator => indicator.label.length < 0 || indicator.description.length < 0 || indicator.filters.length == 0,
+          )
+        ) {
+          showSnackbar('Please fill all indicator field', 'warning');
+          return;
+        }
+        break;
+      case 4:
+        if (facilitators.length === 0) {
+          showSnackbar('Please assign at least one facilitator', 'warning');
+          return;
+        }
+        break;
+    }
 
     const newActiveStep = isLastStep() && !allStepsCompleted() ? steps.findIndex((step, i) => !(i in completed)) : activeStep + 1;
     setActiveStep(newActiveStep);
@@ -177,17 +218,15 @@ const EditProjectPage: React.FC<EditProjectPageProps> = ({ projectId, setOpenEdi
     mutationFn: async (data: any) => {
       const encodedIds = encodeURIComponent(`${projectDetail.id}`);
       const res = await axios.put(`/api/update-project-detail/${encodedIds}`, data);
-      // console.log('Update project users:', res.data);
       return res.data;
     },
     // @ts-ignore
     onSuccess: async data => {
       // Reset all state variables
-      // setActiveStep(0);
       setOpenEditProjectDialog(false);
       setCompleted({});
-      setProjectTitle('');
-      setProjectDescription('');
+      setProjectTitle({ en: '', km: '' });
+      setProjectDescription({ en: '', km: '' });
       setDataDesignForms([]);
       setIndicators([]);
       setFacilitators([]);
@@ -196,40 +235,36 @@ const EditProjectPage: React.FC<EditProjectPageProps> = ({ projectId, setOpenEdi
       SetItemToLocal('selectedDistricts-edit', {});
       SetItemToLocal('selectedVillages-edit', {});
       // @ts-ignore
-      enqueueSnackbar(data.message, {
-        variant: 'success',
-        anchorOrigin: {
-          vertical: 'top',
-          horizontal: 'center',
-        },
-      });
+      showSnackbar(data.message ?? 'Project successfully updated', 'success');
     },
     onError: (error: any) => {
-      enqueueSnackbar(error?.message || 'Error Updating project.', {
-        variant: 'error',
-        anchorOrigin: {
-          vertical: 'top',
-          horizontal: 'center',
-        },
-      });
+      showSnackbar(error?.message || 'Error Updating project.', 'error');
       console.error('Error Updating project:', error);
     },
   });
 
   const handleUpdateProject = async () => {
-    console.log('Updating Project Detail');
-    console.log('project User', projectDetail.users);
-    console.log(
-      'Users length',
-      facilitators.length,
-      facilitators.length > 0 ? facilitators.map(user => user.id) : projectDetail.users,
-    );
-    console.log('Indicator length', indicators.length, indicators.length == 0 ? indicators : projectDetail.indicators);
-
     const selectedProvinceIds = GetLocationIdsFromLocal('selectedProvinces-edit');
     const selectedCommuneIds = GetLocationIdsFromLocal('selectedCommunes-edit');
     const selectedDistrictIds = GetLocationIdsFromLocal('selectedDistricts-edit');
     const selectedVillageIds = GetLocationIdsFromLocal('selectedVillages-edit');
+
+    const localeSetting = [];
+    let methodSetting = -1;
+
+    if (isSurveyLanguageInEnglish) {
+      localeSetting.push('en');
+    }
+    if (isSurveyLanguageInKhmer) {
+      localeSetting.push('km');
+    }
+
+    if (dataCollectionMethod.method === PROJECT_DATA_COLLECTION_METHOD.WEB) {
+      methodSetting = 1; // Web method
+    } else if (dataCollectionMethod.method === PROJECT_DATA_COLLECTION_METHOD.CAPI) {
+      methodSetting = 0; // CAPI method
+    }
+
     const body = {
       name: projectTitle,
       description: projectDescription,
@@ -242,19 +277,13 @@ const EditProjectPage: React.FC<EditProjectPageProps> = ({ projectId, setOpenEdi
       questions: dataDesignForms,
       users: facilitators.length > 0 ? facilitators.map(user => user.id) : projectDetail.users,
       indicators: indicators.length > 0 ? indicators : projectDetail.indicators,
+      required_nid: dataCollectionMethod.isRequiredNID,
+      locales: localeSetting,
+      method: methodSetting,
     };
+
     console.log('Updating Project Detail Body:', body);
     updateProjectMutation.mutate(body);
-  };
-
-  const handleConsoleLog = () => {
-    console.log('"Active Step"', activeStep);
-    console.log('"Project Title"', projectTitle);
-    console.log('"Project Description"', projectDescription);
-    // console.log('"Selected Locations"', selectedLocations);
-    console.log('"Data Design Forms"', dataDesignForms);
-    console.log('"Indicators"', indicators);
-    console.log('"Facilitators"', facilitators);
   };
 
   const { data: fetchedFacilitators = [] } = useQuery<UserProfile[]>({
@@ -282,76 +311,85 @@ const EditProjectPage: React.FC<EditProjectPageProps> = ({ projectId, setOpenEdi
 
   return isReady ? (
     <main>
-      <Box sx={{ width: '100%' }} className='g-dashboard-boxShadow p-4'>
+      <Box sx={{ width: '100%' }} className='border-1 boxShadow-1 p-4'>
         <Stepper nonLinear activeStep={activeStep}>
-          {steps.map((label, index) => (
-            <Step key={label} completed={completed[index]} disabled>
-              <StepButton color='inherit' onClick={handleStep(index)}>
-                {label}
-              </StepButton>
-            </Step>
-          ))}
+          {steps.map((label, index) => {
+            if (dataCollectionMethod.method == PROJECT_DATA_COLLECTION_METHOD.WEB && index === 4) {
+              return null; // Skip the last step for web method
+            } else {
+              return (
+                <Step key={label} completed={completed[index]} disabled>
+                  <StepButton color='inherit' onClick={handleStep(index)}>
+                    {label}
+                  </StepButton>
+                </Step>
+              );
+            }
+          })}
         </Stepper>
       </Box>
-      <Box className='w-full mt-[1%] g-dashboard-boxShadow p-4'>
+      <Box className='w-full mt-[1%] p-4 border-1 boxShadow-1'>
         {activeStep === 0 && (
           <ProjectDetailTab
             projectTitle={projectTitle}
             setProjectTitle={setProjectTitle}
             projectDescription={projectDescription}
             setProjectDescription={setProjectDescription}
+            isSurveyLanguageInEnglish={isSurveyLanguageInEnglish}
+            setIsSurveyLanguageInEnglish={setIsSurveyLanguageInEnglish}
+            isSurveyLanguageInKhmer={isSurveyLanguageInKhmer}
+            setIsSurveyLanguageInKhmer={setIsSurveyLanguageInKhmer}
+            dataCollectionMethod={dataCollectionMethod}
+            setDataCollectionMethod={setDataCollectionMethod}
           />
         )}
+
         {activeStep === 1 && <LocationSelectionTabs isUpdate={true} />}
+
         {activeStep === 2 && (
           <DatasetDesignTabs
             questionTypes={questionTypesData}
             dataDesignForms={dataDesignForms}
             setDataDesignForms={setDataDesignForms}
+            isSurveyLanguageInEnglish={isSurveyLanguageInEnglish}
+            isSurveyLanguageInKhmer={isSurveyLanguageInKhmer}
           />
         )}
+
         {activeStep === 3 && (
           <IndicatorDesignTab
             indicators={indicators}
             setIndicators={setIndicators}
             dataDesignForms={dataDesignForms}
             filterFunctions={filterFunctionsData}
+            isSurveyLanguageInEnglish={isSurveyLanguageInEnglish}
+            isSurveyLanguageInKhmer={isSurveyLanguageInKhmer}
           />
         )}
-        {activeStep === 4 && (
+
+        {activeStep === 4 && dataCollectionMethod.method == PROJECT_DATA_COLLECTION_METHOD.CAPI && (
           <AssignFacilitatorTab
             facilitators={fetchedFacilitators}
             setFacilitators={setFacilitators}
             assignedUserId={projectDetail?.users}
           />
         )}
-        {/* <Box className='flex justify-between mt-[1%]'>
-          <Button variant='contained' disabled={activeStep === 0} onClick={handleBack}>
-            {GetContext('back', lang)}
-          </Button>
-          <Button variant='contained' onClick={handleNext}>
-            {GetContext('next', lang)}
-          </Button>
-          <Button variant='contained' onClick={handleConsoleLog}>
-            Console log
-          </Button>
-          <Button
-            variant='contained'
-            onClick={() => handleUpdateProject()}
-            disabled={activeStep === 4 && facilitators.length === 0}>
-            {GetContext('confirm_edit', lang)}
-          </Button>
-        </Box> */}
+
         <Box className='flex justify-between mt-[1%]'>
           <Button variant='contained' disabled={activeStep === 0} onClick={handleBack}>
             {GetContext('back', lang)}
           </Button>
 
-          {activeStep !== 4 && (
-            <Button variant='contained' onClick={handleNext}>
-              {GetContext('next', lang)}
-            </Button>
-          )}
+          {activeStep !== 4 &&
+            (activeStep === 3 && dataCollectionMethod.method == PROJECT_DATA_COLLECTION_METHOD.WEB ? (
+              <Button variant='contained' onClick={() => handleUpdateProject()}>
+                {GetContext('confirm_edit', lang)}
+              </Button>
+            ) : (
+              <Button variant='contained' onClick={handleNext}>
+                {GetContext('next', lang)}
+              </Button>
+            ))}
 
           {activeStep === 4 && (
             <Button variant='contained' onClick={() => handleUpdateProject()}>

@@ -120,6 +120,13 @@ const ProjectHistoryPage = () => {
         cellClassName: 'text-left',
         flex: 1.6,
         headerClassName: 'super-app-theme--header',
+        renderCell: (params: any) => {
+          return (
+            <Box>
+              <Box component='span'>{params.value.en || params.value.km}</Box>
+            </Box>
+          );
+        },
       },
       {
         field: 'status',

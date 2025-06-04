@@ -17,6 +17,7 @@ import { GetContext } from '@/utils/language';
 import useLang from '@/store/lang';
 import CustomDataGrid from '@/components/CustomDataGrid';
 import CoolTextInput from '@/components/customButton';
+import { useState } from 'react';
 
 type NameCounterCardProps = {
   name: string;
@@ -135,12 +136,13 @@ type rowsDateType = {
 
 const fetchProjectSummary = async () => {
   const res = await axios.get('/api/project-summary');
+  console.log('Project Summary Response:', res.data);
   return res.data.data;
 };
 
 export default function ProjectSummaryTable() {
   const lang = useLang(state => state.lang);
-  const [itemFilter, setItemFilter] = React.useState<string>('');
+  const [itemFilter, setItemFilter] = useState<string>('');
 
   const {
     data: rowData = [],
@@ -200,7 +202,7 @@ export default function ProjectSummaryTable() {
 
   return (
     <Grid container spacing={3}>
-      <Grid container item xs={12} spacing={3}>
+      {/* <Grid container item xs={12} spacing={3}>
         <Grid item xs={3}>
           <NameCounterCard
             name={GetContext('all_project', lang)}
@@ -241,7 +243,7 @@ export default function ProjectSummaryTable() {
             isLoading={isTableLoading}
           />
         </Grid>
-      </Grid>
+      </Grid> */}
       <Grid item xs={12}>
         <Box sx={{ height: 'fit-content', width: '100%' }} className='boxShadow-1 border-1 p-[0.6rem]'>
           <Box className='flex justify-between items-start mb-[1rem]'>

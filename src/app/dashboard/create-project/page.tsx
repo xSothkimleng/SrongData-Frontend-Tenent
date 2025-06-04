@@ -49,7 +49,6 @@ const fetchFilterFunctions = async () => {
 };
 
 const CreateProjectPage = () => {
-  // const queryClient = useQueryClient();
   const lang = useLang(state => state.lang);
 
   const [steps, setSteps] = useState<string[]>([

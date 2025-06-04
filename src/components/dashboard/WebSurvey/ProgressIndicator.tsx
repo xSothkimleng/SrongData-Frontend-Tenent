@@ -1,6 +1,12 @@
+import React from 'react';
 import { Box } from '@mui/material';
 
-const ProgressIndicator = ({ currentStep, totalSteps }) => {
+interface ProgressIndicatorProps {
+  currentStep: number;
+  totalSteps: number;
+}
+
+const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({ currentStep, totalSteps }) => {
   const progress = (currentStep / totalSteps) * 100;
 
   return (

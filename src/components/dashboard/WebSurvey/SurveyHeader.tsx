@@ -1,8 +1,9 @@
+import React from 'react';
 import { Box, Typography } from '@mui/material';
 
-type SurveyHeaderProps = {
+interface SurveyHeaderProps {
   title: string;
-};
+}
 
 const SurveyHeader: React.FC<SurveyHeaderProps> = ({ title }) => {
   return (

@@ -1,6 +1,23 @@
+import React from 'react';
 import { Box, Button } from '@mui/material';
 
-const NavigationControls = ({ onNext, onPrevious, onSubmit, showPrevious, showNext, showSubmit }) => {
+interface NavigationControlsProps {
+  onNext: () => void;
+  onPrevious: () => void;
+  onSubmit: () => void;
+  showPrevious: boolean;
+  showNext: boolean;
+  showSubmit: boolean;
+}
+
+const NavigationControls: React.FC<NavigationControlsProps> = ({
+  onNext,
+  onPrevious,
+  onSubmit,
+  showPrevious,
+  showNext,
+  showSubmit,
+}) => {
   return (
     <Box
       sx={{

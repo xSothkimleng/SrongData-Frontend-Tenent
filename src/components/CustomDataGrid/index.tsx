@@ -9,9 +9,9 @@ type CustomDataGridProps = {
   columns: GridColDef[];
   loading: boolean;
   filterSection?: JSX.Element;
-  [key: string]: any;
   noBorder?: boolean;
   quickFilter?: boolean;
+  [key: string]: any;
 };
 
 const DefaultToolbar: React.FC = () => (
