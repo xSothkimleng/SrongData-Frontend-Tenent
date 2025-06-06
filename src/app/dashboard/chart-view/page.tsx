@@ -1,12 +1,9 @@
 'use client';
 import React, { useEffect, useState, ChangeEvent, useRef } from 'react';
-import { styled } from '@mui/system';
 import { BarChart } from '@mui/x-charts/BarChart';
-import DeleteIcon from '@mui/icons-material/Delete';
 import axios from 'axios';
 import dynamic from 'next/dynamic';
 import html2canvas from 'html2canvas';
-import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 const Map = dynamic(() => import('@/components/dashboard/map'), { ssr: false });
 const xlsx = require('json-as-xlsx');
 import {

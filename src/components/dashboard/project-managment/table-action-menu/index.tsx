@@ -38,6 +38,7 @@ import {
   ListItemIcon,
   ListItemText,
 } from '@mui/material';
+import useUserStore from '@/store/useUserStore';
 
 export interface Filter {
   index: number;
@@ -65,6 +66,7 @@ export interface Project {
   data_collected: number;
   created_at: string;
   updated_at: string;
+  code: string | null;
 }
 
 const TableActionMenu: React.FC<{
@@ -87,6 +89,7 @@ const TableActionMenu: React.FC<{
   const [openCloneProjectDialog, setOpenCloneProjectDialog] = useState(false);
   const [openEditProjectDialog, setOpenEditProjectDialog] = useState(false);
   const [openShareLinkDialog, setOpenShareLinkDialog] = useState(false);
+  const tenant = useUserStore(state => state.userData);
 
   // Menu state
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -352,12 +355,14 @@ const TableActionMenu: React.FC<{
         )}
 
         {/* Share Link */}
-        <MenuItem onClick={() => handleMenuItemClick(() => setOpenShareLinkDialog(true))}>
-          <ListItemIcon>
-            <LinkIcon fontSize='small' />
-          </ListItemIcon>
-          <ListItemText>Share Link</ListItemText>
-        </MenuItem>
+        {row.code != null && (
+          <MenuItem onClick={() => handleMenuItemClick(() => setOpenShareLinkDialog(true))}>
+            <ListItemIcon>
+              <LinkIcon fontSize='small' />
+            </ListItemIcon>
+            <ListItemText>Share Link</ListItemText>
+          </MenuItem>
+        )}
 
         {/* Delete Project */}
         {canDeleteProject && (
@@ -465,11 +470,14 @@ const TableActionMenu: React.FC<{
         </Box>
       </Dialog>
       {/* share link dialog */}
-      <Dialog fullWidth maxWidth='xs' open={openShareLinkDialog} onClose={() => setOpenShareLinkDialog(!openShareLinkDialog)}>
+      <Dialog fullWidth maxWidth='md' open={openShareLinkDialog} onClose={() => setOpenShareLinkDialog(!openShareLinkDialog)}>
         <DialogTitle>
           <p>Share Link</p>
         </DialogTitle>
-        <DialogContent>{row.projectId}</DialogContent>
+        <DialogContent>
+          {' '}
+          {process.env.NEXT_PUBLIC_FRONTEND_URL}/survey?s={row.code}&t={tenant?.tenant?.id}
+        </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenShareLinkDialog(false)}>{GetContext('cancel', lang)}</Button>
         </DialogActions>

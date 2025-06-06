@@ -72,8 +72,32 @@ const NameCounterCard: React.FC<NameCounterCardProps> = ({
 
 const columns = (lang: string): GridColDef[] => {
   return [
-    { field: 'name', headerName: GetContext('project', lang), flex: 1.5, cellClassName: 'text-left' },
-    { field: 'description', headerName: GetContext('description', lang), flex: 3, cellClassName: 'leftAlign' },
+    {
+      field: 'name',
+      headerName: GetContext('project', lang),
+      flex: 1.5,
+      cellClassName: 'text-left',
+      renderCell: (params: GridRenderCellParams) => {
+        return (
+          <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+            <Typography style={{ fontSize: '1rem' }}>{params.value.en || params.value.km || 'undefined'}</Typography>
+          </Box>
+        );
+      },
+    },
+    {
+      field: 'description',
+      headerName: GetContext('description', lang),
+      flex: 3,
+      cellClassName: 'leftAlign',
+      renderCell: (params: GridRenderCellParams) => {
+        return (
+          <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+            <Typography style={{ fontSize: '1rem' }}>{params.value.en || params.value.km || 'undefined'}</Typography>
+          </Box>
+        );
+      },
+    },
     {
       field: 'total_response',
       headerName: GetContext('responses', lang),
@@ -202,7 +226,7 @@ export default function ProjectSummaryTable() {
 
   return (
     <Grid container spacing={3}>
-      {/* <Grid container item xs={12} spacing={3}>
+      <Grid container item xs={12} spacing={3}>
         <Grid item xs={3}>
           <NameCounterCard
             name={GetContext('all_project', lang)}
@@ -243,7 +267,7 @@ export default function ProjectSummaryTable() {
             isLoading={isTableLoading}
           />
         </Grid>
-      </Grid> */}
+      </Grid>
       <Grid item xs={12}>
         <Box sx={{ height: 'fit-content', width: '100%' }} className='boxShadow-1 border-1 p-[0.6rem]'>
           <Box className='flex justify-between items-start mb-[1rem]'>
