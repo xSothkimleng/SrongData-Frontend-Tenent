@@ -10,6 +10,7 @@ import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 const Map = dynamic(() => import('@/components/dashboard/map'), { ssr: false });
 const xlsx = require('json-as-xlsx');
 import { DataGrid, GridColDef, GridToolbarQuickFilter } from '@mui/x-data-grid';
+
 import {
   FormControl,
   InputLabel,
@@ -34,16 +35,16 @@ import {
   LinearProgress,
   Card,
   CardContent,
-} from '@mui/material';
-import AuthorizationCheck from '@/components/AuthorizationCheck';
-import { permissionCode } from '@/utils/permissionCode';
-import useLang from '@/store/lang';
-import { GetContext } from '@/utils/language';
-import CloseIcon from '@mui/icons-material/Close';
-import RefreshIcon from '@mui/icons-material/Refresh';
-import ErrorIcon from '@mui/icons-material/Error';
-import WarningIcon from '@mui/icons-material/Warning';
-import CancelIcon from '@mui/icons-material/Cancel';
+} from "@mui/material";
+import AuthorizationCheck from "@/components/AuthorizationCheck";
+import { permissionCode } from "@/utils/permissionCode";
+import useLang from "@/store/lang";
+import { GetContext } from "@/utils/language";
+import CloseIcon from "@mui/icons-material/Close";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import ErrorIcon from "@mui/icons-material/Error";
+import WarningIcon from "@mui/icons-material/Warning";
+import CancelIcon from "@mui/icons-material/Cancel";
 
 interface Project {
   id: string;
@@ -110,7 +111,7 @@ interface QuestionFilter {
 interface ProjectLoadingStatus {
   projectId: string;
   projectName: string;
-  status: 'pending' | 'loading' | 'success' | 'error';
+  status: "pending" | "loading" | "success" | "error";
   message?: string;
   color?: string;
 }
@@ -118,77 +119,81 @@ interface ProjectLoadingStatus {
 const MAX_RECOMMENDED_PROJECTS = 3;
 
 const PROJECT_COLORS = [
-  '#1976d2', // blue
-  '#388e3c', // green
-  '#d32f2f', // red
-  '#f57c00', // orange
-  '#7b1fa2', // purple
-  '#00796b', // teal
+  "#1976d2", // blue
+  "#388e3c", // green
+  "#d32f2f", // red
+  "#f57c00", // orange
+  "#7b1fa2", // purple
+  "#00796b", // teal
 ];
 
 const AddQuestions: Question[] = [
   {
-    id: 'user',
+    id: "user",
     order: -1,
-    label: 'Submitted By',
-    label_km: 'អ្នកបញ្ខូលទិន្នន័យ',
-    type: 'user',
-    data_type: 'array',
+    label: "Submitted By",
+    label_km: "អ្នកបញ្ខូលទិន្នន័យ",
+    type: "user",
+    data_type: "array",
     options: [],
   },
   {
-    id: 'province',
+    id: "province",
     order: -1,
-    label: 'Provinces',
-    label_km: 'ខេត្ត',
-    type: 'province',
-    data_type: 'array',
+    label: "Provinces",
+    label_km: "ខេត្ត",
+    type: "province",
+    data_type: "array",
     options: [],
   },
   {
-    id: 'district',
+    id: "district",
     order: -1,
-    label: 'District',
-    label_km: 'ស្រុក',
-    type: 'district',
-    data_type: 'array',
+    label: "District",
+    label_km: "ស្រុក",
+    type: "district",
+    data_type: "array",
     options: [],
   },
   {
-    id: 'commune',
+    id: "commune",
     order: -1,
-    label: 'Commune',
-    label_km: 'ឃុំ',
-    type: 'commune',
-    data_type: 'array',
+    label: "Commune",
+    label_km: "ឃុំ",
+    type: "commune",
+    data_type: "array",
     options: [],
   },
   {
-    id: 'village',
+    id: "village",
     order: -1,
-    label: 'Village',
-    label_km: 'ភូមិ',
-    type: 'village',
-    data_type: 'array',
+    label: "Village",
+    label_km: "ភូមិ",
+    type: "village",
+    data_type: "array",
     options: [],
   },
   {
-    id: 'project',
+    id: "project",
     order: -1,
-    label: 'Project',
-    label_km: 'គម្រោង',
-    type: 'project',
-    data_type: 'array',
+    label: "Project",
+    label_km: "គម្រោង",
+    type: "project",
+    data_type: "array",
     options: [],
   },
 ];
 
 const ActionCell: React.FC<{ row: Project }> = ({ row }) => (
   <div>
-    <Button variant='contained' color='primary' sx={{ borderRadius: '28px' }}>
+    <Button variant="contained" color="primary" sx={{ borderRadius: "28px" }}>
       <ManageAccountsIcon />
     </Button>
-    <Button variant='contained' color='secondary' sx={{ borderRadius: '28px', margin: '0 0.5rem' }}>
+    <Button
+      variant="contained"
+      color="secondary"
+      sx={{ borderRadius: "28px", margin: "0 0.5rem" }}
+    >
       <DeleteIcon />
     </Button>
   </div>
@@ -200,8 +205,8 @@ const CustomQuickFilter = styled(GridToolbarQuickFilter)(({ theme }) => ({
     fontSize: '2rem !important',
     color: theme.palette.primary.main,
   },
-  '& .MuiInputBase-input': {
-    fontSize: '1.5rem !important',
+  "& .MuiInputBase-input": {
+    fontSize: "1.5rem !important",
   },
 }));
 
@@ -209,7 +214,9 @@ interface FilterItemProps {
   filter: QuestionFilter;
   index: number;
   handleFilterChange: (
-    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<any[]>,
+    event:
+      | ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+      | SelectChangeEvent<any[]>,
     index: number,
     numValue?: number,
   ) => void;
@@ -217,81 +224,95 @@ interface FilterItemProps {
   GetContext: (key: string, lang: string) => string;
 }
 
-const FilterItem: React.FC<FilterItemProps> = ({ filter, index, handleFilterChange, lang, GetContext }) => {
+const FilterItem: React.FC<FilterItemProps> = ({
+  filter,
+  index,
+  handleFilterChange,
+  lang,
+  GetContext,
+}) => {
   return (
     <div>
-      {!(filter.data_type == 'date' || filter.data_type == 'time') && (
+      {!(filter.data_type == "date" || filter.data_type == "time") && (
         <InputLabel
           sx={{
-            marginBottom: '5px',
-            color: filter.color && 'text.primary',
-          }}>
+            marginBottom: "5px",
+            color: filter.color && "text.primary",
+          }}
+        >
           <Box
-            component='span'
+            component="span"
             sx={{
-              fontWeight: 'bold',
-              ...(filter.color && { borderLeft: `3px solid ${filter.color}`, paddingLeft: '6px' }),
-            }}>
+              fontWeight: "bold",
+              ...(filter.color && {
+                borderLeft: `3px solid ${filter.color}`,
+                paddingLeft: "6px",
+              }),
+            }}
+          >
             {filter.label}
           </Box>
         </InputLabel>
       )}
 
-      {filter.data_type == 'string' && (
+      {filter.data_type == "string" && (
         <TextField
-          onChange={event => {
+          onChange={(event) => {
             handleFilterChange(event, index);
           }}
-          value={filter.values[0] || ''}
+          value={filter.values[0] || ""}
           fullWidth
-          sx={{ marginBottom: '10px' }}
-          label={GetContext('enter_text', lang)}
-          variant='outlined'
+          sx={{ marginBottom: "10px" }}
+          label={GetContext("enter_text", lang)}
+          variant="outlined"
         />
       )}
 
-      {filter.data_type == 'number' && (
-        <Stack direction='row' spacing={1} sx={{ marginBottom: '10px' }}>
+      {filter.data_type == "number" && (
+        <Stack direction="row" spacing={1} sx={{ marginBottom: "10px" }}>
           <TextField
-            onChange={event => {
+            onChange={(event) => {
               handleFilterChange(event, index, 1);
             }}
-            value={filter.values[0] || ''}
+            value={filter.values[0] || ""}
             sx={{ flex: 1 }}
-            type='number'
-            label={GetContext('enter_first_num', lang)}
-            variant='outlined'
+            type="number"
+            label={GetContext("enter_first_num", lang)}
+            variant="outlined"
           />
           <TextField
-            onChange={event => {
+            onChange={(event) => {
               handleFilterChange(event, index, 2);
             }}
-            value={filter.values[1] || ''}
+            value={filter.values[1] || ""}
             sx={{ flex: 1 }}
-            type='number'
-            label={GetContext('enter_second_num', lang)}
-            variant='outlined'
+            type="number"
+            label={GetContext("enter_second_num", lang)}
+            variant="outlined"
           />
         </Stack>
       )}
 
-      {filter.data_type == 'array' && filter.index != -1 && (
-        <FormControl fullWidth sx={{ marginBottom: '10px' }}>
-          <InputLabel id={`multi-select-label-${index}`}>{GetContext('select_option', lang)}</InputLabel>
+      {filter.data_type == "array" && filter.index != -1 && (
+        <FormControl fullWidth sx={{ marginBottom: "10px" }}>
+          <InputLabel id={`multi-select-label-${index}`}>
+            {GetContext("select_option", lang)}
+          </InputLabel>
           <Select
             labelId={`multi-select-label-${index}`}
             multiple
             value={filter.values}
-            onChange={event => {
+            onChange={(event) => {
               handleFilterChange(event, index);
             }}
-            renderValue={selected => {
+            renderValue={(selected) => {
               return selected
-                .map(value => {
+                .map((value) => {
                   return filter.options[value];
                 })
-                .join(', ');
-            }}>
+                .join(", ");
+            }}
+          >
             {filter.options.map((option, i) => (
               <MenuItem key={i} value={i}>
                 <Checkbox checked={filter.values.indexOf(i) > -1} />
@@ -302,110 +323,144 @@ const FilterItem: React.FC<FilterItemProps> = ({ filter, index, handleFilterChan
         </FormControl>
       )}
 
-      {filter.data_type == 'array' && filter.index == -1 && filter.type != 'user' && filter.type != 'project' && (
-        <FormControl fullWidth sx={{ marginBottom: '10px' }}>
-          <InputLabel id={`multi-select-label-${index}`}>{GetContext('select_option', lang)}</InputLabel>
-          <Select
-            labelId={`multi-select-label-${index}`}
-            multiple
-            value={filter.values}
-            onChange={event => {
-              handleFilterChange(event, index);
-            }}
-            renderValue={selected => {
-              return selected
-                .map(value => {
-                  const option = filter.options.find(option => value == option.id);
-                  return option ? (lang == 'en' ? option.name_en : option.name_km) : '';
-                })
-                .join(', ');
-            }}>
-            {filter.options.map((option, i) => (
-              <MenuItem key={i} value={option.id}>
-                <Checkbox checked={filter.values.indexOf(option.id) > -1} />
-                <ListItemText primary={lang == 'en' ? option.name_en : option.name_km} />
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      )}
+      {filter.data_type == "array" &&
+        filter.index == -1 &&
+        filter.type != "user" &&
+        filter.type != "project" && (
+          <FormControl fullWidth sx={{ marginBottom: "10px" }}>
+            <InputLabel id={`multi-select-label-${index}`}>
+              {GetContext("select_option", lang)}
+            </InputLabel>
+            <Select
+              labelId={`multi-select-label-${index}`}
+              multiple
+              value={filter.values}
+              onChange={(event) => {
+                handleFilterChange(event, index);
+              }}
+              renderValue={(selected) => {
+                return selected
+                  .map((value) => {
+                    const option = filter.options.find(
+                      (option) => value == option.id,
+                    );
+                    return option
+                      ? lang == "en"
+                        ? option.name_en
+                        : option.name_km
+                      : "";
+                  })
+                  .join(", ");
+              }}
+            >
+              {filter.options.map((option, i) => (
+                <MenuItem key={i} value={option.id}>
+                  <Checkbox checked={filter.values.indexOf(option.id) > -1} />
+                  <ListItemText
+                    primary={lang == "en" ? option.name_en : option.name_km}
+                  />
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        )}
 
-      {filter.data_type == 'array' && filter.index == -1 && filter.type == 'project' && (
-        <FormControl fullWidth sx={{ marginBottom: '10px' }}>
-          <InputLabel id={`multi-select-label-${index}`}>{GetContext('select_option', lang)}</InputLabel>
-          <Select
-            labelId={`multi-select-label-${index}`}
-            multiple
-            value={filter.values}
-            onChange={event => {
-              handleFilterChange(event, index);
-            }}
-            renderValue={selected => {
-              return selected
-                .map(value => {
-                  const option = filter.options.find(option => value == option.id);
-                  return option ? option.name_en : '';
-                })
-                .join(', ');
-            }}>
-            {filter.options.map((option, i) => (
-              <MenuItem key={i} value={option.id}>
-                <Checkbox checked={filter.values.indexOf(option.id) > -1} />
-                <ListItemText primary={option.name_en} />
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      )}
+      {filter.data_type == "array" &&
+        filter.index == -1 &&
+        filter.type == "project" && (
+          <FormControl fullWidth sx={{ marginBottom: "10px" }}>
+            <InputLabel id={`multi-select-label-${index}`}>
+              {GetContext("select_option", lang)}
+            </InputLabel>
+            <Select
+              labelId={`multi-select-label-${index}`}
+              multiple
+              value={filter.values}
+              onChange={(event) => {
+                handleFilterChange(event, index);
+              }}
+              renderValue={(selected) => {
+                return selected
+                  .map((value) => {
+                    const option = filter.options.find(
+                      (option) => value == option.id,
+                    );
+                    return option ? option.name_en : "";
+                  })
+                  .join(", ");
+              }}
+            >
+              {filter.options.map((option, i) => (
+                <MenuItem key={i} value={option.id}>
+                  <Checkbox checked={filter.values.indexOf(option.id) > -1} />
+                  <ListItemText primary={option.name_en} />
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        )}
 
-      {filter.data_type == 'array' && filter.index == -1 && filter.type == 'user' && (
-        <FormControl fullWidth sx={{ marginBottom: '10px' }}>
-          <InputLabel id={`multi-select-label-${index}`}>{GetContext('select_option', lang)}</InputLabel>
-          <Select
-            labelId={`multi-select-label-${index}`}
-            multiple
-            value={filter.values}
-            onChange={event => {
-              handleFilterChange(event, index);
-            }}
-            renderValue={selected => {
-              return selected
-                .map(value => {
-                  const option = filter.options.find(option => value == option.id);
-                  return option ? option.first_name + ' ' + option.last_name : '';
-                })
-                .join(', ');
-            }}>
-            {filter.options.map((option, i) => (
-              <MenuItem key={i} value={option.id}>
-                <Checkbox checked={filter.values.indexOf(option.id) > -1} />
-                <ListItemText primary={option.first_name + ' ' + option.last_name} />
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      )}
+      {filter.data_type == "array" &&
+        filter.index == -1 &&
+        filter.type == "user" && (
+          <FormControl fullWidth sx={{ marginBottom: "10px" }}>
+            <InputLabel id={`multi-select-label-${index}`}>
+              {GetContext("select_option", lang)}
+            </InputLabel>
+            <Select
+              labelId={`multi-select-label-${index}`}
+              multiple
+              value={filter.values}
+              onChange={(event) => {
+                handleFilterChange(event, index);
+              }}
+              renderValue={(selected) => {
+                return selected
+                  .map((value) => {
+                    const option = filter.options.find(
+                      (option) => value == option.id,
+                    );
+                    return option
+                      ? option.first_name + " " + option.last_name
+                      : "";
+                  })
+                  .join(", ");
+              }}
+            >
+              {filter.options.map((option, i) => (
+                <MenuItem key={i} value={option.id}>
+                  <Checkbox checked={filter.values.indexOf(option.id) > -1} />
+                  <ListItemText
+                    primary={option.first_name + " " + option.last_name}
+                  />
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        )}
     </div>
   );
 };
 
-const ProjectLegend: React.FC<{ projects: ProjectLoadingStatus[] }> = ({ projects }) => {
+const ProjectLegend: React.FC<{ projects: ProjectLoadingStatus[] }> = ({
+  projects,
+}) => {
   if (projects.length <= 1) return null;
 
   return (
-    <Paper variant='outlined' sx={{ p: 2, mb: 2 }}>
-      <Typography variant='subtitle1' fontWeight='bold' gutterBottom>
+    <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+      <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
         Project Legend
       </Typography>
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-        {projects.map(project => (
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+        {projects.map((project) => (
           <Chip
             key={project.projectId}
             label={project.projectName}
             sx={{
               backgroundColor: project.color,
-              color: '#fff',
-              fontWeight: 'bold',
+              color: "#fff",
+              fontWeight: "bold",
             }}
           />
         ))}
@@ -415,7 +470,7 @@ const ProjectLegend: React.FC<{ projects: ProjectLoadingStatus[] }> = ({ project
 };
 
 const DataViewPage = () => {
-  const lang = useLang(state => state.lang);
+  const lang = useLang((state) => state.lang);
   const chartRef = useRef<HTMLDivElement>(null);
 
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
@@ -423,6 +478,7 @@ const DataViewPage = () => {
   const [openDrawer, setOpenDrawer] = useState<boolean>(false);
   const [projects, setProjects] = useState<Project[]>([]);
   const [masterProjectDetails, setMasterProjectDetails] = useState<ProjectDetail | null>(null);
+
   const [selectedQuestions, setSelectedQuestions] = useState<Question[]>([]);
   const [gridCols, setGridCols] = useState<GridColDef[]>([]);
   const [gridRows, setGridRows] = useState<{ [key: string]: any }[]>([]);
@@ -495,7 +551,9 @@ const DataViewPage = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const response = await axios.get('/api/config', { params: { endpoint: 'project/all?status=1,2' } });
+        const response = await axios.get("/api/config", {
+          params: { endpoint: "project/all?status=1,2" },
+        });
         setProjects(response.data.data.projects);
       } catch (error) {
         console.error('Error fetching projects:', error);
@@ -507,7 +565,7 @@ const DataViewPage = () => {
 
   const downloadFile = async () => {
     const settings = {
-      fileName: 'multi_project_data',
+      fileName: "multi_project_data",
       extraLength: 3,
       writeOptions: {},
     };
@@ -533,7 +591,7 @@ const DataViewPage = () => {
       ];
       xlsx(sheetData, settings);
     } catch (error) {
-      console.error('Error exporting data:', error);
+      console.error("Error exporting data:", error);
     }
   };
 
@@ -630,18 +688,18 @@ const DataViewPage = () => {
     } catch (error) {
       setIsChartLoading(false);
       setDataset([]);
-      console.error('Error fetching visualization data:', error);
+      console.error("Error fetching visualization data:", error);
     }
   };
 
   // Clear all value in filter
   const handleClearFilter = async () => {
     var newFilter = filters;
-    newFilter.map(filter => {
+    newFilter.map((filter) => {
       filter.values = [];
     });
     setFilters(newFilter);
-    setDrawerKey(prevKey => prevKey + 1);
+    setDrawerKey((prevKey) => prevKey + 1);
   };
 
   // Filter function
@@ -702,7 +760,7 @@ const DataViewPage = () => {
       newProjectStatus.push({
         projectId,
         projectName,
-        status: 'pending',
+        status: "pending",
         color: PROJECT_COLORS[colorIndex],
       });
     });
@@ -747,9 +805,11 @@ const DataViewPage = () => {
 
     if (masterProjectDetails) {
       // @ts-ignore
-      if (value.includes('all')) {
+      if (value.includes("all")) {
         // @ts-ignore
-        if (selectedQuestions.length === masterProjectDetails.questions.length) {
+        if (
+          selectedQuestions.length === masterProjectDetails.questions.length
+        ) {
           setSelectedQuestions([]);
         } else {
           setSelectedQuestions(masterProjectDetails.questions);
@@ -763,7 +823,7 @@ const DataViewPage = () => {
 
   // Question visualize change
   const handleQuestionVisualizeChange = (event: SelectChangeEvent<string>) => {
-    if (typeof event.target.value == 'string') {
+    if (typeof event.target.value == "string") {
       const selectedQuestion = JSON.parse(event.target.value) as Question;
       setQuestionVisualize(selectedQuestion);
       getDataVisualization(selectedQuestion);
@@ -772,15 +832,17 @@ const DataViewPage = () => {
 
   // Handle filter selection changes
   const handleFilterChange = (
-    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<any[]>,
+    event:
+      | ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+      | SelectChangeEvent<any[]>,
     index: number,
     numValue?: number,
   ) => {
     const { value } = event.target;
-    setFilters(filters => {
+    setFilters((filters) => {
       const newFilters = [...filters];
 
-      if (typeof value == 'string') {
+      if (typeof value == "string") {
         if (numValue) {
           newFilters[index].values[numValue - 1] = value;
         } else {
@@ -835,7 +897,7 @@ const DataViewPage = () => {
     var temp: GridColDef[] = [];
     var tempQuestion: QuestionFilter[] = [];
 
-    selectedQuestions.map(item => {
+    selectedQuestions.map((item) => {
       let colLabel = item.label;
 
       // Generate filter base on selected question
@@ -930,9 +992,9 @@ const DataViewPage = () => {
   const handleDownloadChart = async () => {
     if (chartRef.current) {
       const canvas = await html2canvas(chartRef.current);
-      const link = document.createElement('a');
-      link.href = canvas.toDataURL('image/png');
-      link.download = 'chart.png';
+      const link = document.createElement("a");
+      link.href = canvas.toDataURL("image/png");
+      link.download = "chart.png";
       link.click();
     }
   };
@@ -941,34 +1003,37 @@ const DataViewPage = () => {
     <AuthorizationCheck requiredPermissions={permissionCode.viewDataView}>
       <div>
         <Box sx={{ mb: 4 }}>
-          <Typography variant='h5' fontWeight='bold' gutterBottom>
+          <Typography variant="h5" fontWeight="bold" gutterBottom>
             Multi-Project Data View
           </Typography>
 
           {/* Project Selection */}
-          <Paper variant='outlined' sx={{ p: 2, mb: 2 }}>
-            <Typography variant='subtitle1' fontWeight='bold' gutterBottom>
+          <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
               1. Select Projects
             </Typography>
 
-            <FormControl sx={{ minWidth: '100%', mb: 2 }}>
-              <InputLabel id='project-select'>
-                {selectedProjects.length === 0 ? GetContext('select_project_msg', lang) : GetContext('select_project', lang)}{' '}
+            <FormControl sx={{ minWidth: "100%", mb: 2 }}>
+              <InputLabel id="project-select">
+                {selectedProjects.length === 0
+                  ? GetContext("select_project_msg", lang)
+                  : GetContext("select_project", lang)}{" "}
               </InputLabel>
 
               <Select
-                variant='standard'
-                id='project-select'
+                variant="standard"
+                id="project-select"
                 multiple
                 value={selectedProjects}
-                label='Projects'
-                onChange={handleProjectChange}>
+                label="Projects"
+                onChange={handleProjectChange}
+              >
                 {projects.length === 0 && (
-                  <MenuItem key='empty' value='' disabled>
-                    {GetContext('no_project', lang)}
+                  <MenuItem key="empty" value="" disabled>
+                    {GetContext("no_project", lang)}
                   </MenuItem>
                 )}
-                {projects.map(item => (
+                {projects.map((item) => (
                   <MenuItem key={item.id} value={item.id}>
                     {getProjectName(item)}
                   </MenuItem>
@@ -978,25 +1043,25 @@ const DataViewPage = () => {
 
             {/* Warning for too many projects */}
             {showTooManyProjectsWarning && (
-              <Alert severity='warning' sx={{ mb: 2 }}>
-                <Typography fontWeight='bold'>Performance Warning</Typography>
-                You have selected more than {MAX_RECOMMENDED_PROJECTS} projects. Loading and displaying data for multiple projects
-                may be slow.
+              <Alert severity="warning" sx={{ mb: 2 }}>
+                <Typography fontWeight="bold">Performance Warning</Typography>
+                You have selected more than {MAX_RECOMMENDED_PROJECTS} projects.
+                Loading and displaying data for multiple projects may be slow.
               </Alert>
             )}
 
             {/* Selected Projects Chips */}
             {selectedProjects.length > 0 && (
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                {projectLoadingStatus.map(project => (
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2 }}>
+                {projectLoadingStatus.map((project) => (
                   <Chip
                     key={project.projectId}
                     label={project.projectName}
                     onDelete={() => handleRemoveProject(project.projectId)}
                     sx={{
                       backgroundColor: project.color,
-                      color: '#fff',
-                      fontWeight: 'bold',
+                      color: "#fff",
+                      fontWeight: "bold",
                     }}
                   />
                 ))}
@@ -1006,11 +1071,12 @@ const DataViewPage = () => {
             {/* Load Projects Button */}
             {selectedProjects.length > 0 && !isLoadingProjects && (
               <Button
-                variant='contained'
-                color='primary'
+                variant="contained"
+                color="primary"
                 onClick={loadAllSelectedProjects}
                 startIcon={<RefreshIcon />}
-                sx={{ mr: 1 }}>
+                sx={{ mr: 1 }}
+              >
                 Load Selected Projects
               </Button>
             )}
@@ -1050,28 +1116,32 @@ const DataViewPage = () => {
 
           {/* Question Selection and Filtering - Only show when data is ready */}
           {isDataReady && masterProjectDetails && (
-            <Paper variant='outlined' sx={{ p: 2, mb: 2 }}>
-              <Typography variant='subtitle1' fontWeight='bold' gutterBottom>
+            <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+              <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
                 2. Select Questions and Filter Data
               </Typography>
 
-              <FormControl sx={{ minWidth: '100%', marginBottom: 2 }}>
-                <InputLabel id='select-question'>
-                  {selectedQuestions.length === 0 ? GetContext('select_question_msg', lang) : GetContext('select_question', lang)}{' '}
+              <FormControl sx={{ minWidth: "100%", marginBottom: 2 }}>
+                <InputLabel id="select-question">
+                  {selectedQuestions.length === 0
+                    ? GetContext("select_question_msg", lang)
+                    : GetContext("select_question", lang)}{" "}
                 </InputLabel>
 
                 <Select
-                  variant='standard'
-                  id='select-question'
+                  variant="standard"
+                  id="select-question"
                   value={selectedQuestions}
                   multiple
-                  onChange={handleQuestionChange}>
-                  <MenuItem key='all' value='all'>
-                    {selectedQuestions.length === masterProjectDetails.questions.length
-                      ? GetContext('unselect_all', lang)
-                      : GetContext('select_all', lang)}
+                  onChange={handleQuestionChange}
+                >
+                  <MenuItem key="all" value="all">
+                    {selectedQuestions.length ===
+                    masterProjectDetails.questions.length
+                      ? GetContext("unselect_all", lang)
+                      : GetContext("select_all", lang)}
                   </MenuItem>
-                  {masterProjectDetails.questions.map(item => (
+                  {masterProjectDetails.questions.map((item) => (
                     // @ts-ignore
                     <MenuItem key={item.id} value={item}>
                       {item.order != -1 ? item.label : lang == 'en' ? item.label : item.label_km || item.label}
@@ -1086,22 +1156,37 @@ const DataViewPage = () => {
                 </Select>
               </FormControl>
 
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
                 {selectedQuestions.length > 0 && (
-                  <Button variant='contained' color='primary' onClick={() => setOpenDrawer(true)}>
-                    {GetContext('filter', lang)}
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={() => setOpenDrawer(true)}
+                  >
+                    {GetContext("filter", lang)}
                   </Button>
                 )}
 
                 {selectedQuestions.length > 0 && (
-                  <Button variant='contained' color='secondary' onClick={() => downloadFile()}>
-                    {GetContext('export', lang)}
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    onClick={() => downloadFile()}
+                  >
+                    {GetContext("export", lang)}
                   </Button>
                 )}
 
                 {masterProjectDetails && (
-                  <Button variant='outlined' onClick={() => (isMapOpen ? setIsMapOpen(false) : setIsMapOpen(true))}>
-                    {isMapOpen ? GetContext('close_map', lang) : GetContext('open_map', lang)}
+                  <Button
+                    variant="outlined"
+                    onClick={() =>
+                      isMapOpen ? setIsMapOpen(false) : setIsMapOpen(true)
+                    }
+                  >
+                    {isMapOpen
+                      ? GetContext("close_map", lang)
+                      : GetContext("open_map", lang)}
                   </Button>
                 )}
               </Box>
@@ -1109,16 +1194,13 @@ const DataViewPage = () => {
           )}
 
           {/* Visualization Section */}
-          {isDataReady && selectedQuestions.length > 0 && gridRows.length > 0 && (
-            <Paper variant='outlined' sx={{ p: 2, mb: 2 }}>
-              <Typography variant='subtitle1' fontWeight='bold' gutterBottom>
-                3. Visualize Data
-              </Typography>
-
-              <FormControl sx={{ minWidth: '100%', marginBottom: 2 }}>
-                <InputLabel id='project-filter-label'>
-                  {!questionVisualize ? GetContext('select_question_msg', lang) : GetContext('select_question', lang)}{' '}
-                </InputLabel>
+          {isDataReady &&
+            selectedQuestions.length > 0 &&
+            gridRows.length > 0 && (
+              <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+                <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                  3. Visualize Data
+                </Typography>
 
                 <Select
                   variant='standard'
@@ -1138,38 +1220,49 @@ const DataViewPage = () => {
 
           {/* Chart Loading */}
           {questionVisualize && isChartLoading && (
-            <Box display='flex' justifyContent='center' alignItems='center' sx={{ height: '400px', width: '100%' }}>
+            <Box
+              display="flex"
+              justifyContent="center"
+              alignItems="center"
+              sx={{ height: "400px", width: "100%" }}
+            >
               <CircularProgress />
             </Box>
           )}
 
           {/* Chart Display */}
           {!isChartLoading && questionVisualize && (
-            <Paper variant='outlined' sx={{ p: 2, mb: 2 }}>
-              <Box display='flex' justifyContent='flex-end' sx={{ mb: 2 }}>
-                <Button onClick={handleDownloadChart} sx={{ marginRight: 1 }} variant='contained' startIcon={<RefreshIcon />}>
-                  {GetContext('export', lang)}
+            <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+              <Box display="flex" justifyContent="flex-end" sx={{ mb: 2 }}>
+                <Button
+                  onClick={handleDownloadChart}
+                  sx={{ marginRight: 1 }}
+                  variant="contained"
+                  startIcon={<RefreshIcon />}
+                >
+                  {GetContext("export", lang)}
                 </Button>
                 <Button
-                  sx={{ backgroundColor: 'white', color: 'black' }}
-                  variant='contained'
+                  sx={{ backgroundColor: "white", color: "black" }}
+                  variant="contained"
                   onClick={handleCloseChart}
-                  startIcon={<CloseIcon />}>
-                  {GetContext('close', lang)}
+                  startIcon={<CloseIcon />}
+                >
+                  {GetContext("close", lang)}
                 </Button>
               </Box>
               <div ref={chartRef}>
                 <BarChart
                   dataset={dataset}
-                  xAxis={[{ scaleType: 'band', dataKey: 'value' }]}
+                  xAxis={[{ scaleType: "band", dataKey: "value" }]}
                   series={[
                     {
-                      dataKey: 'freq',
+                      dataKey: "freq",
                       label: questionVisualize.label,
                     },
                   ]}
                   height={400}
-                  yAxis={[{ label: GetContext('responses', lang) }]}
+                  yAxis={[{ label: GetContext("responses", lang) }]}
                 />
               </div>
             </Paper>
@@ -1177,30 +1270,40 @@ const DataViewPage = () => {
 
           {/* Data Summary */}
           {isDataReady && masterProjectDetails && (
-            <Paper variant='outlined' sx={{ p: 2, mb: 2 }}>
-              <Typography variant='subtitle1' fontWeight='bold' gutterBottom>
+            <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+              <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
                 Data Summary
               </Typography>
-              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                <Box sx={{ p: 1, border: '1px solid #e0e0e0', borderRadius: 1 }}>
-                  <Typography variant='body2' color='text.secondary'>
+              <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+                <Box
+                  sx={{ p: 1, border: "1px solid #e0e0e0", borderRadius: 1 }}
+                >
+                  <Typography variant="body2" color="text.secondary">
                     Total Projects
                   </Typography>
-                  <Typography variant='h6'>{selectedProjects.length}</Typography>
+                  <Typography variant="h6">
+                    {selectedProjects.length}
+                  </Typography>
                 </Box>
 
-                <Box sx={{ p: 1, border: '1px solid #e0e0e0', borderRadius: 1 }}>
-                  <Typography variant='body2' color='text.secondary'>
+                <Box
+                  sx={{ p: 1, border: "1px solid #e0e0e0", borderRadius: 1 }}
+                >
+                  <Typography variant="body2" color="text.secondary">
                     Total Records
                   </Typography>
-                  <Typography variant='h6'>{totalData}</Typography>
+                  <Typography variant="h6">{totalData}</Typography>
                 </Box>
 
-                <Box sx={{ p: 1, border: '1px solid #e0e0e0', borderRadius: 1 }}>
-                  <Typography variant='body2' color='text.secondary'>
+                <Box
+                  sx={{ p: 1, border: "1px solid #e0e0e0", borderRadius: 1 }}
+                >
+                  <Typography variant="body2" color="text.secondary">
                     Selected Questions
                   </Typography>
-                  <Typography variant='h6'>{selectedQuestions.length}</Typography>
+                  <Typography variant="h6">
+                    {selectedQuestions.length}
+                  </Typography>
                 </Box>
               </Box>
             </Paper>
@@ -1209,9 +1312,11 @@ const DataViewPage = () => {
 
         {/* Map View */}
         {isDataReady && isMapOpen && (
-          <Box sx={{ width: '100%', height: '400px', marginTop: '1rem', mb: 2 }}>
-            <Paper variant='outlined' sx={{ p: 2, height: '100%' }}>
-              <Typography variant='subtitle1' fontWeight='bold' gutterBottom>
+          <Box
+            sx={{ width: "100%", height: "400px", marginTop: "1rem", mb: 2 }}
+          >
+            <Paper variant="outlined" sx={{ p: 2, height: "100%" }}>
+              <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
                 Map View
               </Typography>
               <Map data={dataMaps} />
@@ -1221,8 +1326,8 @@ const DataViewPage = () => {
 
         {/* Data Grid */}
         {isDataReady && gridCols.length > 0 && (
-          <Paper variant='outlined' sx={{ p: 2, mb: 2 }}>
-            <Typography variant='subtitle1' fontWeight='bold' gutterBottom>
+          <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
               4. Data Table
             </Typography>
 
@@ -1230,7 +1335,7 @@ const DataViewPage = () => {
               rows={gridRows}
               columns={gridCols}
               rowCount={rowSize}
-              paginationMode='server'
+              paginationMode="server"
               paginationModel={paginationModel}
               onPaginationModelChange={setPaginationModel}
               loading={isDataLoading}
@@ -1252,11 +1357,24 @@ const DataViewPage = () => {
         )}
 
         {/* Filter Drawer */}
-        <Drawer key={drawerKey} anchor='right' open={openDrawer} onClose={() => setOpenDrawer(false)} sx={{ zIndex: '1300' }}>
-          <Box sx={{ width: 500, padding: '1rem' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-              <Typography variant='h6' fontWeight='bold'>
-                {GetContext('filter', lang)}
+        <Drawer
+          key={drawerKey}
+          anchor="right"
+          open={openDrawer}
+          onClose={() => setOpenDrawer(false)}
+          sx={{ zIndex: "1300" }}
+        >
+          <Box sx={{ width: 500, padding: "1rem" }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 2,
+              }}
+            >
+              <Typography variant="h6" fontWeight="bold">
+                {GetContext("filter", lang)}
               </Typography>
               <IconButton onClick={() => setOpenDrawer(false)}>
                 <CloseIcon />
@@ -1277,13 +1395,23 @@ const DataViewPage = () => {
               />
             ))}
 
-            <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
-              <Button fullWidth variant='contained' onClick={handleFilter} startIcon={<RefreshIcon />}>
-                {GetContext('filter', lang)}
+            <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
+              <Button
+                fullWidth
+                variant="contained"
+                onClick={handleFilter}
+                startIcon={<RefreshIcon />}
+              >
+                {GetContext("filter", lang)}
               </Button>
 
-              <Button fullWidth variant='outlined' onClick={handleClearFilter} startIcon={<CloseIcon />}>
-                {GetContext('clear_filter', lang)}
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={handleClearFilter}
+                startIcon={<CloseIcon />}
+              >
+                {GetContext("clear_filter", lang)}
               </Button>
             </Box>
           </Box>
