@@ -1,5 +1,6 @@
 import NextAuth, { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import GoogleProvider from 'next-auth/providers/google';
 
 declare module 'next-auth' {
   interface User {
@@ -48,6 +49,17 @@ const OPTIONS: NextAuthOptions = {
         return null;
       },
     }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          prompt: 'consent',
+          access_type: 'offline',
+          response_type: 'code',
+        },
+      },
+    }),
   ],
   session: {
     strategy: 'jwt',
@@ -65,6 +77,17 @@ const OPTIONS: NextAuthOptions = {
     async session({ session, token }) {
       session.accessToken = token.accessToken;
       return session;
+    },
+    async signIn({ account, profile }) {
+      console.log('signIn', account, profile);
+      // 1. get tenant id from cookie
+      // 2. call user/login (account.accessToken) and tenant id
+      // 3. if success, return accessToken
+
+      // if (account.provider === "google") {
+      //   return profile.email_verified && profile.email.endsWith("@example.com")
+      // }
+      return true; // Do different verification for other providers that don't have `email_verified`
     },
   },
   pages: {

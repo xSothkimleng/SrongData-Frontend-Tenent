@@ -38,6 +38,7 @@ import {
   ListItemIcon,
   ListItemText,
 } from '@mui/material';
+import useUserStore from '@/store/useUserStore';
 
 export interface Filter {
   index: number;
@@ -87,6 +88,7 @@ const TableActionMenu: React.FC<{
   const [openCloneProjectDialog, setOpenCloneProjectDialog] = useState(false);
   const [openEditProjectDialog, setOpenEditProjectDialog] = useState(false);
   const [openShareLinkDialog, setOpenShareLinkDialog] = useState(false);
+  const tenant = useUserStore(state => state.userData);
 
   // Menu state
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -465,11 +467,14 @@ const TableActionMenu: React.FC<{
         </Box>
       </Dialog>
       {/* share link dialog */}
-      <Dialog fullWidth maxWidth='xs' open={openShareLinkDialog} onClose={() => setOpenShareLinkDialog(!openShareLinkDialog)}>
+      <Dialog fullWidth maxWidth='md' open={openShareLinkDialog} onClose={() => setOpenShareLinkDialog(!openShareLinkDialog)}>
         <DialogTitle>
           <p>Share Link</p>
         </DialogTitle>
-        <DialogContent>{row.projectId}</DialogContent>
+        <DialogContent>
+          {' '}
+          {process.env.NEXT_PUBLIC_FRONTEND_URL}/survey?s={row.projectId}&t={tenant?.tenant?.id}
+        </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenShareLinkDialog(false)}>{GetContext('cancel', lang)}</Button>
         </DialogActions>

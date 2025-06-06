@@ -9,7 +9,7 @@ import html2canvas from 'html2canvas';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 const Map = dynamic(() => import('@/components/dashboard/map'), { ssr: false });
 const xlsx = require('json-as-xlsx');
-import { DataGrid, GridColDef, GridToolbarContainer, GridToolbarQuickFilter } from '@mui/x-data-grid';
+import { DataGrid, GridColDef, GridToolbarQuickFilter } from '@mui/x-data-grid';
 import {
   FormControl,
   InputLabel,
@@ -47,7 +47,7 @@ import CancelIcon from '@mui/icons-material/Cancel';
 
 interface Project {
   id: string;
-  name: string;
+  name: string | { en: string; km: string };
 }
 
 interface Location {
@@ -72,6 +72,7 @@ interface MapData {
   created_at: string;
   project_id?: string;
   project_name?: string;
+  color?: string;
 }
 
 interface LocationMap {
@@ -89,9 +90,9 @@ interface Question {
   type: string;
   data_type: string;
   options: any[];
-  project_id?: string; // Added to track source project
-  project_name?: string; // Added to track source project name
-  color?: string; // Added for project color coding
+  project_id?: string;
+  project_name?: string;
+  color?: string;
 }
 
 interface QuestionFilter {
@@ -101,24 +102,32 @@ interface QuestionFilter {
   index: number;
   values: any[];
   options: any[];
-  project_id?: string; // Added to track source project
-  color?: string; // Added for project color coding
+  project_id?: string;
+  color?: string;
 }
 
-// Project loading status interface
 interface ProjectLoadingStatus {
   projectId: string;
   projectName: string;
   status: 'pending' | 'loading' | 'success' | 'error';
   message?: string;
-  color?: string; // Color coding for project
-  retryCount?: number;
+  color?: string;
 }
 
-// Maximum number of projects allowed without warning
+interface BulkProjectData {
+  projects: {
+    [projectId: string]: {
+      details: any;
+      responses: any[];
+      mapData: any[];
+      count: number;
+      total: number;
+    };
+  };
+}
+
 const MAX_RECOMMENDED_PROJECTS = 3;
 
-// Project colors for visual distinction
 const PROJECT_COLORS = [
   '#1976d2', // blue
   '#388e3c', // green
@@ -197,7 +206,6 @@ const ActionCell: React.FC<{ row: Project }> = ({ row }) => (
 );
 
 const CustomQuickFilter = styled(GridToolbarQuickFilter)(({ theme }) => ({
-  // width: '100%',
   padding: '1rem 0',
   '& .MuiSvgIcon-root': {
     fontSize: '2rem !important',
@@ -421,21 +429,12 @@ const DataViewPage = () => {
   const lang = useLang(state => state.lang);
   const chartRef = useRef<HTMLDivElement>(null);
 
-  // Changed from selectedProject (string) to selectedProjects (string[])
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
-
-  // Track loading status for each project
   const [projectLoadingStatus, setProjectLoadingStatus] = useState<ProjectLoadingStatus[]>([]);
-
   const [openDrawer, setOpenDrawer] = useState<boolean>(false);
   const [projects, setProjects] = useState<Project[]>([]);
-
-  // Changed from projectDetail to projectsDetails (map of project details)
   const [projectsDetails, setProjectsDetails] = useState<{ [projectId: string]: ProjectDetail }>({});
-
-  // Combined master project details from all projects
   const [masterProjectDetails, setMasterProjectDetails] = useState<ProjectDetail | null>(null);
-
   const [selectedQuestions, setSelectedQuestions] = useState<Question[]>([]);
   const [gridCols, setGridCols] = useState<GridColDef[]>([]);
   const [gridRows, setGridRows] = useState<{ [key: string]: any }[]>([]);
@@ -454,28 +453,16 @@ const DataViewPage = () => {
   const [isChartLoading, setIsChartLoading] = useState(true);
   const [dataMaps, setDataMaps] = useState<MapData[]>([]);
   const [isMapOpen, setIsMapOpen] = useState(false);
-
-  // Flag to indicate if projects are still loading
   const [isLoadingProjects, setIsLoadingProjects] = useState(false);
-
-  // Flag to indicate if project data is ready to display
   const [isDataReady, setIsDataReady] = useState(false);
-
-  // Show too many projects warning
   const [showTooManyProjectsWarning, setShowTooManyProjectsWarning] = useState(false);
 
-  // Cancellation token for loading process
-  const [isCancelled, setIsCancelled] = useState(false);
-
-  // Get overall loading progress
-  const getLoadingProgress = () => {
-    const totalProjects = selectedProjects.length;
-    const loadedProjects = projectLoadingStatus.filter(p => p.status === 'success').length;
-    return {
-      total: totalProjects,
-      loaded: loadedProjects,
-      percentage: totalProjects ? Math.round((loadedProjects / totalProjects) * 100) : 0,
-    };
+  // Helper function to get project name
+  const getProjectName = (project: Project): string => {
+    if (typeof project.name === 'string') {
+      return project.name;
+    }
+    return project.name[lang] || project.name.en || 'Unnamed Project';
   };
 
   useEffect(() => {
@@ -484,7 +471,7 @@ const DataViewPage = () => {
         const response = await axios.get('/api/config', { params: { endpoint: 'project/all?status=1,2' } });
         setProjects(response.data.data.projects);
       } catch (error) {
-        console.error('Error fetching users with status 1:', error);
+        console.error('Error fetching projects:', error);
       }
     };
 
@@ -498,77 +485,23 @@ const DataViewPage = () => {
       writeOptions: {},
     };
     try {
-      // Prepare data for all selected projects
-      let allData = {
-        col: [] as any[],
-        con: [] as any[],
+      let body = {
+        project_ids: selectedProjects,
+        filters: currentFilter,
+        selected_questions: selectedQuestions,
+        lang: lang,
       };
 
-      // Export data for each project
-      for (const projectId of selectedProjects) {
-        let body = {
-          filter: {
-            questions: currentFilter.filter(f => !f.project_id || f.project_id === projectId),
-          },
-          selected_question_indexs: [] as number[],
-          is_province: false,
-          is_district: false,
-          is_commune: false,
-          is_submit_user: false,
-        };
-
-        // Get project-specific questions
-        const projectQuestions = selectedQuestions.filter(q => !q.project_id || q.project_id === projectId);
-
-        projectQuestions.forEach(question => {
-          if (question.order != -1) {
-            body.selected_question_indexs.push(question.order - 1);
-          } else {
-            if (question.type == 'province') {
-              body.is_province = true;
-            } else if (question.type == 'district') {
-              body.is_district = true;
-            } else if (question.type == 'commune') {
-              body.is_commune = true;
-            } else if (question.type == 'user') {
-              body.is_submit_user = true;
-            }
-          }
-        });
-
-        const response = await axios.post('/api/config', {
-          endpoint: `responses/export/${projectId}?lang=${lang}`,
-          body,
-        });
-
-        // For the first project, use its columns
-        if (allData.col.length === 0) {
-          allData.col = response.data.data.col;
-
-          // Add project column if we have multiple projects
-          if (selectedProjects.length > 1) {
-            allData.col.push({ label: 'Project', value: 'project_name' });
-          }
-        }
-
-        // Add project name to each row
-        const projectName = projectsDetails[projectId]?.name || projectId;
-        const projectData = response.data.data.con.map((row: any) => {
-          if (selectedProjects.length > 1) {
-            return { ...row, project_name: projectName };
-          }
-          return row;
-        });
-
-        // Combine data
-        allData.con = [...allData.con, ...projectData];
-      }
+      const response = await axios.post('/api/config', {
+        endpoint: `responses/export-multiple`,
+        body,
+      });
 
       const sheetData = [
         {
           sheet: 'Sheet1',
-          columns: allData.col,
-          content: allData.con,
+          columns: response.data.data.col,
+          content: response.data.data.con,
         },
       ];
       xlsx(sheetData, settings);
@@ -577,92 +510,163 @@ const DataViewPage = () => {
     }
   };
 
-  const getProjectDetails = async (projectId: string) => {
+  // Process bulk project data response
+  const processBulkProjectData = (bulkData: any) => {
+    // Check if the response has the expected structure
+    if (!bulkData || (!bulkData.projects && !bulkData.responses)) {
+      console.error('Invalid bulk data structure:', bulkData);
+      return;
+    }
+
+    // If the response has a 'projects' property (new bulk structure)
+    if (bulkData.projects) {
+      const newProjectsDetails: { [projectId: string]: ProjectDetail } = {};
+      const allGridRows: any[] = [];
+      const allMapData: MapData[] = [];
+      let totalRowSize = 0;
+      let totalDataCount = 0;
+
+      // Process each project's data
+      Object.entries(bulkData.projects).forEach(([projectId, projectData]: [string, any]) => {
+        const projectStatus = projectLoadingStatus.find(p => p.projectId === projectId);
+        const projectColor = projectStatus?.color || '#000000';
+        const projectName = projectData.details.name;
+
+        // 1. Process project details
+        const enhancedQuestions = projectData.details.questions.map((q: Question) => ({
+          ...q,
+          project_id: projectId,
+          project_name: projectName,
+          color: projectColor,
+        }));
+
+        newProjectsDetails[projectId] = {
+          ...projectData.details,
+          questions: enhancedQuestions,
+        };
+
+        // 2. Process responses
+        const enhancedResponses = projectData.responses.map((item: any) => ({
+          ...item,
+          project_id: projectId,
+          project_name: projectName,
+          color: projectColor,
+        }));
+        allGridRows.push(...enhancedResponses);
+
+        // 3. Process map data
+        if (projectData.mapData) {
+          const enhancedMapData = projectData.mapData.map((item: MapData) => ({
+            ...item,
+            project_id: projectId,
+            project_name: projectName,
+            color: projectColor,
+          }));
+          allMapData.push(...enhancedMapData);
+        }
+
+        // 4. Update counts
+        totalRowSize += projectData.count || 0;
+        totalDataCount += projectData.total || 0;
+      });
+
+      // Update all state at once
+      setProjectsDetails(newProjectsDetails);
+      setGridRows(allGridRows);
+      setDataMaps(allMapData);
+      setRowSize(totalRowSize);
+      setTotalData(totalDataCount);
+    }
+    // If the response is a simple response array (current structure)
+    else if (bulkData.responses !== undefined) {
+      // For now, just set the responses
+      // This looks like you're getting responses without project details
+      setGridRows(bulkData.responses || []);
+      setRowSize(bulkData.count || 0);
+      setTotalData(bulkData.total || 0);
+
+      // You'll need to load project details separately if not included
+      console.warn('Received responses without project details. You may need to load project details separately.');
+    }
+  };
+
+  // Load all selected projects with bulk API
+  const loadAllSelectedProjects = async () => {
+    setIsLoadingProjects(true);
+    setIsDataLoading(true);
+    setIsDataReady(false);
+
+    // Reset counters and data
+    setRowSize(0);
+    setTotalData(0);
+    setGridRows([]);
+    setDataMaps([]);
+
     try {
-      // Get project color from status
-      const projectStatus = projectLoadingStatus.find(p => p.projectId === projectId);
-      const projectColor = projectStatus?.color || '#000000';
+      // Update all project statuses to loading
+      setProjectLoadingStatus(prev => prev.map(p => ({ ...p, status: 'loading' })));
 
-      // Update project loading status
-      setProjectLoadingStatus(prev => {
-        const status = [...prev];
-        const projectIndex = status.findIndex(p => p.projectId === projectId);
-
-        if (projectIndex >= 0) {
-          status[projectIndex] = { ...status[projectIndex], status: 'loading' };
-        }
-        return status;
+      // First, we need to check what endpoint structure your backend actually supports
+      // Option 1: If backend returns project details + responses in one call
+      const response = await axios.post('/api/config', {
+        endpoint: `responses/multiple-projects?lang=${lang}`,
+        body: {
+          project_ids: selectedProjects,
+        },
       });
 
-      // Check if the operation was cancelled
-      if (isCancelled) return;
+      // Check the actual response structure
+      console.log('Bulk API response structure:', response.data);
 
-      const projectRes = await axios.get('/api/config', {
-        params: { endpoint: `project/project-details/${projectId}?data_view=1` },
-      });
+      // If we only get responses without project details, we need to load project details first
+      if (response.data.data && response.data.data.responses !== undefined && !response.data.data.projects) {
+        // Load project details separately for each project
+        const projectDetailsPromises = selectedProjects.map(projectId =>
+          axios.get('/api/config', {
+            params: { endpoint: `project/project-details/${projectId}?data_view=1` },
+          }),
+        );
 
-      // Check if the operation was cancelled
-      if (isCancelled) return;
+        const projectDetailsResponses = await Promise.all(projectDetailsPromises);
 
-      // Add source project metadata to each question
-      const projectName = projectRes.data.data.name;
-      const enhancedQuestions = projectRes.data.data.questions.map((q: Question) => ({
-        ...q,
-        project_id: projectId,
-        project_name: projectName,
-        color: projectColor,
-      }));
+        // Process project details
+        const newProjectsDetails: { [projectId: string]: ProjectDetail } = {};
+        projectDetailsResponses.forEach((detailResponse, index) => {
+          const projectId = selectedProjects[index];
+          const projectStatus = projectLoadingStatus.find(p => p.projectId === projectId);
+          const projectColor = projectStatus?.color || '#000000';
 
-      projectRes.data.data.questions = enhancedQuestions;
+          // Add source project metadata to each question
+          const projectName = detailResponse.data.data.name;
+          const enhancedQuestions = detailResponse.data.data.questions.map((q: Question) => ({
+            ...q,
+            project_id: projectId,
+            project_name: projectName,
+            color: projectColor,
+          }));
 
-      // Store project details
-      setProjectsDetails(prev => ({
-        ...prev,
-        [projectId]: projectRes.data.data,
-      }));
+          detailResponse.data.data.questions = enhancedQuestions;
+          newProjectsDetails[projectId] = detailResponse.data.data;
+        });
 
-      // Update loading status to success
-      setProjectLoadingStatus(prev => {
-        const status = [...prev];
-        const projectIndex = status.findIndex(p => p.projectId === projectId);
+        setProjectsDetails(newProjectsDetails);
 
-        if (projectIndex >= 0) {
-          status[projectIndex] = {
-            ...status[projectIndex],
-            status: 'success',
-            message: 'Loaded successfully',
-          };
-        }
-        return status;
-      });
+        // Now process the responses
+        processBulkProjectData(response.data.data);
+      } else {
+        // If backend returns everything in one response
+        processBulkProjectData(response.data.data);
+      }
 
-      // Check if the operation was cancelled
-      if (isCancelled) return;
-
-      await getResponse(projectId);
-      await getMapViewData(projectId);
+      // Update all project statuses to success
+      setProjectLoadingStatus(prev => prev.map(p => ({ ...p, status: 'success', message: 'Loaded successfully' })));
     } catch (error) {
-      console.error(`Error fetching project detail for ${projectId}:`, error);
+      console.error('Error loading projects:', error);
 
-      // Check if the operation was cancelled
-      if (isCancelled) return;
-
-      // Update loading status to error
-      setProjectLoadingStatus(prev => {
-        const status = [...prev];
-        const projectIndex = status.findIndex(p => p.projectId === projectId);
-
-        if (projectIndex >= 0) {
-          const retryCount = (status[projectIndex].retryCount || 0) + 1;
-          status[projectIndex] = {
-            ...status[projectIndex],
-            status: 'error',
-            message: 'Failed to load',
-            retryCount,
-          };
-        }
-        return status;
-      });
+      // Update all project statuses to error
+      setProjectLoadingStatus(prev => prev.map(p => ({ ...p, status: 'error', message: 'Failed to load' })));
+    } finally {
+      setIsLoadingProjects(false);
     }
   };
 
@@ -673,7 +677,6 @@ const DataViewPage = () => {
       return;
     }
 
-    // Initialize with the first project's details
     const firstProjectId = Object.keys(projectsDetails)[0];
     const firstProject = projectsDetails[firstProjectId];
 
@@ -695,7 +698,6 @@ const DataViewPage = () => {
       submitted_users: [],
     };
 
-    // Set of unique IDs to avoid duplicates
     const uniqueIds = new Set<string>();
     const uniqueProvinces = new Set<string>();
     const uniqueDistricts = new Set<string>();
@@ -709,9 +711,7 @@ const DataViewPage = () => {
       const projectStatus = projectLoadingStatus.find(p => p.projectId === projectId);
       const projectColor = projectStatus?.color || '#000000';
 
-      // Merge questions
       project.questions.forEach(question => {
-        // Include project ID, name, and color with each question
         const enhancedQuestion = {
           ...question,
           project_id: project.id,
@@ -719,12 +719,9 @@ const DataViewPage = () => {
           color: projectColor,
         };
 
-        // Create unique composite ID for questions when we have multiple projects
         const compositeId = selectedProjects.length > 1 ? `${project.id}_${question.id}` : question.id;
 
-        // Only add if not already present
         if (!uniqueIds.has(compositeId)) {
-          // For selectedProjects.length > 1, we use composite IDs internally
           if (selectedProjects.length > 1) {
             enhancedQuestion.id = compositeId;
           }
@@ -763,7 +760,6 @@ const DataViewPage = () => {
         }
       });
 
-      // Merge submitted users
       project.submitted_users.forEach((user: any) => {
         if (!uniqueUsers.has(user.id)) {
           master.submitted_users.push(user);
@@ -779,13 +775,11 @@ const DataViewPage = () => {
       name_km: project.name,
     }));
 
-    // Add "Project" to the AddQuestions array at the end to identify project source
     const projectQuestion = AddQuestions.find(q => q.id === 'project');
     if (projectQuestion) {
       projectQuestion.options = projectOptions;
     }
 
-    // Add all standard questions to master
     master.questions = [...master.questions, ...AddQuestions];
 
     setMasterProjectDetails(master);
@@ -796,214 +790,10 @@ const DataViewPage = () => {
       return status && status.status === 'success';
     });
 
-    // Only set data as ready when all projects are loaded
     setIsDataReady(allProjectsLoaded);
   }, [projectsDetails, projectLoadingStatus, selectedProjects.length]);
 
-  const getMapViewData = async (projectId: string, filter?: QuestionFilter[]) => {
-    try {
-      // Get project color from status
-      const projectStatus = projectLoadingStatus.find(p => p.projectId === projectId);
-      const projectColor = projectStatus?.color || '#000000';
-
-      // Check if the operation was cancelled
-      if (isCancelled) return;
-
-      // Filter only the filters relevant to this project
-      const projectFilters = filter ? filter.filter(f => !f.project_id || f.project_id === projectId) : undefined;
-
-      if (projectFilters) {
-        let body = {
-          questions: projectFilters,
-        };
-        const response = await axios.post('/api/config', {
-          endpoint: `responses/map/${projectId}`,
-          body,
-        });
-
-        // Check if the operation was cancelled
-        if (isCancelled) return;
-
-        // Add project ID, name, and color to map data
-        const projectName = projectsDetails[projectId]?.name || projectId;
-        const enhancedMapData = response.data.data.map_res.map((item: MapData) => ({
-          ...item,
-          project_id: projectId,
-          project_name: projectName,
-          color: projectColor,
-        }));
-
-        // Merge with existing map data
-        setDataMaps(prev => {
-          // Remove existing data for this project
-          const filteredData = prev.filter(item => item.project_id !== projectId);
-          return [...filteredData, ...enhancedMapData];
-        });
-      } else {
-        const response = await axios.post('/api/config', {
-          endpoint: `responses/map/${projectId}`,
-        });
-
-        // Check if the operation was cancelled
-        if (isCancelled) return;
-
-        // Add project ID, name, and color to map data
-        const projectName = projectsDetails[projectId]?.name || projectId;
-        const enhancedMapData = response.data.data.map_res.map((item: MapData) => ({
-          ...item,
-          project_id: projectId,
-          project_name: projectName,
-          color: projectColor,
-        }));
-
-        // Merge with existing map data
-        setDataMaps(prev => {
-          // Remove existing data for this project
-          const filteredData = prev.filter(item => item.project_id !== projectId);
-          return [...filteredData, ...enhancedMapData];
-        });
-      }
-    } catch (error) {
-      console.error(`Error fetching map data for ${projectId}:`, error);
-    }
-  };
-
-  const getResponse = async (projectId: string, filter?: QuestionFilter[]) => {
-    try {
-      // Get project color from status
-      const projectStatus = projectLoadingStatus.find(p => p.projectId === projectId);
-      const projectColor = projectStatus?.color || '#000000';
-
-      // Check if the operation was cancelled
-      if (isCancelled) return;
-
-      let page = paginationModel.page + 1;
-      let limit = paginationModel.pageSize;
-
-      // Filter only the filters relevant to this project
-      const projectFilters = filter ? filter.filter(f => !f.project_id || f.project_id === projectId) : undefined;
-
-      let body = {
-        questions: projectFilters || [],
-      };
-
-      const response = await axios.post('/api/config', {
-        endpoint: `responses/all/${projectId}?page=${page}&limit=${limit}&lang=${lang}`,
-        body,
-      });
-
-      // Check if the operation was cancelled
-      if (isCancelled) return;
-
-      // Add project ID, name, and color to each response
-      const projectName = projectsDetails[projectId]?.name || projectId;
-      const enhancedResponses = response.data.data.responses.map((item: any) => ({
-        ...item,
-        project_id: projectId,
-        project_name: projectName,
-        color: projectColor,
-      }));
-
-      // Merge with existing responses
-      setGridRows(prev => {
-        // For pagination, we need to handle this differently
-        // If we're loading responses for multiple projects, append them
-        if (selectedProjects.length > 1) {
-          // Remove existing entries for this project to avoid duplicates
-          const filteredRows = prev.filter(row => row.project_id !== projectId);
-          return [...filteredRows, ...enhancedResponses];
-        } else {
-          // If only one project, just replace the data
-          return enhancedResponses;
-        }
-      });
-
-      // Count needs to be the sum of all project counts
-      setRowSize(prev => prev + response.data.data.count);
-      setTotalData(prev => prev + response.data.data.total);
-    } catch (error) {
-      console.error(`Error fetching responses for ${projectId}:`, error);
-    }
-  };
-
-  // Load data for all selected projects with confirmation
-  const loadAllSelectedProjects = async () => {
-    // Reset data and set loading state
-    setIsLoadingProjects(true);
-    setIsDataLoading(true);
-    setIsDataReady(false);
-    setIsCancelled(false);
-
-    // Reset counters and data
-    setRowSize(0);
-    setTotalData(0);
-    setGridRows([]);
-    setDataMaps([]);
-
-    // Load each project's details sequentially
-    for (const projectId of selectedProjects) {
-      if (isCancelled) {
-        break;
-      }
-      await getProjectDetails(projectId);
-    }
-
-    setIsLoadingProjects(false);
-
-    // Data display is controlled by isDataReady which is set in the useEffect
-    // that creates the master project details
-  };
-
-  // Cancel the loading process
-  const cancelLoading = () => {
-    setIsCancelled(true);
-    setIsLoadingProjects(false);
-    setIsDataLoading(false);
-  };
-
-  // Retry loading a failed project
-  const retryLoadProject = async (projectId: string) => {
-    // Update status to loading
-    setProjectLoadingStatus(prev => {
-      const status = [...prev];
-      const projectIndex = status.findIndex(p => p.projectId === projectId);
-
-      if (projectIndex >= 0) {
-        status[projectIndex] = {
-          ...status[projectIndex],
-          status: 'loading',
-          message: 'Retrying...',
-        };
-      }
-      return status;
-    });
-
-    // Try loading the project again
-    await getProjectDetails(projectId);
-  };
-
-  //on pagination model change
-  useEffect(() => {
-    if (selectedProjects.length > 0) {
-      setIsDataLoading(true);
-
-      // Reset data
-      setRowSize(0);
-      setTotalData(0);
-      setGridRows([]);
-
-      // Load data for each project
-      const loadData = async () => {
-        for (const projectId of selectedProjects) {
-          await getResponse(projectId, filters);
-        }
-      };
-
-      loadData();
-    }
-  }, [paginationModel, lang]);
-
-  //get data visualize
+  // Get data visualization
   const getDataVisualization = async (qSelected: Question) => {
     setIsChartLoading(true);
     try {
@@ -1014,31 +804,14 @@ const DataViewPage = () => {
         return;
       }
 
-      let index = qSelected.order;
-      let type = qSelected.type;
-
-      if (
-        !(
-          type == 'user' ||
-          type == 'province' ||
-          type == 'district' ||
-          type == 'commune' ||
-          type == 'village' ||
-          type == 'project'
-        )
-      ) {
-        index -= 1;
-      }
-
-      // Filter only the filters relevant to this project
-      const projectFilters = currentFilter.filter(f => !f.project_id || f.project_id === projectId);
-
       let body = {
-        questions: projectFilters,
+        project_id: projectId,
+        question: qSelected,
+        filters: currentFilter.filter(f => !f.project_id || f.project_id === projectId),
       };
 
       const response = await axios.post('/api/config', {
-        endpoint: `responses/virtualize/${projectId}?index=${index}&type=${type}`,
+        endpoint: `responses/visualize`,
         body,
       });
 
@@ -1051,7 +824,7 @@ const DataViewPage = () => {
     }
   };
 
-  //clear all value in filter
+  // Clear all value in filter
   const handleClearFilter = async () => {
     var newFilter = filters;
     newFilter.map(filter => {
@@ -1061,7 +834,7 @@ const DataViewPage = () => {
     setDrawerKey(prevKey => prevKey + 1);
   };
 
-  //filter function
+  // Filter function
   const handleFilter = async () => {
     setPaginationModel({
       page: 0,
@@ -1069,24 +842,32 @@ const DataViewPage = () => {
     });
 
     setIsDataLoading(true);
-
-    // Reset data
     setRowSize(0);
     setTotalData(0);
     setGridRows([]);
     setDataMaps([]);
 
-    // Apply filters to all selected projects
-    for (const projectId of selectedProjects) {
-      await getResponse(projectId, filters);
-      await getMapViewData(projectId, filters);
-    }
+    try {
+      // Single request with filters for all projects
+      const response = await axios.post('/api/config', {
+        endpoint: `responses/multiple-projects?lang=${lang}&page=${1}&limit=${paginationModel.pageSize}`,
+        body: {
+          project_ids: selectedProjects,
+          filters: filters,
+        },
+      });
 
-    setOpenDrawer(false);
-    setCurrentFilter(filters);
+      processBulkProjectData(response.data.data);
+    } catch (error) {
+      console.error('Error filtering data:', error);
+    } finally {
+      setIsDataLoading(false);
+      setOpenDrawer(false);
+      setCurrentFilter(filters);
 
-    if (questionVisualize) {
-      getDataVisualization(questionVisualize);
+      if (questionVisualize) {
+        getDataVisualization(questionVisualize);
+      }
     }
   };
 
@@ -1094,17 +875,15 @@ const DataViewPage = () => {
   const handleProjectChange = async (event: SelectChangeEvent<string[]>) => {
     const selectedValues = event.target.value as string[];
 
-    // Check if user has selected more than MAX_RECOMMENDED_PROJECTS
     setShowTooManyProjectsWarning(selectedValues.length > MAX_RECOMMENDED_PROJECTS);
-
-    // Set selected projects
     setSelectedProjects(selectedValues);
 
     // Setup project colors for each selected project
     const newProjectStatus: ProjectLoadingStatus[] = [];
 
     selectedValues.forEach((projectId, index) => {
-      const projectName = projects.find(p => p.id === projectId)?.name || projectId;
+      const project = projects.find(p => p.id === projectId);
+      const projectName = project ? getProjectName(project) : projectId;
       const colorIndex = index % PROJECT_COLORS.length;
 
       newProjectStatus.push({
@@ -1130,29 +909,21 @@ const DataViewPage = () => {
   // Remove a single project
   const handleRemoveProject = (projectId: string) => {
     setSelectedProjects(prev => prev.filter(id => id !== projectId));
-
-    // Update too many projects warning
     setShowTooManyProjectsWarning(selectedProjects.length - 1 > MAX_RECOMMENDED_PROJECTS);
-
-    // Update loading status
     setProjectLoadingStatus(prev => prev.filter(p => p.projectId !== projectId));
 
-    // Remove project details
     setProjectsDetails(prev => {
       const newDetails = { ...prev };
       delete newDetails[projectId];
       return newDetails;
     });
 
-    // Remove data from this project if already loaded
     setGridRows(prev => prev.filter(row => row.project_id !== projectId));
     setDataMaps(prev => prev.filter(item => item.project_id !== projectId));
 
-    // Recalculate totals
     const removeCount = gridRows.filter(row => row.project_id === projectId).length;
     setRowSize(prev => prev - removeCount);
 
-    // Reset if no projects left
     if (selectedProjects.length <= 1) {
       setSelectedQuestions([]);
       setCurrentFilter([]);
@@ -1163,11 +934,10 @@ const DataViewPage = () => {
     }
   };
 
-  //question on change function
+  // Question on change function
   const handleQuestionChange = (event: SelectChangeEvent<Question[]>) => {
     const { value } = event.target;
 
-    // Handle "Select All" case
     if (masterProjectDetails) {
       // @ts-ignore
       if (value.includes('all')) {
@@ -1184,7 +954,7 @@ const DataViewPage = () => {
     }
   };
 
-  // question visualize change
+  // Question visualize change
   const handleQuestionVisualizeChange = (event: SelectChangeEvent<string>) => {
     if (typeof event.target.value == 'string') {
       const selectedQuestion = JSON.parse(event.target.value) as Question;
@@ -1193,7 +963,7 @@ const DataViewPage = () => {
     }
   };
 
-  //handle filter selection changes
+  // Handle filter selection changes
   const handleFilterChange = (
     event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<any[]>,
     index: number,
@@ -1221,7 +991,36 @@ const DataViewPage = () => {
     setDataset([]);
   };
 
-  //map grid col when selected questions changes
+  // On pagination model change - using bulk API
+  useEffect(() => {
+    if (selectedProjects.length > 0 && isDataReady) {
+      setIsDataLoading(true);
+
+      const loadData = async () => {
+        try {
+          const response = await axios.post('/api/config', {
+            endpoint: `responses/multiple-projects?lang=${lang}&page=${paginationModel.page + 1}&limit=${
+              paginationModel.pageSize
+            }`,
+            body: {
+              project_ids: selectedProjects,
+              filters: filters,
+            },
+          });
+
+          processBulkProjectData(response.data.data);
+        } catch (error) {
+          console.error('Error loading paginated data:', error);
+        } finally {
+          setIsDataLoading(false);
+        }
+      };
+
+      loadData();
+    }
+  }, [paginationModel, lang]);
+
+  // Map grid col when selected questions changes
   useEffect(() => {
     var temp: GridColDef[] = [];
     var tempQuestion: QuestionFilter[] = [];
@@ -1234,7 +1033,7 @@ const DataViewPage = () => {
         colLabel = `${colLabel} (${item.project_name || item.project_id})`;
       }
 
-      //generate filter base on selected question
+      // Generate filter base on selected question
       if (item.type == 'user') {
         colLabel = lang == 'en' ? item.label : item.label_km;
         if (masterProjectDetails) {
@@ -1431,7 +1230,7 @@ const DataViewPage = () => {
                 )}
                 {projects.map(item => (
                   <MenuItem key={item.id} value={item.id}>
-                    {item.name}
+                    {getProjectName(item)}
                   </MenuItem>
                 ))}
               </Select>
@@ -1475,113 +1274,36 @@ const DataViewPage = () => {
                 Load Selected Projects
               </Button>
             )}
-
-            {/* Cancel Loading Button */}
-            {isLoadingProjects && (
-              <Button variant='contained' color='error' onClick={cancelLoading} startIcon={<CancelIcon />} sx={{ mr: 1 }}>
-                Cancel Loading
-              </Button>
-            )}
           </Paper>
 
-          {/* Project Loading Status */}
+          {/* Simplified Loading Status */}
           {isLoadingProjects && (
             <Paper variant='outlined' sx={{ p: 2, mb: 2 }}>
               <Typography variant='subtitle1' fontWeight='bold' gutterBottom>
-                Loading Projects ({getLoadingProgress().loaded}/{getLoadingProgress().total})
+                Loading {selectedProjects.length} Projects...
               </Typography>
 
-              <LinearProgress
-                variant='determinate'
-                value={getLoadingProgress().percentage}
-                sx={{ mb: 2, height: 10, borderRadius: 5 }}
-              />
+              <LinearProgress sx={{ mb: 2, height: 10, borderRadius: 5 }} />
 
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                {projectLoadingStatus.map(project => (
-                  <Card
-                    key={project.projectId}
-                    variant='outlined'
-                    sx={{
-                      borderLeft: `4px solid ${project.color}`,
-                    }}>
-                    <CardContent sx={{ py: 1, '&:last-child': { pb: 1 } }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant='body1' fontWeight='bold'>
-                          {project.projectName}
-                        </Typography>
-
-                        {project.status === 'pending' && (
-                          <Typography variant='body2' color='text.secondary'>
-                            Pending
-                          </Typography>
-                        )}
-
-                        {project.status === 'loading' && (
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <CircularProgress size={16} sx={{ mr: 1 }} />
-                            <Typography variant='body2' color='primary'>
-                              Loading...
-                            </Typography>
-                          </Box>
-                        )}
-
-                        {project.status === 'success' && (
-                          <Typography variant='body2' color='success.main'>
-                            Loaded Successfully
-                          </Typography>
-                        )}
-
-                        {project.status === 'error' && (
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Typography variant='body2' color='error.main' sx={{ mr: 1 }}>
-                              Failed to Load
-                            </Typography>
-                            <IconButton
-                              size='small'
-                              color='primary'
-                              onClick={() => retryLoadProject(project.projectId)}
-                              title='Retry'>
-                              <RefreshIcon fontSize='small' />
-                            </IconButton>
-                          </Box>
-                        )}
-                      </Box>
-                    </CardContent>
-                  </Card>
-                ))}
-              </Box>
+              <Typography variant='body2' color='text.secondary'>
+                Fetching all project data in a single request...
+              </Typography>
             </Paper>
           )}
 
-          {/* Project Error Status Summary */}
+          {/* Simplified Error Status */}
           {!isLoadingProjects && projectLoadingStatus.some(p => p.status === 'error') && (
             <Paper variant='outlined' sx={{ p: 2, mb: 2, borderLeft: '4px solid #d32f2f' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <ErrorIcon color='error' sx={{ mr: 1 }} />
-                <Typography fontWeight='bold' color='error'>
-                  Some projects failed to load
-                </Typography>
-              </Box>
-
-              <Box sx={{ mt: 1 }}>
-                {projectLoadingStatus
-                  .filter(p => p.status === 'error')
-                  .map(project => (
-                    <Box
-                      key={project.projectId}
-                      sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                      <Typography variant='body2'>{project.projectName}</Typography>
-                      <Button
-                        size='small'
-                        variant='outlined'
-                        color='primary'
-                        onClick={() => retryLoadProject(project.projectId)}
-                        startIcon={<RefreshIcon />}>
-                        Retry
-                      </Button>
-                    </Box>
-                  ))}
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <ErrorIcon color='error' sx={{ mr: 1 }} />
+                  <Typography fontWeight='bold' color='error'>
+                    Failed to load projects
+                  </Typography>
+                </Box>
+                <Button variant='outlined' color='primary' onClick={loadAllSelectedProjects} startIcon={<RefreshIcon />}>
+                  Retry All
+                </Button>
               </Box>
             </Paper>
           )}
@@ -1834,7 +1556,6 @@ const DataViewPage = () => {
             {selectedProjects.length > 1
               ? // Group filters by project
                 (() => {
-                  // Create project groups
                   const projectGroups: { [projectId: string]: QuestionFilter[] } = {};
                   const commonFilters: QuestionFilter[] = [];
 

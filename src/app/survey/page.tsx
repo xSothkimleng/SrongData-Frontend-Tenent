@@ -4,6 +4,8 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Box } from '@mui/material';
 import SurveyContainer from '@/components/dashboard/WebSurvey';
+import { signIn } from 'next-auth/react';
+import { useSearchParams } from 'next/navigation';
 
 // Create a custom theme to match the design
 const theme = createTheme({
@@ -42,6 +44,17 @@ const theme = createTheme({
 });
 
 const App: React.FC = () => {
+  const searchParams = useSearchParams();
+  const s = searchParams.get('s');
+  const t = searchParams.get('t');
+
+  React.useEffect(() => {
+    console.log('Project ID (s):', s);
+    console.log('Tenant ID (t):', t);
+  }, [s, t]);
+
+  // signIn('google');
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />

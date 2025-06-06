@@ -27,7 +27,7 @@ const CustomDataGrid: React.FC<CustomDataGridProps> = ({
   columns,
   loading,
   filterSection,
-  //   columnVisibilityModel,
+
   border = true,
   quickFilter = true,
   ...props
