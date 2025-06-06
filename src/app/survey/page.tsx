@@ -1,11 +1,12 @@
 'use client';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { Box } from '@mui/material';
+import { Box, Button } from '@mui/material';
 import SurveyContainer from '@/components/dashboard/WebSurvey';
 import { signIn } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
+import { getCookie, setCookie } from '@/utils/cookies';
 
 // Create a custom theme to match the design
 const theme = createTheme({
@@ -45,27 +46,51 @@ const theme = createTheme({
 
 const App: React.FC = () => {
   const searchParams = useSearchParams();
-  const s = searchParams.get('s');
-  const t = searchParams.get('t');
+  const surveyId = searchParams.get('s') || undefined;
+  const tenantId = searchParams.get('t') || undefined;
+  const [allowAccessToSurvey, setAllowAccessToSurvey] = useState(false);
 
-  React.useEffect(() => {
-    console.log('Project ID (s):', s);
-    console.log('Tenant ID (t):', t);
-  }, [s, t]);
+  const handleGoogleLogin = () => {
+    signIn('google');
+  };
 
-  // signIn('google');
+  useEffect(() => {
+    const surveyAccessToken = getCookie('survey_access_token');
+
+    console.log('Survey Access Token:', surveyAccessToken);
+
+    if (surveyAccessToken == null) {
+      handleGoogleLogin();
+    } else {
+      setAllowAccessToSurvey(true);
+      if (surveyId) {
+        setCookie('survey_id', surveyId, 1);
+      }
+      if (tenantId) {
+        setCookie('tenant_id', tenantId, 1);
+      }
+    }
+  }, []);
 
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box
-        sx={{
-          minHeight: '100vh',
-          background: 'linear-gradient(to bottom, #f7f7f7, #e0e0e0)',
-          py: 2,
-        }}>
-        <SurveyContainer surveyId='683b04f07eadb773b81e5358' />
-      </Box>
+      {allowAccessToSurvey ? (
+        <Box
+          sx={{
+            minHeight: '100vh',
+            background: 'linear-gradient(to bottom, #f7f7f7, #e0e0e0)',
+            py: 2,
+          }}>
+          <SurveyContainer surveyId={surveyId} />
+        </Box>
+      ) : (
+        <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+          <Button onClick={() => handleGoogleLogin()} variant='contained'>
+            Login To Google to continue
+          </Button>
+        </Box>
+      )}
     </ThemeProvider>
   );
 };

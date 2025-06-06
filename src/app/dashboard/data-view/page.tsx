@@ -84,9 +84,10 @@ interface LocationMap {
 
 interface Question {
   id: string;
+  _id?: string;
   order: number;
-  label: string;
-  label_km: string;
+  label: string | { en: string; km: string };
+  label_km?: string;
   type: string;
   data_type: string;
   options: any[];
@@ -112,18 +113,6 @@ interface ProjectLoadingStatus {
   status: 'pending' | 'loading' | 'success' | 'error';
   message?: string;
   color?: string;
-}
-
-interface BulkProjectData {
-  projects: {
-    [projectId: string]: {
-      details: any;
-      responses: any[];
-      mapData: any[];
-      count: number;
-      total: number;
-    };
-  };
 }
 
 const MAX_RECOMMENDED_PROJECTS = 3;
@@ -433,7 +422,6 @@ const DataViewPage = () => {
   const [projectLoadingStatus, setProjectLoadingStatus] = useState<ProjectLoadingStatus[]>([]);
   const [openDrawer, setOpenDrawer] = useState<boolean>(false);
   const [projects, setProjects] = useState<Project[]>([]);
-  const [projectsDetails, setProjectsDetails] = useState<{ [projectId: string]: ProjectDetail }>({});
   const [masterProjectDetails, setMasterProjectDetails] = useState<ProjectDetail | null>(null);
   const [selectedQuestions, setSelectedQuestions] = useState<Question[]>([]);
   const [gridCols, setGridCols] = useState<GridColDef[]>([]);
@@ -463,6 +451,45 @@ const DataViewPage = () => {
       return project.name;
     }
     return project.name[lang] || project.name.en || 'Unnamed Project';
+  };
+
+  // Helper function to extract unique location details from responses
+  const extractLocationDetails = (responses: any[]) => {
+    const provinces = new Set();
+    const districts = new Set();
+    const communes = new Set();
+    const villages = new Set();
+
+    responses.forEach(response => {
+      if (response.province) provinces.add(response.province);
+      if (response.district) districts.add(response.district);
+      if (response.commune) communes.add(response.commune);
+      if (response.village) villages.add(response.village);
+    });
+
+    return {
+      provinces: Array.from(provinces).map(name => ({ id: name, name_en: name, name_km: name })),
+      districts: Array.from(districts).map(name => ({ id: name, name_en: name, name_km: name })),
+      communes: Array.from(communes).map(name => ({ id: name, name_en: name, name_km: name })),
+      villages: Array.from(villages).map(name => ({ id: name, name_en: name, name_km: name })),
+    };
+  };
+
+  // Helper function to extract unique users from responses
+  const extractUniqueUsers = (responses: any[]) => {
+    const users = new Set();
+
+    responses.forEach(response => {
+      if (response.user) {
+        users.add(response.user);
+      }
+    });
+
+    return Array.from(users).map(userName => ({
+      id: userName,
+      first_name: (userName as string).split(' ')[0] || userName,
+      last_name: (userName as string).split(' ').slice(1).join(' ') || '',
+    }));
   };
 
   useEffect(() => {
@@ -510,93 +537,13 @@ const DataViewPage = () => {
     }
   };
 
-  // Process bulk project data response
-  const processBulkProjectData = (bulkData: any) => {
-    // Check if the response has the expected structure
-    if (!bulkData || (!bulkData.projects && !bulkData.responses)) {
-      console.error('Invalid bulk data structure:', bulkData);
-      return;
-    }
-
-    // If the response has a 'projects' property (new bulk structure)
-    if (bulkData.projects) {
-      const newProjectsDetails: { [projectId: string]: ProjectDetail } = {};
-      const allGridRows: any[] = [];
-      const allMapData: MapData[] = [];
-      let totalRowSize = 0;
-      let totalDataCount = 0;
-
-      // Process each project's data
-      Object.entries(bulkData.projects).forEach(([projectId, projectData]: [string, any]) => {
-        const projectStatus = projectLoadingStatus.find(p => p.projectId === projectId);
-        const projectColor = projectStatus?.color || '#000000';
-        const projectName = projectData.details.name;
-
-        // 1. Process project details
-        const enhancedQuestions = projectData.details.questions.map((q: Question) => ({
-          ...q,
-          project_id: projectId,
-          project_name: projectName,
-          color: projectColor,
-        }));
-
-        newProjectsDetails[projectId] = {
-          ...projectData.details,
-          questions: enhancedQuestions,
-        };
-
-        // 2. Process responses
-        const enhancedResponses = projectData.responses.map((item: any) => ({
-          ...item,
-          project_id: projectId,
-          project_name: projectName,
-          color: projectColor,
-        }));
-        allGridRows.push(...enhancedResponses);
-
-        // 3. Process map data
-        if (projectData.mapData) {
-          const enhancedMapData = projectData.mapData.map((item: MapData) => ({
-            ...item,
-            project_id: projectId,
-            project_name: projectName,
-            color: projectColor,
-          }));
-          allMapData.push(...enhancedMapData);
-        }
-
-        // 4. Update counts
-        totalRowSize += projectData.count || 0;
-        totalDataCount += projectData.total || 0;
-      });
-
-      // Update all state at once
-      setProjectsDetails(newProjectsDetails);
-      setGridRows(allGridRows);
-      setDataMaps(allMapData);
-      setRowSize(totalRowSize);
-      setTotalData(totalDataCount);
-    }
-    // If the response is a simple response array (current structure)
-    else if (bulkData.responses !== undefined) {
-      // For now, just set the responses
-      // This looks like you're getting responses without project details
-      setGridRows(bulkData.responses || []);
-      setRowSize(bulkData.count || 0);
-      setTotalData(bulkData.total || 0);
-
-      // You'll need to load project details separately if not included
-      console.warn('Received responses without project details. You may need to load project details separately.');
-    }
-  };
-
-  // Load all selected projects with bulk API
+  // Simplified loadAllSelectedProjects function
   const loadAllSelectedProjects = async () => {
     setIsLoadingProjects(true);
     setIsDataLoading(true);
     setIsDataReady(false);
 
-    // Reset counters and data
+    // Reset data
     setRowSize(0);
     setTotalData(0);
     setGridRows([]);
@@ -606,8 +553,7 @@ const DataViewPage = () => {
       // Update all project statuses to loading
       setProjectLoadingStatus(prev => prev.map(p => ({ ...p, status: 'loading' })));
 
-      // First, we need to check what endpoint structure your backend actually supports
-      // Option 1: If backend returns project details + responses in one call
+      // Single API call to get questions and responses
       const response = await axios.post('/api/config', {
         endpoint: `responses/multiple-projects?lang=${lang}`,
         body: {
@@ -615,51 +561,37 @@ const DataViewPage = () => {
         },
       });
 
-      // Check the actual response structure
-      console.log('Bulk API response structure:', response.data);
+      const { questions, responses, count, total } = response.data.data;
 
-      // If we only get responses without project details, we need to load project details first
-      if (response.data.data && response.data.data.responses !== undefined && !response.data.data.projects) {
-        // Load project details separately for each project
-        const projectDetailsPromises = selectedProjects.map(projectId =>
-          axios.get('/api/config', {
-            params: { endpoint: `project/project-details/${projectId}?data_view=1` },
-          }),
-        );
+      // Process questions - convert _id to id for consistency with existing code
+      const processedQuestions = questions.map((question: any) => ({
+        ...question,
+        id: question._id, // Map _id to id for DataGrid compatibility
+        label: typeof question.label === 'object' ? question.label[lang] || question.label.en : question.label,
+        label_km: typeof question.label === 'object' ? question.label.km : question.label,
+      }));
 
-        const projectDetailsResponses = await Promise.all(projectDetailsPromises);
+      // Create a simplified project detail structure
+      const masterProjectDetail = {
+        id: 'combined',
+        name: 'Combined Projects',
+        questions: processedQuestions,
+        location_details: extractLocationDetails(responses),
+        submitted_users: extractUniqueUsers(responses),
+      };
 
-        // Process project details
-        const newProjectsDetails: { [projectId: string]: ProjectDetail } = {};
-        projectDetailsResponses.forEach((detailResponse, index) => {
-          const projectId = selectedProjects[index];
-          const projectStatus = projectLoadingStatus.find(p => p.projectId === projectId);
-          const projectColor = projectStatus?.color || '#000000';
+      // Set the master project details
+      setMasterProjectDetails(masterProjectDetail);
 
-          // Add source project metadata to each question
-          const projectName = detailResponse.data.data.name;
-          const enhancedQuestions = detailResponse.data.data.questions.map((q: Question) => ({
-            ...q,
-            project_id: projectId,
-            project_name: projectName,
-            color: projectColor,
-          }));
-
-          detailResponse.data.data.questions = enhancedQuestions;
-          newProjectsDetails[projectId] = detailResponse.data.data;
-        });
-
-        setProjectsDetails(newProjectsDetails);
-
-        // Now process the responses
-        processBulkProjectData(response.data.data);
-      } else {
-        // If backend returns everything in one response
-        processBulkProjectData(response.data.data);
-      }
+      // Process responses - they should work as-is since keys match question IDs
+      setGridRows(responses);
+      setRowSize(count);
+      setTotalData(total);
 
       // Update all project statuses to success
       setProjectLoadingStatus(prev => prev.map(p => ({ ...p, status: 'success', message: 'Loaded successfully' })));
+
+      setIsDataReady(true);
     } catch (error) {
       console.error('Error loading projects:', error);
 
@@ -667,137 +599,15 @@ const DataViewPage = () => {
       setProjectLoadingStatus(prev => prev.map(p => ({ ...p, status: 'error', message: 'Failed to load' })));
     } finally {
       setIsLoadingProjects(false);
+      setIsDataLoading(false);
     }
   };
-
-  // Create a merged master project detail
-  useEffect(() => {
-    if (Object.keys(projectsDetails).length === 0) {
-      setMasterProjectDetails(null);
-      return;
-    }
-
-    const firstProjectId = Object.keys(projectsDetails)[0];
-    const firstProject = projectsDetails[firstProjectId];
-
-    if (!firstProject) {
-      setMasterProjectDetails(null);
-      return;
-    }
-
-    const master: ProjectDetail = {
-      id: 'master',
-      name: 'Combined Projects',
-      questions: [],
-      location_details: {
-        provinces: [],
-        districts: [],
-        communes: [],
-        villages: [],
-      },
-      submitted_users: [],
-    };
-
-    const uniqueIds = new Set<string>();
-    const uniqueProvinces = new Set<string>();
-    const uniqueDistricts = new Set<string>();
-    const uniqueCommunes = new Set<string>();
-    const uniqueVillages = new Set<string>();
-    const uniqueUsers = new Set<string>();
-
-    // Merge all projects
-    for (const projectId in projectsDetails) {
-      const project = projectsDetails[projectId];
-      const projectStatus = projectLoadingStatus.find(p => p.projectId === projectId);
-      const projectColor = projectStatus?.color || '#000000';
-
-      project.questions.forEach(question => {
-        const enhancedQuestion = {
-          ...question,
-          project_id: project.id,
-          project_name: project.name,
-          color: projectColor,
-        };
-
-        const compositeId = selectedProjects.length > 1 ? `${project.id}_${question.id}` : question.id;
-
-        if (!uniqueIds.has(compositeId)) {
-          if (selectedProjects.length > 1) {
-            enhancedQuestion.id = compositeId;
-          }
-
-          master.questions.push(enhancedQuestion);
-          uniqueIds.add(compositeId);
-        }
-      });
-
-      // Merge location details
-      project.location_details.provinces.forEach((province: any) => {
-        if (!uniqueProvinces.has(province.id)) {
-          master.location_details.provinces.push(province);
-          uniqueProvinces.add(province.id);
-        }
-      });
-
-      project.location_details.districts.forEach((district: any) => {
-        if (!uniqueDistricts.has(district.id)) {
-          master.location_details.districts.push(district);
-          uniqueDistricts.add(district.id);
-        }
-      });
-
-      project.location_details.communes.forEach((commune: any) => {
-        if (!uniqueCommunes.has(commune.id)) {
-          master.location_details.communes.push(commune);
-          uniqueCommunes.add(commune.id);
-        }
-      });
-
-      project.location_details.villages.forEach((village: any) => {
-        if (!uniqueVillages.has(village.id)) {
-          master.location_details.villages.push(village);
-          uniqueVillages.add(village.id);
-        }
-      });
-
-      project.submitted_users.forEach((user: any) => {
-        if (!uniqueUsers.has(user.id)) {
-          master.submitted_users.push(user);
-          uniqueUsers.add(user.id);
-        }
-      });
-    }
-
-    // Add project selection question
-    const projectOptions = Object.values(projectsDetails).map(project => ({
-      id: project.id,
-      name_en: project.name,
-      name_km: project.name,
-    }));
-
-    const projectQuestion = AddQuestions.find(q => q.id === 'project');
-    if (projectQuestion) {
-      projectQuestion.options = projectOptions;
-    }
-
-    master.questions = [...master.questions, ...AddQuestions];
-
-    setMasterProjectDetails(master);
-
-    // Check if all projects are loaded successfully
-    const allProjectsLoaded = selectedProjects.every(projectId => {
-      const status = projectLoadingStatus.find(p => p.projectId === projectId);
-      return status && status.status === 'success';
-    });
-
-    setIsDataReady(allProjectsLoaded);
-  }, [projectsDetails, projectLoadingStatus, selectedProjects.length]);
 
   // Get data visualization
   const getDataVisualization = async (qSelected: Question) => {
     setIsChartLoading(true);
     try {
-      const projectId = qSelected.project_id || selectedProjects[0];
+      const projectId = selectedProjects[0]; // Use first project for now
 
       if (!projectId) {
         setIsChartLoading(false);
@@ -807,7 +617,7 @@ const DataViewPage = () => {
       let body = {
         project_id: projectId,
         question: qSelected,
-        filters: currentFilter.filter(f => !f.project_id || f.project_id === projectId),
+        filters: currentFilter,
       };
 
       const response = await axios.post('/api/config', {
@@ -857,7 +667,10 @@ const DataViewPage = () => {
         },
       });
 
-      processBulkProjectData(response.data.data);
+      const { questions, responses, count, total } = response.data.data;
+      setGridRows(responses);
+      setRowSize(count);
+      setTotalData(total);
     } catch (error) {
       console.error('Error filtering data:', error);
     } finally {
@@ -902,7 +715,7 @@ const DataViewPage = () => {
     setIsMapOpen(false);
     setDataMaps([]);
     setQuestionVisualize(undefined);
-    setProjectsDetails({});
+    setMasterProjectDetails(null);
     setIsDataReady(false);
   };
 
@@ -911,12 +724,6 @@ const DataViewPage = () => {
     setSelectedProjects(prev => prev.filter(id => id !== projectId));
     setShowTooManyProjectsWarning(selectedProjects.length - 1 > MAX_RECOMMENDED_PROJECTS);
     setProjectLoadingStatus(prev => prev.filter(p => p.projectId !== projectId));
-
-    setProjectsDetails(prev => {
-      const newDetails = { ...prev };
-      delete newDetails[projectId];
-      return newDetails;
-    });
 
     setGridRows(prev => prev.filter(row => row.project_id !== projectId));
     setDataMaps(prev => prev.filter(item => item.project_id !== projectId));
@@ -991,7 +798,7 @@ const DataViewPage = () => {
     setDataset([]);
   };
 
-  // On pagination model change - using bulk API
+  // On pagination model change
   useEffect(() => {
     if (selectedProjects.length > 0 && isDataReady) {
       setIsDataLoading(true);
@@ -1008,7 +815,10 @@ const DataViewPage = () => {
             },
           });
 
-          processBulkProjectData(response.data.data);
+          const { questions, responses, count, total } = response.data.data;
+          setGridRows(responses);
+          setRowSize(count);
+          setTotalData(total);
         } catch (error) {
           console.error('Error loading paginated data:', error);
         } finally {
@@ -1028,87 +838,70 @@ const DataViewPage = () => {
     selectedQuestions.map(item => {
       let colLabel = item.label;
 
-      // For questions from a specific project, add project name to the label
-      if (item.project_id && selectedProjects.length > 1) {
-        colLabel = `${colLabel} (${item.project_name || item.project_id})`;
-      }
-
       // Generate filter base on selected question
       if (item.type == 'user') {
-        colLabel = lang == 'en' ? item.label : item.label_km;
+        colLabel = lang == 'en' ? item.label : item.label_km || item.label;
         if (masterProjectDetails) {
           if (masterProjectDetails.submitted_users.length > 0) {
             tempQuestion.push({
-              label: lang == 'en' ? item.label : item.label_km,
+              label: lang == 'en' ? item.label : item.label_km || item.label,
               type: item.type,
               data_type: item.data_type,
               index: item.order,
               values: [],
               options: masterProjectDetails.submitted_users,
-              project_id: item.project_id,
-              color: item.color,
             });
           }
         }
       } else if (item.type == 'province') {
-        colLabel = lang == 'en' ? item.label : item.label_km;
+        colLabel = lang == 'en' ? item.label : item.label_km || item.label;
         tempQuestion.push({
-          label: lang == 'en' ? item.label : item.label_km,
+          label: lang == 'en' ? item.label : item.label_km || item.label,
           type: item.type,
           data_type: item.data_type,
           index: item.order,
           values: [],
           options: masterProjectDetails ? masterProjectDetails.location_details.provinces : [],
-          project_id: item.project_id,
-          color: item.color,
         });
       } else if (item.type == 'district') {
-        colLabel = lang == 'en' ? item.label : item.label_km;
+        colLabel = lang == 'en' ? item.label : item.label_km || item.label;
         tempQuestion.push({
-          label: lang == 'en' ? item.label : item.label_km,
+          label: lang == 'en' ? item.label : item.label_km || item.label,
           type: item.type,
           data_type: item.data_type,
           index: item.order,
           values: [],
           options: masterProjectDetails ? masterProjectDetails.location_details.districts : [],
-          project_id: item.project_id,
-          color: item.color,
         });
       } else if (item.type == 'commune') {
-        colLabel = lang == 'en' ? item.label : item.label_km;
+        colLabel = lang == 'en' ? item.label : item.label_km || item.label;
         tempQuestion.push({
-          label: lang == 'en' ? item.label : item.label_km,
+          label: lang == 'en' ? item.label : item.label_km || item.label,
           type: item.type,
           data_type: item.data_type,
           index: item.order,
           values: [],
           options: masterProjectDetails ? masterProjectDetails.location_details.communes : [],
-          project_id: item.project_id,
-          color: item.color,
         });
       } else if (item.type == 'village') {
-        colLabel = lang == 'en' ? item.label : item.label_km;
+        colLabel = lang == 'en' ? item.label : item.label_km || item.label;
         tempQuestion.push({
-          label: lang == 'en' ? item.label : item.label_km,
+          label: lang == 'en' ? item.label : item.label_km || item.label,
           type: item.type,
           data_type: item.data_type,
           index: item.order,
           values: [],
           options: masterProjectDetails ? masterProjectDetails.location_details.villages : [],
-          project_id: item.project_id,
-          color: item.color,
         });
       } else if (item.type == 'project') {
-        colLabel = lang == 'en' ? item.label : item.label_km;
+        colLabel = lang == 'en' ? item.label : item.label_km || item.label;
         tempQuestion.push({
-          label: lang == 'en' ? item.label : item.label_km,
+          label: lang == 'en' ? item.label : item.label_km || item.label,
           type: item.type,
           data_type: item.data_type,
           index: item.order,
           values: [],
           options: item.options,
-          project_id: item.project_id,
-          color: item.color,
         });
       } else {
         tempQuestion.push({
@@ -1118,74 +911,21 @@ const DataViewPage = () => {
           index: item.order - 1,
           values: [],
           options: item.options,
-          project_id: item.project_id,
-          color: item.color,
         });
       }
 
-      // Add column to the grid with color styling if it's from a specific project
-      if (item.color && selectedProjects.length > 1) {
-        temp.push({
-          field: item.id,
-          headerName: colLabel,
-          cellClassName: 'text-left',
-          flex: 0.3,
-          headerClassName: 'multi-project-header',
-          renderHeader: params => (
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                width: '100%',
-                borderLeft: `4px solid ${item.color}`,
-                paddingLeft: '8px',
-              }}>
-              {colLabel}
-            </div>
-          ),
-        });
-      } else {
-        temp.push({
-          field: item.id,
-          headerName: colLabel,
-          cellClassName: 'text-left',
-          flex: 0.3,
-        });
-      }
-    });
-
-    // Add project column if we have multiple projects
-    if (selectedProjects.length > 1 && !temp.find(col => col.field === 'project_name')) {
+      // Add column to the grid
       temp.push({
-        field: 'project_name',
-        headerName: 'Project',
+        field: item.id,
+        headerName: colLabel,
         cellClassName: 'text-left',
         flex: 0.3,
-        renderCell: params => {
-          const project = projectLoadingStatus.find(p => p.projectName === params.value);
-          const color = project?.color || '#000000';
-
-          return (
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                padding: '4px 8px',
-                backgroundColor: color,
-                color: '#fff',
-                borderRadius: '4px',
-                fontWeight: 'bold',
-              }}>
-              {params.value}
-            </div>
-          );
-        },
       });
-    }
+    });
 
     setGridCols(temp);
     setFilters(tempQuestion);
-  }, [selectedQuestions, lang, masterProjectDetails, selectedProjects.length, projectLoadingStatus]);
+  }, [selectedQuestions, lang, masterProjectDetails]);
 
   const handleDownloadChart = async () => {
     if (chartRef.current) {
@@ -1276,7 +1016,7 @@ const DataViewPage = () => {
             )}
           </Paper>
 
-          {/* Simplified Loading Status */}
+          {/* Loading Status */}
           {isLoadingProjects && (
             <Paper variant='outlined' sx={{ p: 2, mb: 2 }}>
               <Typography variant='subtitle1' fontWeight='bold' gutterBottom>
@@ -1291,7 +1031,7 @@ const DataViewPage = () => {
             </Paper>
           )}
 
-          {/* Simplified Error Status */}
+          {/* Error Status */}
           {!isLoadingProjects && projectLoadingStatus.some(p => p.status === 'error') && (
             <Paper variant='outlined' sx={{ p: 2, mb: 2, borderLeft: '4px solid #d32f2f' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -1307,9 +1047,6 @@ const DataViewPage = () => {
               </Box>
             </Paper>
           )}
-
-          {/* Project Legend */}
-          {isDataReady && selectedProjects.length > 1 && <ProjectLegend projects={projectLoadingStatus} />}
 
           {/* Question Selection and Filtering - Only show when data is ready */}
           {isDataReady && masterProjectDetails && (
@@ -1336,21 +1073,14 @@ const DataViewPage = () => {
                   </MenuItem>
                   {masterProjectDetails.questions.map(item => (
                     // @ts-ignore
-                    <MenuItem key={`${item.project_id || 'standard'}-${item.id}`} value={item}>
-                      {item.order != -1 ? item.label : lang == 'en' ? item.label : item.label_km}
-                      {item.project_id && selectedProjects.length > 1 ? (
-                        <span
-                          style={{
-                            marginLeft: '8px',
-                            color: '#fff',
-                            backgroundColor: item.color,
-                            padding: '2px 6px',
-                            borderRadius: '4px',
-                            fontSize: '0.75rem',
-                          }}>
-                          {item.project_name}
-                        </span>
-                      ) : null}
+                    <MenuItem key={item.id} value={item}>
+                      {item.order != -1 ? item.label : lang == 'en' ? item.label : item.label_km || item.label}
+                    </MenuItem>
+                  ))}
+                  {AddQuestions.map(item => (
+                    // @ts-ignore
+                    <MenuItem key={item.id} value={item}>
+                      {lang == 'en' ? item.label : item.label_km}
                     </MenuItem>
                   ))}
                 </Select>
@@ -1399,19 +1129,6 @@ const DataViewPage = () => {
                   {selectedQuestions.map(item => (
                     <MenuItem key={item.id} value={JSON.stringify(item)}>
                       {item.label}
-                      {item.project_id && selectedProjects.length > 1 ? (
-                        <span
-                          style={{
-                            marginLeft: '8px',
-                            color: '#fff',
-                            backgroundColor: item.color,
-                            padding: '2px 6px',
-                            borderRadius: '4px',
-                            fontSize: '0.75rem',
-                          }}>
-                          {item.project_name}
-                        </span>
-                      ) : null}
                     </MenuItem>
                   ))}
                 </Select>
@@ -1449,7 +1166,6 @@ const DataViewPage = () => {
                     {
                       dataKey: 'freq',
                       label: questionVisualize.label,
-                      color: questionVisualize.color || undefined,
                     },
                   ]}
                   height={400}
@@ -1530,9 +1246,6 @@ const DataViewPage = () => {
                 width: '100%',
                 height: '100%',
                 marginTop: '1rem',
-                '& .multi-project-header': {
-                  backgroundColor: '#f5f5f5',
-                },
               }}
             />
           </Paper>
@@ -1552,90 +1265,17 @@ const DataViewPage = () => {
 
             <Divider sx={{ mb: 2 }} />
 
-            {/* Group filters by project if we have multiple projects */}
-            {selectedProjects.length > 1
-              ? // Group filters by project
-                (() => {
-                  const projectGroups: { [projectId: string]: QuestionFilter[] } = {};
-                  const commonFilters: QuestionFilter[] = [];
-
-                  filters.forEach((filter, index) => {
-                    if (filter.project_id) {
-                      if (!projectGroups[filter.project_id]) {
-                        projectGroups[filter.project_id] = [];
-                      }
-                      projectGroups[filter.project_id].push({ ...filter, index });
-                    } else {
-                      commonFilters.push({ ...filter, index });
-                    }
-                  });
-
-                  return (
-                    <>
-                      {/* Common filters */}
-                      {commonFilters.length > 0 && (
-                        <Box sx={{ mb: 2 }}>
-                          <Typography variant='subtitle1' fontWeight='bold' sx={{ mb: 1 }}>
-                            Common Filters
-                          </Typography>
-                          {commonFilters.map(filter => (
-                            <FilterItem
-                              key={`common-${filter.index}`}
-                              filter={filter}
-                              index={filter.index}
-                              handleFilterChange={handleFilterChange}
-                              lang={lang}
-                              GetContext={GetContext}
-                            />
-                          ))}
-                        </Box>
-                      )}
-
-                      {/* Project-specific filters */}
-                      {Object.entries(projectGroups).map(([projectId, projectFilters]) => {
-                        const project = projectLoadingStatus.find(p => p.projectId === projectId);
-                        const projectName = project?.projectName || projectId;
-                        const projectColor = project?.color || '#000000';
-
-                        return (
-                          <Box key={projectId} sx={{ mb: 2 }}>
-                            <Typography
-                              variant='subtitle1'
-                              fontWeight='bold'
-                              sx={{
-                                mb: 1,
-                                borderLeft: `4px solid ${projectColor}`,
-                                paddingLeft: '8px',
-                              }}>
-                              {projectName} Filters
-                            </Typography>
-                            {projectFilters.map(filter => (
-                              <FilterItem
-                                key={`${projectId}-${filter.index}`}
-                                filter={filter}
-                                index={filter.index}
-                                handleFilterChange={handleFilterChange}
-                                lang={lang}
-                                GetContext={GetContext}
-                              />
-                            ))}
-                          </Box>
-                        );
-                      })}
-                    </>
-                  );
-                })()
-              : // Show all filters without grouping for single project
-                filters.map((filter, index) => (
-                  <FilterItem
-                    key={index}
-                    filter={filter}
-                    index={index}
-                    handleFilterChange={handleFilterChange}
-                    lang={lang}
-                    GetContext={GetContext}
-                  />
-                ))}
+            {/* Show all filters */}
+            {filters.map((filter, index) => (
+              <FilterItem
+                key={index}
+                filter={filter}
+                index={index}
+                handleFilterChange={handleFilterChange}
+                lang={lang}
+                GetContext={GetContext}
+              />
+            ))}
 
             <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
               <Button fullWidth variant='contained' onClick={handleFilter} startIcon={<RefreshIcon />}>

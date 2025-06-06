@@ -44,6 +44,7 @@ export interface Project {
   data_collected: number;
   created_at: string;
   updated_at: string;
+  code: string | null;
 }
 
 const fetchUsersWithStatus = async (): Promise<UserProfile[]> => {
@@ -86,6 +87,7 @@ const ProjectHistoryPage = () => {
         }&query=${query}`,
       },
     });
+
     setRowSize(response.data.data.count);
 
     return response.data.data.projects;
@@ -166,9 +168,21 @@ const ProjectHistoryPage = () => {
           );
         },
       },
+
+      {
+        field: 'data_collected',
+        headerName: GetContext('data_collected', lang),
+        cellClassName: 'text-left',
+        flex: 1,
+        headerClassName: 'super-app-theme--header',
+        renderCell: (params: any) => {
+          if (params.value === undefined) return;
+          return <Box>{params.value}</Box>;
+        },
+      },
       {
         field: 'isStarted',
-        headerName: GetContext('data_collected', lang),
+        headerName: 'Started Collection',
         cellClassName: 'text-left',
         flex: 1,
         headerClassName: 'super-app-theme--header',
@@ -177,27 +191,30 @@ const ProjectHistoryPage = () => {
 
           let backgroundColor;
           let textColor;
+          let textValue;
 
           switch (params.value) {
-            case 'Yes':
+            case true:
               backgroundColor = 'rgba(0, 255, 0, 0.1)';
               textColor = 'green';
+              textValue = 'Yes';
               break;
-            case 'No':
+            case false:
               backgroundColor = 'rgba(255, 0, 0, 0.1)';
               textColor = 'red';
+              textValue = 'No';
               break;
-
             default:
               backgroundColor = 'rgba(0, 0, 0, 0.1)';
               textColor = 'rgb(77,171,245)';
+              textValue = 'Unknown';
               break;
           }
 
           return (
             <Box>
               <Box component='span' sx={{ backgroundColor, color: textColor, borderRadius: '24px', padding: '0.3rem 0.8rem' }}>
-                {params.value}
+                {textValue}
               </Box>
             </Box>
           );
@@ -237,7 +254,7 @@ const ProjectHistoryPage = () => {
     id: paginationModel.page * paginationModel.pageSize + index + 1,
     projectId: project.id,
     status: project.status == '1' ? 'Active' : project.status == '2' ? 'Completed' : 'Inactive',
-    isStarted: project.data_collected > 0 ? 'Yes' : 'No',
+    isStarted: project.data_collected > 0 ? true : false,
     users: fetchedUserData.filter(user => project.users.includes(user.id)),
   }));
 

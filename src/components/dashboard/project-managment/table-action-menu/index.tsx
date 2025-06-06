@@ -66,6 +66,7 @@ export interface Project {
   data_collected: number;
   created_at: string;
   updated_at: string;
+  code: string | null;
 }
 
 const TableActionMenu: React.FC<{
@@ -354,12 +355,14 @@ const TableActionMenu: React.FC<{
         )}
 
         {/* Share Link */}
-        <MenuItem onClick={() => handleMenuItemClick(() => setOpenShareLinkDialog(true))}>
-          <ListItemIcon>
-            <LinkIcon fontSize='small' />
-          </ListItemIcon>
-          <ListItemText>Share Link</ListItemText>
-        </MenuItem>
+        {row.code != null && (
+          <MenuItem onClick={() => handleMenuItemClick(() => setOpenShareLinkDialog(true))}>
+            <ListItemIcon>
+              <LinkIcon fontSize='small' />
+            </ListItemIcon>
+            <ListItemText>Share Link</ListItemText>
+          </MenuItem>
+        )}
 
         {/* Delete Project */}
         {canDeleteProject && (
@@ -473,7 +476,7 @@ const TableActionMenu: React.FC<{
         </DialogTitle>
         <DialogContent>
           {' '}
-          {process.env.NEXT_PUBLIC_FRONTEND_URL}/survey?s={row.projectId}&t={tenant?.tenant?.id}
+          {process.env.NEXT_PUBLIC_FRONTEND_URL}/survey?s={row.code}&t={tenant?.tenant?.id}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenShareLinkDialog(false)}>{GetContext('cancel', lang)}</Button>
