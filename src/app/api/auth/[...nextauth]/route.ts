@@ -1,5 +1,7 @@
 import NextAuth, { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import GoogleProvider from 'next-auth/providers/google';
+import { cookies } from 'next/headers';
 
 declare module 'next-auth' {
   interface User {
@@ -48,6 +50,17 @@ const OPTIONS: NextAuthOptions = {
         return null;
       },
     }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          prompt: 'consent',
+          access_type: 'offline',
+          response_type: 'code',
+        },
+      },
+    }),
   ],
   session: {
     strategy: 'jwt',
@@ -65,6 +78,47 @@ const OPTIONS: NextAuthOptions = {
     async session({ session, token }) {
       session.accessToken = token.accessToken;
       return session;
+    },
+    async signIn({ account, profile, user }) {
+      console.log('signIn', account, profile, user);
+
+      if (account?.provider === 'google') {
+        console.log('google access token:', account.access_token);
+        const tenantId = cookies().get('tenant_id')?.value || null;
+        console.log('tenantId:', tenantId);
+        if (account.access_token && tenantId) {
+          const res = await fetch(`${process.env.API_WEB_URL}/user/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              access_token: account.access_token,
+              tenant_id: tenantId,
+            }),
+          });
+
+          const resJson = await res.json();
+
+          if (resJson.data.tokens) {
+            console.log('Response from login:', resJson);
+            const oneDayFromNow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+            cookies().set('survey_access_token', resJson.data.tokens, { expires: oneDayFromNow });
+            return true;
+          }
+        }
+
+        return false;
+      }
+
+      if (account?.provider === 'credentials') {
+        if (user && user.accessToken) {
+          return true;
+        } else {
+          console.error('No access token found for credentials user');
+          return false;
+        }
+      }
+
+      return false;
     },
   },
   pages: {
