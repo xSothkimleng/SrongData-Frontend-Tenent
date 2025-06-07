@@ -566,7 +566,6 @@ const DataViewPage = () => {
             <InputLabel id='project-select' sx={{ width: '100%' }}>
               {!selectedProject ? GetContext('select_project_msg', lang) : GetContext('select_project', lang)}{' '}
             </InputLabel>
-
             <Select
               variant='standard'
               id='project-select'

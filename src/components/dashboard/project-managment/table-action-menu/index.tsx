@@ -55,7 +55,10 @@ export interface Indicator {
 export interface Project {
   id: string;
   projectId: string;
-  name: string;
+  name: {
+    en: string;
+    km: string;
+  };
   description: string;
   project_location: string;
   questions: string[];
@@ -275,6 +278,15 @@ const TableActionMenu: React.FC<{
     router.push(`/dashboard/project-history/project-detail/${projectId}`);
   };
 
+  const handleViewProjectResponses = () => {
+    const id = row.projectId;
+    const nameEn = row.name.en;
+    const nameKm = row.name.km;
+    const query = `?id=${encodeURIComponent(id)}&nameEn=${encodeURIComponent(nameEn)}&nameKm=${encodeURIComponent(nameKm)}`;
+    handleClose();
+    router.push(`/dashboard/project-history/project-responses${query}`);
+  };
+
   const handleMenuItemClick = (action: () => void) => {
     action();
   };
@@ -312,6 +324,13 @@ const TableActionMenu: React.FC<{
             <VisibilityOutlinedIcon fontSize='small' />
           </ListItemIcon>
           <ListItemText>View Project Details</ListItemText>
+        </MenuItem>
+
+        <MenuItem onClick={() => handleMenuItemClick(() => handleViewProjectResponses())}>
+          <ListItemIcon>
+            <VisibilityOutlinedIcon fontSize='small' />
+          </ListItemIcon>
+          <ListItemText>View Project Responses</ListItemText>
         </MenuItem>
 
         {/* Update Project Status */}

@@ -33,7 +33,10 @@ export interface Indicator {
 export interface Project {
   id: string;
   projectId: string;
-  name: string;
+  name: {
+    en: string;
+    km: string;
+  };
   description: string;
   project_location: string;
   questions: string[];
@@ -168,7 +171,6 @@ const ProjectHistoryPage = () => {
           );
         },
       },
-
       {
         field: 'data_collected',
         headerName: GetContext('data_collected', lang),
