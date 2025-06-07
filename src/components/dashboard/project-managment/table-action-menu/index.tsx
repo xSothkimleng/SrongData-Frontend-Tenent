@@ -563,6 +563,7 @@ const TableActionMenu: React.FC<{
         </Box>
       </Dialog>
       {/* share link dialog */}
+
       <Dialog
         fullWidth
         maxWidth="md"
@@ -573,13 +574,47 @@ const TableActionMenu: React.FC<{
           <p>Share Link</p>
         </DialogTitle>
         <DialogContent>
-          {" "}
-          {process.env.NEXT_PUBLIC_WEB_URL}/survey?s={row.code}&t=
-          {tenant?.tenant?.id}
+          <Box
+            display="flex"
+            alignItems="center"
+            justifyContent="space-between"
+            sx={{ background: "#f5f5f5", p: 1, borderRadius: 1, mt: 1 }}
+          >
+            <Typography
+              component="a"
+              href={`${process.env.NEXT_PUBLIC_WEB_URL}/survey?s=${row.code}&t=${tenant?.tenant?.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              sx={{
+                fontSize: "14px",
+                color: "#1976d2", // blue
+                textDecoration: "underline",
+                wordBreak: "break-all",
+                flexGrow: 1,
+              }}
+            >
+              {`${process.env.NEXT_PUBLIC_WEB_URL}/survey?s=${row.code}&t=${tenant?.tenant?.id}`}
+            </Typography>
+          </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenShareLinkDialog(false)}>
+          <Button
+            variant="outlined"
+            onClick={() => setOpenShareLinkDialog(false)}
+          >
             {GetContext("cancel", lang)}
+          </Button>
+          <Button
+            variant="contained"
+            size="small"
+            onClick={() => {
+              navigator.clipboard.writeText(
+                `${process.env.NEXT_PUBLIC_WEB_URL}/survey?s=${row.code}&t=${tenant?.tenant?.id}`,
+              );
+              setOpenShareLinkDialog(false);
+            }}
+          >
+            {GetContext("copy_link", lang)}
           </Button>
         </DialogActions>
       </Dialog>

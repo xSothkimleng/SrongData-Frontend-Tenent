@@ -99,9 +99,19 @@ const SurveyContainer: React.FC<SurveyContainerProps> = ({
             // const selectedIndex = question.options.findIndex(
             //   (opt) => opt === answer.value,
             // );
-            console.log("Selected answer: ", typeof answer);
-            if (typeof answer.value === "number") {
-              if (answer.value + 1 == skipLogic.answer_index) {
+            console.log(
+              "Selected answer: ",
+              Number(answer.value) + 1,
+              " | Skiplogic: ",
+              skipLogic,
+              " | Type of answer: ",
+              typeof answer.value,
+            );
+            if (
+              typeof answer.value === "number" ||
+              typeof answer.value === "string"
+            ) {
+              if (Number(answer.value) + 1 === skipLogic.answer_index) {
                 // 1-based indexing
                 applicableSkipLogic = skipLogic;
               }
@@ -109,7 +119,7 @@ const SurveyContainer: React.FC<SurveyContainerProps> = ({
             // convert to 1-based index
           }
         });
-
+        console.log("skip logic exist: ", applicableSkipLogic);
         // Apply skip logic if found
         if (
           applicableSkipLogic !== null &&
