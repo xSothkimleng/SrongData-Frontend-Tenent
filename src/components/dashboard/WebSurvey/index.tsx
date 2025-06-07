@@ -40,7 +40,6 @@ const SurveyContainer: React.FC<SurveyContainerProps> = ({
 
   const router = useRouter();
   // loading state
-  const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState<boolean>(false);
 
   const [proj, setProj] = useState<ApiSurveyData | null>(null);
@@ -152,7 +151,11 @@ const SurveyContainer: React.FC<SurveyContainerProps> = ({
   };
 
   const handleSubmit = async (): Promise<void> => {
-    if (!survey || !proj) return;
+    if (!survey || !proj) {
+      console.error("No Survey");
+      alert(`Survey or Project Not Found!`);
+      return;
+    }
 
     setLoading(true);
     setSubmitSuccess(false);
@@ -165,15 +168,26 @@ const SurveyContainer: React.FC<SurveyContainerProps> = ({
       const long = getCookie("long");
 
       const province = getCookie("province");
-      if (!province || !decodeProfile.email) return;
+      if (!province || !decodeProfile.email) {
+        console.error("no province");
+        alert(`Email and Province Not Found!`);
+        return;
+      }
 
       const matchedLocation = proj.location.find(
         (loc: ApiLocation) =>
           loc.name_en.toLowerCase() === province.toLowerCase(),
       );
 
+      const projLocations = proj.location
+        .map((loc: ApiLocation) => loc.name_en)
+        .join(", ");
+
       if (!matchedLocation) {
-        setSubmitError(`No matching location found for province: ${province}`);
+        console.log("no location");
+        alert(
+          `You are in wrong location. Your Location is ${province}. Required Location is ${projLocations}`,
+        );
         return;
       }
 
