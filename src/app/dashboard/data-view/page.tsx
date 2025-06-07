@@ -1,15 +1,15 @@
-'use client';
-import React, { useEffect, useState, ChangeEvent, useRef } from 'react';
-import { styled } from '@mui/system';
-import { BarChart } from '@mui/x-charts/BarChart';
-import DeleteIcon from '@mui/icons-material/Delete';
-import axios from 'axios';
-import dynamic from 'next/dynamic';
-import html2canvas from 'html2canvas';
-import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
-const Map = dynamic(() => import('@/components/dashboard/map'), { ssr: false });
-const xlsx = require('json-as-xlsx');
-import { DataGrid, GridColDef, GridToolbarQuickFilter } from '@mui/x-data-grid';
+"use client";
+import React, { useEffect, useState, ChangeEvent, useRef } from "react";
+import { styled } from "@mui/system";
+import { BarChart } from "@mui/x-charts/BarChart";
+import DeleteIcon from "@mui/icons-material/Delete";
+import axios from "axios";
+import dynamic from "next/dynamic";
+import html2canvas from "html2canvas";
+import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
+const Map = dynamic(() => import("@/components/dashboard/map"), { ssr: false });
+const xlsx = require("json-as-xlsx");
+import { DataGrid, GridColDef, GridToolbarQuickFilter } from "@mui/x-data-grid";
 
 import {
   FormControl,
@@ -200,9 +200,9 @@ const ActionCell: React.FC<{ row: Project }> = ({ row }) => (
 );
 
 const CustomQuickFilter = styled(GridToolbarQuickFilter)(({ theme }) => ({
-  padding: '1rem 0',
-  '& .MuiSvgIcon-root': {
-    fontSize: '2rem !important',
+  padding: "1rem 0",
+  "& .MuiSvgIcon-root": {
+    fontSize: "2rem !important",
     color: theme.palette.primary.main,
   },
   "& .MuiInputBase-input": {
@@ -474,10 +474,13 @@ const DataViewPage = () => {
   const chartRef = useRef<HTMLDivElement>(null);
 
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
-  const [projectLoadingStatus, setProjectLoadingStatus] = useState<ProjectLoadingStatus[]>([]);
+  const [projectLoadingStatus, setProjectLoadingStatus] = useState<
+    ProjectLoadingStatus[]
+  >([]);
   const [openDrawer, setOpenDrawer] = useState<boolean>(false);
   const [projects, setProjects] = useState<Project[]>([]);
-  const [masterProjectDetails, setMasterProjectDetails] = useState<ProjectDetail | null>(null);
+  const [masterProjectDetails, setMasterProjectDetails] =
+    useState<ProjectDetail | null>(null);
 
   const [selectedQuestions, setSelectedQuestions] = useState<Question[]>([]);
   const [gridCols, setGridCols] = useState<GridColDef[]>([]);
@@ -499,14 +502,15 @@ const DataViewPage = () => {
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [isLoadingProjects, setIsLoadingProjects] = useState(false);
   const [isDataReady, setIsDataReady] = useState(false);
-  const [showTooManyProjectsWarning, setShowTooManyProjectsWarning] = useState(false);
+  const [showTooManyProjectsWarning, setShowTooManyProjectsWarning] =
+    useState(false);
 
   // Helper function to get project name
   const getProjectName = (project: Project): string => {
-    if (typeof project.name === 'string') {
+    if (typeof project.name === "string") {
       return project.name;
     }
-    return project.name[lang] || project.name.en || 'Unnamed Project';
+    return project.name[lang] || project.name.en || "Unnamed Project";
   };
 
   // Helper function to extract unique location details from responses
@@ -516,7 +520,7 @@ const DataViewPage = () => {
     const communes = new Set();
     const villages = new Set();
 
-    responses.forEach(response => {
+    responses.forEach((response) => {
       if (response.province) provinces.add(response.province);
       if (response.district) districts.add(response.district);
       if (response.commune) communes.add(response.commune);
@@ -524,10 +528,26 @@ const DataViewPage = () => {
     });
 
     return {
-      provinces: Array.from(provinces).map(name => ({ id: name, name_en: name, name_km: name })),
-      districts: Array.from(districts).map(name => ({ id: name, name_en: name, name_km: name })),
-      communes: Array.from(communes).map(name => ({ id: name, name_en: name, name_km: name })),
-      villages: Array.from(villages).map(name => ({ id: name, name_en: name, name_km: name })),
+      provinces: Array.from(provinces).map((name) => ({
+        id: name,
+        name_en: name,
+        name_km: name,
+      })),
+      districts: Array.from(districts).map((name) => ({
+        id: name,
+        name_en: name,
+        name_km: name,
+      })),
+      communes: Array.from(communes).map((name) => ({
+        id: name,
+        name_en: name,
+        name_km: name,
+      })),
+      villages: Array.from(villages).map((name) => ({
+        id: name,
+        name_en: name,
+        name_km: name,
+      })),
     };
   };
 
@@ -535,16 +555,16 @@ const DataViewPage = () => {
   const extractUniqueUsers = (responses: any[]) => {
     const users = new Set();
 
-    responses.forEach(response => {
+    responses.forEach((response) => {
       if (response.user) {
         users.add(response.user);
       }
     });
 
-    return Array.from(users).map(userName => ({
+    return Array.from(users).map((userName) => ({
       id: userName,
-      first_name: (userName as string).split(' ')[0] || userName,
-      last_name: (userName as string).split(' ').slice(1).join(' ') || '',
+      first_name: (userName as string).split(" ")[0] || userName,
+      last_name: (userName as string).split(" ").slice(1).join(" ") || "",
     }));
   };
 
@@ -556,7 +576,7 @@ const DataViewPage = () => {
         });
         setProjects(response.data.data.projects);
       } catch (error) {
-        console.error('Error fetching projects:', error);
+        console.error("Error fetching projects:", error);
       }
     };
 
@@ -577,14 +597,14 @@ const DataViewPage = () => {
         lang: lang,
       };
 
-      const response = await axios.post('/api/config', {
+      const response = await axios.post("/api/config", {
         endpoint: `responses/export-multiple`,
         body,
       });
 
       const sheetData = [
         {
-          sheet: 'Sheet1',
+          sheet: "Sheet1",
           columns: response.data.data.col,
           content: response.data.data.con,
         },
@@ -609,10 +629,12 @@ const DataViewPage = () => {
 
     try {
       // Update all project statuses to loading
-      setProjectLoadingStatus(prev => prev.map(p => ({ ...p, status: 'loading' })));
+      setProjectLoadingStatus((prev) =>
+        prev.map((p) => ({ ...p, status: "loading" })),
+      );
 
       // Single API call to get questions and responses
-      const response = await axios.post('/api/config', {
+      const response = await axios.post("/api/config", {
         endpoint: `responses/multiple-projects?lang=${lang}`,
         body: {
           project_ids: selectedProjects,
@@ -625,14 +647,20 @@ const DataViewPage = () => {
       const processedQuestions = questions.map((question: any) => ({
         ...question,
         id: question._id, // Map _id to id for DataGrid compatibility
-        label: typeof question.label === 'object' ? question.label[lang] || question.label.en : question.label,
-        label_km: typeof question.label === 'object' ? question.label.km : question.label,
+        label:
+          typeof question.label === "object"
+            ? question.label[lang] || question.label.en
+            : question.label,
+        label_km:
+          typeof question.label === "object"
+            ? question.label.km
+            : question.label,
       }));
 
       // Create a simplified project detail structure
       const masterProjectDetail = {
-        id: 'combined',
-        name: 'Combined Projects',
+        id: "combined",
+        name: "Combined Projects",
         questions: processedQuestions,
         location_details: extractLocationDetails(responses),
         submitted_users: extractUniqueUsers(responses),
@@ -647,14 +675,22 @@ const DataViewPage = () => {
       setTotalData(total);
 
       // Update all project statuses to success
-      setProjectLoadingStatus(prev => prev.map(p => ({ ...p, status: 'success', message: 'Loaded successfully' })));
+      setProjectLoadingStatus((prev) =>
+        prev.map((p) => ({
+          ...p,
+          status: "success",
+          message: "Loaded successfully",
+        })),
+      );
 
       setIsDataReady(true);
     } catch (error) {
-      console.error('Error loading projects:', error);
+      console.error("Error loading projects:", error);
 
       // Update all project statuses to error
-      setProjectLoadingStatus(prev => prev.map(p => ({ ...p, status: 'error', message: 'Failed to load' })));
+      setProjectLoadingStatus((prev) =>
+        prev.map((p) => ({ ...p, status: "error", message: "Failed to load" })),
+      );
     } finally {
       setIsLoadingProjects(false);
       setIsDataLoading(false);
@@ -678,7 +714,7 @@ const DataViewPage = () => {
         filters: currentFilter,
       };
 
-      const response = await axios.post('/api/config', {
+      const response = await axios.post("/api/config", {
         endpoint: `responses/visualize`,
         body,
       });
@@ -717,7 +753,7 @@ const DataViewPage = () => {
 
     try {
       // Single request with filters for all projects
-      const response = await axios.post('/api/config', {
+      const response = await axios.post("/api/config", {
         endpoint: `responses/multiple-projects?lang=${lang}&page=${1}&limit=${paginationModel.pageSize}`,
         body: {
           project_ids: selectedProjects,
@@ -730,7 +766,7 @@ const DataViewPage = () => {
       setRowSize(count);
       setTotalData(total);
     } catch (error) {
-      console.error('Error filtering data:', error);
+      console.error("Error filtering data:", error);
     } finally {
       setIsDataLoading(false);
       setOpenDrawer(false);
@@ -746,14 +782,16 @@ const DataViewPage = () => {
   const handleProjectChange = async (event: SelectChangeEvent<string[]>) => {
     const selectedValues = event.target.value as string[];
 
-    setShowTooManyProjectsWarning(selectedValues.length > MAX_RECOMMENDED_PROJECTS);
+    setShowTooManyProjectsWarning(
+      selectedValues.length > MAX_RECOMMENDED_PROJECTS,
+    );
     setSelectedProjects(selectedValues);
 
     // Setup project colors for each selected project
     const newProjectStatus: ProjectLoadingStatus[] = [];
 
     selectedValues.forEach((projectId, index) => {
-      const project = projects.find(p => p.id === projectId);
+      const project = projects.find((p) => p.id === projectId);
       const projectName = project ? getProjectName(project) : projectId;
       const colorIndex = index % PROJECT_COLORS.length;
 
@@ -779,15 +817,21 @@ const DataViewPage = () => {
 
   // Remove a single project
   const handleRemoveProject = (projectId: string) => {
-    setSelectedProjects(prev => prev.filter(id => id !== projectId));
-    setShowTooManyProjectsWarning(selectedProjects.length - 1 > MAX_RECOMMENDED_PROJECTS);
-    setProjectLoadingStatus(prev => prev.filter(p => p.projectId !== projectId));
+    setSelectedProjects((prev) => prev.filter((id) => id !== projectId));
+    setShowTooManyProjectsWarning(
+      selectedProjects.length - 1 > MAX_RECOMMENDED_PROJECTS,
+    );
+    setProjectLoadingStatus((prev) =>
+      prev.filter((p) => p.projectId !== projectId),
+    );
 
-    setGridRows(prev => prev.filter(row => row.project_id !== projectId));
-    setDataMaps(prev => prev.filter(item => item.project_id !== projectId));
+    setGridRows((prev) => prev.filter((row) => row.project_id !== projectId));
+    setDataMaps((prev) => prev.filter((item) => item.project_id !== projectId));
 
-    const removeCount = gridRows.filter(row => row.project_id === projectId).length;
-    setRowSize(prev => prev - removeCount);
+    const removeCount = gridRows.filter(
+      (row) => row.project_id === projectId,
+    ).length;
+    setRowSize((prev) => prev - removeCount);
 
     if (selectedProjects.length <= 1) {
       setSelectedQuestions([]);
@@ -867,7 +911,7 @@ const DataViewPage = () => {
 
       const loadData = async () => {
         try {
-          const response = await axios.post('/api/config', {
+          const response = await axios.post("/api/config", {
             endpoint: `responses/multiple-projects?lang=${lang}&page=${paginationModel.page + 1}&limit=${
               paginationModel.pageSize
             }`,
@@ -882,7 +926,7 @@ const DataViewPage = () => {
           setRowSize(count);
           setTotalData(total);
         } catch (error) {
-          console.error('Error loading paginated data:', error);
+          console.error("Error loading paginated data:", error);
         } finally {
           setIsDataLoading(false);
         }
@@ -901,12 +945,12 @@ const DataViewPage = () => {
       let colLabel = item.label;
 
       // Generate filter base on selected question
-      if (item.type == 'user') {
-        colLabel = lang == 'en' ? item.label : item.label_km || item.label;
+      if (item.type == "user") {
+        colLabel = lang == "en" ? item.label : item.label_km || item.label;
         if (masterProjectDetails) {
           if (masterProjectDetails.submitted_users.length > 0) {
             tempQuestion.push({
-              label: lang == 'en' ? item.label : item.label_km || item.label,
+              label: lang == "en" ? item.label : item.label_km || item.label,
               type: item.type,
               data_type: item.data_type,
               index: item.order,
@@ -915,50 +959,58 @@ const DataViewPage = () => {
             });
           }
         }
-      } else if (item.type == 'province') {
-        colLabel = lang == 'en' ? item.label : item.label_km || item.label;
+      } else if (item.type == "province") {
+        colLabel = lang == "en" ? item.label : item.label_km || item.label;
         tempQuestion.push({
-          label: lang == 'en' ? item.label : item.label_km || item.label,
+          label: lang == "en" ? item.label : item.label_km || item.label,
           type: item.type,
           data_type: item.data_type,
           index: item.order,
           values: [],
-          options: masterProjectDetails ? masterProjectDetails.location_details.provinces : [],
+          options: masterProjectDetails
+            ? masterProjectDetails.location_details.provinces
+            : [],
         });
-      } else if (item.type == 'district') {
-        colLabel = lang == 'en' ? item.label : item.label_km || item.label;
+      } else if (item.type == "district") {
+        colLabel = lang == "en" ? item.label : item.label_km || item.label;
         tempQuestion.push({
-          label: lang == 'en' ? item.label : item.label_km || item.label,
+          label: lang == "en" ? item.label : item.label_km || item.label,
           type: item.type,
           data_type: item.data_type,
           index: item.order,
           values: [],
-          options: masterProjectDetails ? masterProjectDetails.location_details.districts : [],
+          options: masterProjectDetails
+            ? masterProjectDetails.location_details.districts
+            : [],
         });
-      } else if (item.type == 'commune') {
-        colLabel = lang == 'en' ? item.label : item.label_km || item.label;
+      } else if (item.type == "commune") {
+        colLabel = lang == "en" ? item.label : item.label_km || item.label;
         tempQuestion.push({
-          label: lang == 'en' ? item.label : item.label_km || item.label,
+          label: lang == "en" ? item.label : item.label_km || item.label,
           type: item.type,
           data_type: item.data_type,
           index: item.order,
           values: [],
-          options: masterProjectDetails ? masterProjectDetails.location_details.communes : [],
+          options: masterProjectDetails
+            ? masterProjectDetails.location_details.communes
+            : [],
         });
-      } else if (item.type == 'village') {
-        colLabel = lang == 'en' ? item.label : item.label_km || item.label;
+      } else if (item.type == "village") {
+        colLabel = lang == "en" ? item.label : item.label_km || item.label;
         tempQuestion.push({
-          label: lang == 'en' ? item.label : item.label_km || item.label,
+          label: lang == "en" ? item.label : item.label_km || item.label,
           type: item.type,
           data_type: item.data_type,
           index: item.order,
           values: [],
-          options: masterProjectDetails ? masterProjectDetails.location_details.villages : [],
+          options: masterProjectDetails
+            ? masterProjectDetails.location_details.villages
+            : [],
         });
-      } else if (item.type == 'project') {
-        colLabel = lang == 'en' ? item.label : item.label_km || item.label;
+      } else if (item.type == "project") {
+        colLabel = lang == "en" ? item.label : item.label_km || item.label;
         tempQuestion.push({
-          label: lang == 'en' ? item.label : item.label_km || item.label,
+          label: lang == "en" ? item.label : item.label_km || item.label,
           type: item.type,
           data_type: item.data_type,
           index: item.order,
@@ -980,7 +1032,7 @@ const DataViewPage = () => {
       temp.push({
         field: item.id,
         headerName: colLabel,
-        cellClassName: 'text-left',
+        cellClassName: "text-left",
         flex: 0.3,
       });
     });
@@ -1084,35 +1136,50 @@ const DataViewPage = () => {
 
           {/* Loading Status */}
           {isLoadingProjects && (
-            <Paper variant='outlined' sx={{ p: 2, mb: 2 }}>
-              <Typography variant='subtitle1' fontWeight='bold' gutterBottom>
+            <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+              <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
                 Loading {selectedProjects.length} Projects...
               </Typography>
 
               <LinearProgress sx={{ mb: 2, height: 10, borderRadius: 5 }} />
 
-              <Typography variant='body2' color='text.secondary'>
+              <Typography variant="body2" color="text.secondary">
                 Fetching all project data in a single request...
               </Typography>
             </Paper>
           )}
 
           {/* Error Status */}
-          {!isLoadingProjects && projectLoadingStatus.some(p => p.status === 'error') && (
-            <Paper variant='outlined' sx={{ p: 2, mb: 2, borderLeft: '4px solid #d32f2f' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <ErrorIcon color='error' sx={{ mr: 1 }} />
-                  <Typography fontWeight='bold' color='error'>
-                    Failed to load projects
-                  </Typography>
+          {!isLoadingProjects &&
+            projectLoadingStatus.some((p) => p.status === "error") && (
+              <Paper
+                variant="outlined"
+                sx={{ p: 2, mb: 2, borderLeft: "4px solid #d32f2f" }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center" }}>
+                    <ErrorIcon color="error" sx={{ mr: 1 }} />
+                    <Typography fontWeight="bold" color="error">
+                      Failed to load projects
+                    </Typography>
+                  </Box>
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    onClick={loadAllSelectedProjects}
+                    startIcon={<RefreshIcon />}
+                  >
+                    Retry All
+                  </Button>
                 </Box>
-                <Button variant='outlined' color='primary' onClick={loadAllSelectedProjects} startIcon={<RefreshIcon />}>
-                  Retry All
-                </Button>
-              </Box>
-            </Paper>
-          )}
+              </Paper>
+            )}
 
           {/* Question Selection and Filtering - Only show when data is ready */}
           {isDataReady && masterProjectDetails && (
@@ -1144,13 +1211,17 @@ const DataViewPage = () => {
                   {masterProjectDetails.questions.map((item) => (
                     // @ts-ignore
                     <MenuItem key={item.id} value={item}>
-                      {item.order != -1 ? item.label : lang == 'en' ? item.label : item.label_km || item.label}
+                      {item.order != -1
+                        ? item.label
+                        : lang == "en"
+                          ? item.label
+                          : item.label_km || item.label}
                     </MenuItem>
                   ))}
-                  {AddQuestions.map(item => (
+                  {AddQuestions.map((item) => (
                     // @ts-ignore
                     <MenuItem key={item.id} value={item}>
-                      {lang == 'en' ? item.label : item.label_km}
+                      {lang == "en" ? item.label : item.label_km}
                     </MenuItem>
                   ))}
                 </Select>
@@ -1203,20 +1274,21 @@ const DataViewPage = () => {
                 </Typography>
 
                 <Select
-                  variant='standard'
-                  labelId='project-filter-label'
-                  id='question-visualize'
+                  variant="standard"
+                  labelId="project-filter-label"
+                  id="question-visualize"
                   value={JSON.stringify(questionVisualize)}
-                  onChange={handleQuestionVisualizeChange}>
-                  {selectedQuestions.map(item => (
+                  onChange={handleQuestionVisualizeChange}
+                >
+                  {selectedQuestions.map((item) => (
                     <MenuItem key={item.id} value={JSON.stringify(item)}>
                       {item.label}
                     </MenuItem>
                   ))}
                 </Select>
-              </FormControl>
-            </Paper>
-          )}
+                {/* </FormControl> */}
+              </Paper>
+            )}
 
           {/* Chart Loading */}
           {questionVisualize && isChartLoading && (
@@ -1348,9 +1420,9 @@ const DataViewPage = () => {
               disableColumnMenu
               pageSizeOptions={[10, 25, 50, 100]}
               sx={{
-                width: '100%',
-                height: '100%',
-                marginTop: '1rem',
+                width: "100%",
+                height: "100%",
+                marginTop: "1rem",
               }}
             />
           </Paper>
