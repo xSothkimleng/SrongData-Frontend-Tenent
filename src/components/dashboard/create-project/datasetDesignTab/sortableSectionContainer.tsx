@@ -20,20 +20,30 @@ const SortableSectionContainer = ({
   children,
   onRemove,
   onTitleChange,
+  onDescriptionChange,
 }: {
   order: number;
   title: string;
   children: React.ReactNode;
   onRemove: () => void;
   onTitleChange: (newTitle: string) => void;
+  onDescriptionChange?: (newDescription: string) => void;
 }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: order });
   const [sectionTitle, setSectionTitle] = useState(title);
+  const [sectionDescription, setSectionDescription] = useState('');
   const lang = useLang(state => state.lang);
 
   const handleTitleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSectionTitle(event.target.value);
     onTitleChange(event.target.value);
+  };
+
+  const handleDescriptionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSectionDescription(event.target.value);
+    if (onDescriptionChange) {
+      onDescriptionChange(event.target.value);
+    }
   };
 
   const style = {
@@ -59,17 +69,41 @@ const SortableSectionContainer = ({
             style={{
               cursor: 'grab',
               display: 'flex',
-              alignItems: 'center',
+              justifyContent: 'flex-start',
+              alignItems: 'flex-start',
               marginRight: '12px',
             }}>
             <DragIndicatorIcon color='action' />
           </div>
-          <SectionIcon color='primary' sx={{ marginRight: 1 }} />
-          {/* <TextField variant='outlined' size='small' value={sectionTitle} onChange={handleTitleChange} sx={{ flexGrow: 1 }} /> */}
-          <Typography width='100%'>{sectionTitle}</Typography>
-          <Button color='error' startIcon={<DeleteIcon />} onClick={onRemove} sx={{ ml: 2 }}>
-            {GetContext('remove', lang)}
-          </Button>
+          <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flexGrow: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: 1 }}>
+              <SectionIcon color='primary' sx={{ marginRight: 1 }} />
+              <Typography width='100%'>{sectionTitle}</Typography>
+              <Button color='error' startIcon={<DeleteIcon />} onClick={onRemove} sx={{ ml: 2 }}>
+                {GetContext('remove', lang)}
+              </Button>
+            </Box>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <TextField
+                label='Section title'
+                variant='outlined'
+                size='small'
+                value={sectionTitle}
+                onChange={handleTitleChange}
+                sx={{ flexGrow: 1 }}
+              />
+              <TextField
+                label='Section Description'
+                multiline
+                variant='outlined'
+                rows={5}
+                size='small'
+                value={sectionDescription}
+                onChange={handleDescriptionChange}
+                sx={{ flexGrow: 1 }}
+              />
+            </Box>
+          </Box>
         </Box>
         {children}
       </Paper>
