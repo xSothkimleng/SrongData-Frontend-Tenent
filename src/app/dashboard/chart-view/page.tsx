@@ -70,7 +70,7 @@ interface ProjectDetail extends Omit<ApiSurveyData, "questions"> {
 interface MapData {
   lat: number;
   lon: number;
-  submitted_by: string;
+  submitted_user: string;
   created_at: string;
   project_id?: string;
   project_name?: string;
@@ -1016,14 +1016,15 @@ const DataViewPage = () => {
           uniqueVillages.add(village.id);
         }
       });
-
-      // Merge submitted users
-      project.submitted_users.forEach((user: any) => {
-        if (!uniqueUsers.has(user.id)) {
-          master.submitted_users.push(user);
-          uniqueUsers.add(user.id);
-        }
-      });
+      if (project.submitted_users) {
+        // Merge submitted users
+        project.submitted_users.forEach((user: any) => {
+          if (!uniqueUsers.has(user.id)) {
+            master.submitted_users.push(user);
+            uniqueUsers.add(user.id);
+          }
+        });
+      }
     }
 
     // Add project selection question
