@@ -77,7 +77,7 @@ export interface ApiQuestion {
     | "date"
     | "time";
   data_type: "string" | "number" | "array";
-  options: Array<Locale>;
+  options: Locale[];
   skip_logics: ApiSkipLogic[];
   section: {
     id: string;
