@@ -4,6 +4,11 @@ export interface Location {
   name_km: string;
 }
 
+export interface LongLat {
+  long: number;
+  lat: number;
+}
+
 export interface District {
   id: string;
   name_en: string;
@@ -33,7 +38,7 @@ export interface SelectedLocations {
 }
 
 export interface IsUpdateProps {
-  isUpdate?: boolean,
+  isUpdate?: boolean;
 }
 
 export interface ProjectLocation extends SelectedLocations {}

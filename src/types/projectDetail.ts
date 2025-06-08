@@ -1,7 +1,7 @@
 // constants
 export const PROJECT_DATA_COLLECTION_METHOD = {
-  CAPI: 'capi',
-  WEB: 'web',
+  CAPI: "capi",
+  WEB: "web",
 };
 
 // project detail
@@ -11,6 +11,11 @@ export type ProjectDetail = {
 };
 
 export type ProjectDescription = {
+  en: string;
+  km: string;
+};
+
+export type Locale = {
   en: string;
   km: string;
 };
