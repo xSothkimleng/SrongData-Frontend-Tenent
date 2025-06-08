@@ -60,8 +60,8 @@ const App: React.FC = () => {
       const surveyAccessToken = getCookie("survey_access_token");
 
       if (surveyId !== null && tenantId !== null) {
-        if (surveyId) setCookie("survey_id", surveyId, 1);
-        if (tenantId) setCookie("tenant_id", tenantId, 1);
+        if (surveyId) setCookie("survey_id", surveyId, 1 / 24);
+        if (tenantId) setCookie("tenant_id", tenantId, 1 / 24);
       }
 
       if (surveyAccessToken === null) {
@@ -91,8 +91,8 @@ const App: React.FC = () => {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          setCookie("lat", latitude.toString(), 1);
-          setCookie("long", longitude.toString(), 1);
+          setCookie("lat", latitude.toString(), 1 / 24);
+          setCookie("long", longitude.toString(), 1 / 24);
           console.log("Location saved:", latitude, longitude);
 
           // Do reverse geocoding in a separate async function
@@ -109,9 +109,10 @@ const App: React.FC = () => {
               const data = await res.json();
               const address = data.address || {};
 
-              if (address.state) setCookie("province", address.state, 1);
-              if (address.town) setCookie("city", address.town, 1);
-              if (address.village) setCookie("district", address.village, 1);
+              if (address.state) setCookie("province", address.state, 1 / 24);
+              if (address.town) setCookie("city", address.town, 1 / 24);
+              if (address.village)
+                setCookie("district", address.village, 1 / 24);
               if (address.neighbourhood || address.hamlet)
                 setCookie(
                   "commune",
