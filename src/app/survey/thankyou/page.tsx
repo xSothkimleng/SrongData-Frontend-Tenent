@@ -16,7 +16,16 @@ const ThankYouPage: React.FC = () => {
   const router = useRouter();
 
   return (
-    <Container maxWidth="sm">
+    <Container
+      maxWidth="sm"
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        px: 2, // padding on x-axis for mobile view
+      }}
+    >
       <Box pt={4} display="flex" flexDirection="column" alignItems="center">
         <Paper
           elevation={2}
@@ -37,6 +46,9 @@ const ThankYouPage: React.FC = () => {
             We are looking forward to work with you again later. Have a good
             day!
           </Typography>
+          <Typography variant="body2" mt={2} color="text.secondary">
+            Note: Only one email is allowed per response.
+          </Typography>
         </Paper>
 
         {/* <Button */}
@@ -49,15 +61,15 @@ const ThankYouPage: React.FC = () => {
         {/*   Submit Another Response */}
         {/* </Button> */}
 
-        <Box mt={2}>
-          <MuiLink
-            component="button"
-            variant="body2"
-            onClick={() => router.push("/survey")} // 👈 Adjust to your actual home page
-          >
-            Back to Home
-          </MuiLink>
-        </Box>
+        {/* <Box mt={2}> */}
+        {/*   <MuiLink */}
+        {/*     component="button" */}
+        {/*     variant="body2" */}
+        {/*     onClick={() => router.push("/survey")} // 👈 Adjust to your actual home page */}
+        {/*   > */}
+        {/*     Back to Home */}
+        {/*   </MuiLink> */}
+        {/* </Box> */}
       </Box>
     </Container>
   );
