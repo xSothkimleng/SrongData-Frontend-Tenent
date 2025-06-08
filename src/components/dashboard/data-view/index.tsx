@@ -304,17 +304,35 @@ const DataView: React.FC<dataViewProps> = ({
     };
     try {
       let body = {
-        project_ids: selectedProjects,
-        filters: currentFilter,
-        selected_questions: selectedQuestions,
-        lang: lang,
+        filter: {
+          questions: currentFilter,
+        },
+        selected_question_indexs: [] as number[],
+        is_province: false,
+        is_district: false,
+        is_commune: false,
+        is_submit_user: false,
       };
 
+      selectedQuestions.map((question) => {
+        if (question.order != -1) {
+          body.selected_question_indexs.push(question.order - 1);
+        } else {
+          if (question.type == "province") {
+            body.is_province = true;
+          } else if (question.type == "district") {
+            body.is_district = true;
+          } else if (question.type == "commune") {
+            body.is_commune = true;
+          } else if (question.type == "user") {
+            body.is_submit_user = true;
+          }
+        }
+      });
       const response = await axios.post("/api/config", {
-        endpoint: `responses/export-multiple`,
+        endpoint: `responses/export/${selectedProjects[0]}?lang=${lang}`,
         body,
       });
-
       const sheetData = [
         {
           sheet: "Sheet1",
@@ -517,6 +535,8 @@ const DataView: React.FC<dataViewProps> = ({
             ? question.label.km
             : question.label,
       }));
+
+      console.log("New questionnaire: ", responses);
 
       // Process responses to extract the correct language values
       const processedResponses = responses.map((response: any) => {

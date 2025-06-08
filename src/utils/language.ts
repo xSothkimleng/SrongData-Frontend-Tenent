@@ -1,3 +1,14 @@
+import { Locale } from "@/types/projectDetail";
+
+export function getLocaleValue(
+  locale: Locale | undefined,
+  lang: string,
+  fallback: string = "N/A",
+): string {
+  if (!locale) return fallback;
+  return lang === "en" ? (locale.en ?? fallback) : (locale.km ?? fallback);
+}
+
 const language: {
   [key: string]: {
     en: string;
@@ -780,6 +791,10 @@ const language: {
     en: "Copy Link",
     km: "ចម្លងតំណរលីង",
   },
+  combined_project: {
+    en: "Combined Project",
+    km: "គម្រោងរួមបញ្ចូលគ្នា",
+  },
 };
 
 export const GetContext = (key: string, lang: string) => {
@@ -789,3 +804,23 @@ export const GetContext = (key: string, lang: string) => {
   }
   return lang == "km" ? context.km : context.en;
 };
+
+export function parseLocaleValue(
+  value: Locale | string | number,
+  lang: string,
+): string {
+  if (
+    value &&
+    typeof value === "object" &&
+    typeof (value as any).en === "string" &&
+    typeof (value as any).km === "string"
+  ) {
+    return getLocaleValue(value as Locale, lang);
+  }
+
+  if (typeof value === "string" || typeof value === "number") {
+    return String(value);
+  }
+
+  return "N/A";
+}
