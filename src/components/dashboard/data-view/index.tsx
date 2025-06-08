@@ -313,7 +313,6 @@ const DataView: React.FC<dataViewProps> = ({
         is_commune: false,
         is_submit_user: false,
       };
-
       selectedQuestions.map((question) => {
         if (question.order != -1) {
           body.selected_question_indexs.push(question.order - 1);
@@ -330,7 +329,7 @@ const DataView: React.FC<dataViewProps> = ({
         }
       });
       const response = await axios.post("/api/config", {
-        endpoint: `responses/export/${selectedProjects[0]}?lang=${lang}`,
+        endpoint: `responses/export/${selectedProjects}?lang=${lang}`,
         body,
       });
       const sheetData = [
@@ -880,7 +879,9 @@ const DataView: React.FC<dataViewProps> = ({
         field: item.id,
         headerName: colLabel,
         cellClassName: "text-left",
-        flex: 0.3,
+        // // flex: 1.6,
+        // width: 250,
+        // minWidth: 200,
       });
     });
 
