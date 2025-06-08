@@ -1,32 +1,28 @@
 'use client';
-import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import React, { useState, useEffect } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Box, Stepper, Step, StepButton, Button } from '@mui/material';
 import LocationSelectionTabs from '@/components/dashboard/create-project/location-select-tab';
-import DatasetDesignTabs from '@/components/dashboard/create-project/dataset-design-tab';
+import DatasetDesignTabs from '@/components/dashboard/create-project/datasetDesignTab';
 import IndicatorDesignTab from '@/components/dashboard/create-project/indicator-tab';
 import AssignFacilitatorTab from '@/components/dashboard/create-project/assign-filcilitator-tab';
 import ProjectDetailTab from '@/components/dashboard/create-project/project-detail-tab';
 import usePersistentState from '@/hooks/usePersistentState';
 import { DataDesignForm } from '@/types/dataDesignForm';
 import { UserProfile } from '@/types/user';
-import { enqueueSnackbar } from 'notistack';
 import { GetLocationIdsFromLocal } from '@/utils/localItem';
 import useLang from '@/store/lang';
 import { GetContext } from '@/utils/language';
-
-interface CreateProjectPageProps {}
-
 import { Indicator } from '@/types/indicatorOperation';
 import AuthorizationCheck from '@/components/AuthorizationCheck';
 import { permissionCode } from '@/utils/permissionCode';
 import showSnackbar from '@/utils/snackbarHelper';
+import { PROJECT_DATA_COLLECTION_METHOD, ProjectDescription, ProjectDetail } from '@/types/projectDetail';
 
 const fetchUsersWithStatus = async (): Promise<UserProfile[]> => {
   try {
     const response = await axios.get('/api/get-all-user?status=1');
-    // console.log('Fetched users with status 1:', response.data.data.user);
     return response.data.data.user;
   } catch (error) {
     console.error('Error fetching users with status 1:', error);
@@ -37,7 +33,6 @@ const fetchUsersWithStatus = async (): Promise<UserProfile[]> => {
 const fetchQuestionTypes = async () => {
   try {
     const response = await axios.get('/api/question-types');
-    // console.log(response.data.data);
     return response.data.data;
   } catch (error) {
     console.error('Error fetching question types:', error);
@@ -47,15 +42,13 @@ const fetchQuestionTypes = async () => {
 const fetchFilterFunctions = async () => {
   try {
     const response = await axios.get('/api/filter-function');
-    // console.log(response.data.data);
     return response.data.data;
   } catch (error) {
     console.error('Error fetching filter functions:', error);
   }
 };
 
-const CreateProjectPage: React.FC<CreateProjectPageProps> = () => {
-  // const queryClient = useQueryClient();
+const CreateProjectPage = () => {
   const lang = useLang(state => state.lang);
 
   const [steps, setSteps] = useState<string[]>([
@@ -66,12 +59,29 @@ const CreateProjectPage: React.FC<CreateProjectPageProps> = () => {
     GetContext('assign_user', lang),
   ]);
 
+  // project creation status
   const [activeStep, setActiveStep] = usePersistentState('activeStep', 0);
   const [completed, setCompleted] = usePersistentState<{ [k: number]: boolean }>('completed', {});
-  const [projectTitle, setProjectTitle] = usePersistentState('projectTitle', '');
-  const [projectDescription, setProjectDescription] = usePersistentState('projectDescription', '');
+  //project detail
+  const [projectTitle, setProjectTitle] = usePersistentState<ProjectDetail>('projectTitle', {
+    en: '',
+    km: '',
+  });
+  const [projectDescription, setProjectDescription] = usePersistentState<ProjectDescription>('projectDescription', {
+    en: '',
+    km: '',
+  });
+  // project setting
+  const [isSurveyLanguageInEnglish, setIsSurveyLanguageInEnglish] = usePersistentState('isSurveyLanguageInEnglish', true);
+  const [isSurveyLanguageInKhmer, setIsSurveyLanguageInKhmer] = usePersistentState('isSurveyLanguageInKhmer', false);
+  const [dataCollectionMethod, setDataCollectionMethod] = usePersistentState('dataCollectionMethod', {
+    method: PROJECT_DATA_COLLECTION_METHOD.CAPI,
+    isRequiredNID: true,
+  });
+  // project Question
   const [dataDesignForms, setDataDesignForms] = usePersistentState<DataDesignForm[]>('dataDesignForms', []);
   const [indicators, setIndicators] = usePersistentState<Indicator[]>('indicators', []);
+  // project user
   const [facilitators, setFacilitators] = usePersistentState<UserProfile[]>('facilitators', []);
 
   const totalSteps = () => steps.length;
@@ -92,7 +102,7 @@ const CreateProjectPage: React.FC<CreateProjectPageProps> = () => {
   const handleNext = () => {
     switch (activeStep) {
       case 0:
-        if (projectTitle.length < 3 || projectDescription.length < 3) {
+        if (projectTitle.en.length < 3 || projectDescription.en.length < 3) {
           showSnackbar('Project title and description must be at least 3 characters long', 'warning');
           return;
         }
@@ -115,7 +125,7 @@ const CreateProjectPage: React.FC<CreateProjectPageProps> = () => {
           return;
         }
 
-        if (dataDesignForms.some(form => form.label.length < 0 || dataDesignForms.some(form => form.type == ''))) {
+        if (dataDesignForms.some(form => form.label.en.length < 0 || dataDesignForms.some(form => form.type == ''))) {
           showSnackbar('Please fill all question fields', 'warning');
           return;
         }
@@ -160,20 +170,17 @@ const CreateProjectPage: React.FC<CreateProjectPageProps> = () => {
   const createProjectMutation = useMutation<unknown, Error, any>({
     mutationFn: async (data: any) => {
       const res = await axios.post(`/api/create-project`, data);
-      // console.log('Update project users:', res.data);
       return res.data;
     },
     // @ts-ignore
     onSuccess: async data => {
-      // Reset all state variables
-      setProjectTitle('');
-      setProjectDescription('');
+      setProjectTitle({ en: '', km: '' });
+      setProjectDescription({ en: '', km: '' });
       setDataDesignForms([]);
       setIndicators([]);
       setFacilitators([]);
       setCompleted({});
       setActiveStep(0);
-
       // @ts-ignore
       showSnackbar(data.message ?? 'Project successfully created', 'success');
     },
@@ -191,6 +198,22 @@ const CreateProjectPage: React.FC<CreateProjectPageProps> = () => {
       villages: GetLocationIdsFromLocal('selectedVillages'),
     };
 
+    const localeSetting = [];
+    let methodSetting = -1;
+
+    if (isSurveyLanguageInEnglish) {
+      localeSetting.push('en');
+    }
+    if (isSurveyLanguageInKhmer) {
+      localeSetting.push('km');
+    }
+
+    if (dataCollectionMethod.method === PROJECT_DATA_COLLECTION_METHOD.WEB) {
+      methodSetting = 1; // Web method
+    } else if (dataCollectionMethod.method === PROJECT_DATA_COLLECTION_METHOD.CAPI) {
+      methodSetting = 0; // CAPI method
+    }
+
     const body = {
       name: projectTitle,
       description: projectDescription,
@@ -198,8 +221,13 @@ const CreateProjectPage: React.FC<CreateProjectPageProps> = () => {
       questions: dataDesignForms,
       users: facilitators.map(user => user.id),
       indicators: indicators,
+      required_nid: dataCollectionMethod.isRequiredNID,
+      locales: localeSetting,
+      method: methodSetting,
     };
-    // console.log('Updating Project:', body.project_location.villages);
+
+    console.log('Project body:', body);
+
     createProjectMutation.mutate(body);
   };
 
@@ -223,13 +251,19 @@ const CreateProjectPage: React.FC<CreateProjectPageProps> = () => {
       <main>
         <Box sx={{ width: '100%' }} className='border-1 boxShadow-1 p-4'>
           <Stepper nonLinear activeStep={activeStep}>
-            {steps.map((label, index) => (
-              <Step key={label} completed={completed[index]} disabled>
-                <StepButton color='inherit' onClick={handleStep(index)}>
-                  {label}
-                </StepButton>
-              </Step>
-            ))}
+            {steps.map((label, index) => {
+              if (dataCollectionMethod.method == PROJECT_DATA_COLLECTION_METHOD.WEB && index === 4) {
+                return null; // Skip the last step for web method
+              } else {
+                return (
+                  <Step key={label} completed={completed[index]} disabled>
+                    <StepButton color='inherit' onClick={handleStep(index)}>
+                      {label}
+                    </StepButton>
+                  </Step>
+                );
+              }
+            })}
           </Stepper>
         </Box>
         <Box className='w-full mt-[1%] p-4 border-1 boxShadow-1'>
@@ -239,6 +273,12 @@ const CreateProjectPage: React.FC<CreateProjectPageProps> = () => {
               setProjectTitle={setProjectTitle}
               projectDescription={projectDescription}
               setProjectDescription={setProjectDescription}
+              isSurveyLanguageInEnglish={isSurveyLanguageInEnglish}
+              setIsSurveyLanguageInEnglish={setIsSurveyLanguageInEnglish}
+              isSurveyLanguageInKhmer={isSurveyLanguageInKhmer}
+              setIsSurveyLanguageInKhmer={setIsSurveyLanguageInKhmer}
+              dataCollectionMethod={dataCollectionMethod}
+              setDataCollectionMethod={setDataCollectionMethod}
             />
           )}
 
@@ -249,6 +289,8 @@ const CreateProjectPage: React.FC<CreateProjectPageProps> = () => {
               questionTypes={questionTypesData}
               dataDesignForms={dataDesignForms}
               setDataDesignForms={setDataDesignForms}
+              isSurveyLanguageInEnglish={isSurveyLanguageInEnglish}
+              isSurveyLanguageInKhmer={isSurveyLanguageInKhmer}
             />
           )}
 
@@ -258,21 +300,30 @@ const CreateProjectPage: React.FC<CreateProjectPageProps> = () => {
               setIndicators={setIndicators}
               dataDesignForms={dataDesignForms}
               filterFunctions={filterFunctionsData}
+              isSurveyLanguageInEnglish={isSurveyLanguageInEnglish}
+              isSurveyLanguageInKhmer={isSurveyLanguageInKhmer}
             />
           )}
 
-          {activeStep === 4 && <AssignFacilitatorTab facilitators={fetchedFacilitators} setFacilitators={setFacilitators} />}
+          {activeStep === 4 && dataCollectionMethod.method == PROJECT_DATA_COLLECTION_METHOD.CAPI && (
+            <AssignFacilitatorTab facilitators={fetchedFacilitators} setFacilitators={setFacilitators} />
+          )}
 
           <Box className='flex justify-between mt-[1%]'>
             <Button variant='contained' disabled={activeStep === 0} onClick={handleBack}>
               {GetContext('back', lang)}
             </Button>
 
-            {activeStep !== 4 && (
-              <Button variant='contained' onClick={handleNext}>
-                {GetContext('next', lang)}
-              </Button>
-            )}
+            {activeStep !== 4 &&
+              (activeStep === 3 && dataCollectionMethod.method == PROJECT_DATA_COLLECTION_METHOD.WEB ? (
+                <Button variant='contained' onClick={() => handleComplete()}>
+                  {GetContext('create', lang)}
+                </Button>
+              ) : (
+                <Button variant='contained' onClick={handleNext}>
+                  {GetContext('next', lang)}
+                </Button>
+              ))}
 
             {activeStep === 4 && (
               <Button variant='contained' onClick={() => handleComplete()}>

@@ -19,6 +19,13 @@ const AssignFacilitatorTab: React.FC<AssignFacilitatorTabProps> = ({ facilitator
   const [selectedUsersNotPersisted, setSelectedUsersNotPersisted] = useState<UserProfile[]>([]);
   const [isPathnameCreateProject, setIsPathnameCreateProject] = useState<boolean>(false);
   const [currentFacilitators, setCurrentFacilitators] = useState<UserProfile[]>([]);
+  const [whitelistedEmails, setWhitelistedEmails] = useState<string[]>([]);
+
+  const handleEmailsChange = (emails: string[]) => {
+    setWhitelistedEmails(emails);
+    // You might want to pass this to a parent component or save it
+    console.log('Updated emails:', emails);
+  };
 
   useEffect(() => {
     if (pathname === '/dashboard/create-project') {
@@ -59,6 +66,7 @@ const AssignFacilitatorTab: React.FC<AssignFacilitatorTabProps> = ({ facilitator
 
   return (
     <Grid container>
+      {/* {dataCollectionMethod === PROJECT_DATA_COLLECTION_METHOD.CAPI && ( */}
       <Grid item xs={12}>
         <FormControl sx={{ width: '100%', marginBottom: 2 }}>
           <InputLabel id='user-filter-label'>{GetContext('user', lang)}</InputLabel>
@@ -88,8 +96,17 @@ const AssignFacilitatorTab: React.FC<AssignFacilitatorTabProps> = ({ facilitator
           </Select>
         </FormControl>
       </Grid>
+      {/* )} */}
+
+      {/* <Grid item xs={12}>
+        {dataCollectionMethod === PROJECT_DATA_COLLECTION_METHOD.WEB && <AnonymousSurveyMessage />}
+      </Grid> */}
     </Grid>
   );
 };
 
 export default AssignFacilitatorTab;
+
+{
+  /* <WhitelistEmail onEmailsChange={handleEmailsChange} initialEmails={whitelistedEmails} /> */
+}

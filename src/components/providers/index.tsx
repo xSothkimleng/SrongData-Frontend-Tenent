@@ -8,7 +8,18 @@ import useFetchUserDetails from '@/hooks/useFetchUserDetails';
 import useUserStore from '@/store/useUserStore';
 import useLang from '@/store/lang';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: false,
+      staleTime: 1000 * 60 * 5,
+    },
+    mutations: {
+      retry: false,
+    },
+  },
+});
 
 const Provider = ({ children, session }: { children: React.ReactNode; session: any }) => {
   return (

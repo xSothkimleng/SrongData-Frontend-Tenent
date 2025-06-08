@@ -1,11 +1,31 @@
-// app/types/dataDesignForm.ts
-export interface DataDesignForm {
-  label: string;
+export interface OptionType {
+  value: string;
+  displaySectionIds: string[] | [];
+}
+export interface OptionLocalizationType {
+  en: string;
+  km: string;
+}
+export interface skipLogic {
+  answer_index: number;
+  action: string;
+  target: string;
+}
+export interface SectionType {
   order: number;
+  title: string;
+  description: string;
+}
+
+export interface DataDesignForm {
+  order: number;
+  label: { en: string; km: string };
   is_required: boolean;
   type: string;
   data_type: string;
-  options: string[];
+  options: { en: string; km: string }[];
+  section: SectionType;
+  skip_logics: skipLogic[] | null;
 }
 
 type QuestionDataType = 'string' | 'number' | 'array' | 'date' | 'time';

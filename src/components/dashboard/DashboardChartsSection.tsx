@@ -14,6 +14,8 @@ import {
   SelectChangeEvent,
   Divider,
   DialogActions,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import axios from 'axios';
@@ -29,6 +31,7 @@ import useLang from '@/store/lang';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import CloseIcon from '@mui/icons-material/Close';
 import Legend from '../ChartLegend';
+import ActivityLogs from './activity-logs';
 
 interface ChartsSectionProps {
   barChartData: any[];
@@ -39,7 +42,10 @@ interface ChartsSectionProps {
 
 type Project = {
   id: string;
-  name: string;
+  name: {
+    en: string;
+    km: string;
+  };
 };
 
 const fetchProjectData = async (): Promise<Project[]> => {
@@ -64,9 +70,27 @@ const DashboardInfoSection: React.FC<ChartsSectionProps> = ({
   isOpenRequestLog,
 }) => {
   const lang = useLang(state => state.lang);
-  const [selectedProject, setSelectedProject] = useState<Project>({ id: '', name: '' });
+  const [selectedProject, setSelectedProject] = useState<Project>({
+    id: '',
+    name: {
+      en: '',
+      km: '',
+    },
+  });
   const [openDialog, setOpenDialog] = useState(false);
   const [allProjects, setAllProjects] = useState<Project[]>([]);
+  const [requestLogsTabValue, setRequestLogsTabValue] = React.useState(0);
+
+  function a11yProps(index: number) {
+    return {
+      id: `simple-tab-${index}`,
+      'aria-controls': `simple-tabpanel-${index}`,
+    };
+  }
+
+  const handleChangeTab = (event: React.SyntheticEvent, newValue: number) => {
+    setRequestLogsTabValue(newValue);
+  };
 
   const [openFullPieChartDialog, setOpenFullPieChartDialog] = useState(false);
 
@@ -80,7 +104,7 @@ const DashboardInfoSection: React.FC<ChartsSectionProps> = ({
       const response = await axios.get('/api/config', {
         params: { endpoint: `dashboard/project-virtualization/${selectedProject.id}?lang=${lang}` },
       });
-      console.log(response);
+      console.log('barChartResponse', response);
       return response.data.data;
     },
     enabled: selectedProject?.id !== '',
@@ -89,6 +113,7 @@ const DashboardInfoSection: React.FC<ChartsSectionProps> = ({
   useEffect(() => {
     const fetchProjects = async () => {
       const projects = await fetchProjectData();
+      console.log('Fetched projects:', projects);
       setAllProjects(projects);
       setSelectedProject(projects[0]);
     };
@@ -118,7 +143,7 @@ const DashboardInfoSection: React.FC<ChartsSectionProps> = ({
                   <div className='boxShadow-1 border-1 h-full flex flex-col p-[1rem]'>
                     <Box className='flex justify-between items-center'>
                       <Typography className='text-[1.4rem] w-fit font-medium px-[20px] bg-[#72d6d6] text-[white] rounded-[14px] rounded-tl-none rounded-bl-none'>
-                        {GetContext('virtualize_project', lang)} {selectedProject?.name}
+                        {GetContext('virtualize_project', lang)} {selectedProject?.name?.en || selectedProject?.name.km}
                       </Typography>
                       <Box className='flex'>
                         <IconButton onClick={() => setOpenDialog(!openDialog)} sx={{ padding: '0' }}>
@@ -190,7 +215,19 @@ const DashboardInfoSection: React.FC<ChartsSectionProps> = ({
       </Grid>
       {isOpenRequestLog && (
         <Grid item xs={3.5}>
-          <RequestLogs />
+          <Box sx={{ width: '100%' }}>
+            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+              <Tabs value={requestLogsTabValue} onChange={handleChangeTab} aria-label='basic tabs example'>
+                <Tab label='Request' {...a11yProps(0)} />
+                <Tab label='Activity' {...a11yProps(1)} />
+              </Tabs>
+            </Box>
+
+            <Box>
+              {requestLogsTabValue === 0 && <RequestLogs />}
+              {requestLogsTabValue === 1 && <ActivityLogs />}
+            </Box>
+          </Box>
         </Grid>
       )}
       <Dialog fullWidth open={openDialog} onClose={() => setOpenDialog(!openDialog)}>
@@ -206,7 +243,7 @@ const DashboardInfoSection: React.FC<ChartsSectionProps> = ({
               onChange={handleSelectProject}>
               {allProjects.map(project => (
                 <MenuItem key={project.id} value={JSON.stringify(project)}>
-                  {project.name}
+                  {project.name.en || project.name.km}
                 </MenuItem>
               ))}
             </Select>

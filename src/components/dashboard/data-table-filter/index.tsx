@@ -17,6 +17,7 @@ import { GetContext } from '@/utils/language';
 import useLang from '@/store/lang';
 import CustomDataGrid from '@/components/CustomDataGrid';
 import CoolTextInput from '@/components/customButton';
+import { useState } from 'react';
 
 type NameCounterCardProps = {
   name: string;
@@ -71,8 +72,32 @@ const NameCounterCard: React.FC<NameCounterCardProps> = ({
 
 const columns = (lang: string): GridColDef[] => {
   return [
-    { field: 'name', headerName: GetContext('project', lang), flex: 1.5, cellClassName: 'text-left' },
-    { field: 'description', headerName: GetContext('description', lang), flex: 3, cellClassName: 'leftAlign' },
+    {
+      field: 'name',
+      headerName: GetContext('project', lang),
+      flex: 1.5,
+      cellClassName: 'text-left',
+      renderCell: (params: GridRenderCellParams) => {
+        return (
+          <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+            <Typography style={{ fontSize: '1rem' }}>{params.value.en || params.value.km || 'undefined'}</Typography>
+          </Box>
+        );
+      },
+    },
+    {
+      field: 'description',
+      headerName: GetContext('description', lang),
+      flex: 3,
+      cellClassName: 'leftAlign',
+      renderCell: (params: GridRenderCellParams) => {
+        return (
+          <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+            <Typography style={{ fontSize: '1rem' }}>{params.value.en || params.value.km || 'undefined'}</Typography>
+          </Box>
+        );
+      },
+    },
     {
       field: 'total_response',
       headerName: GetContext('responses', lang),
@@ -135,12 +160,13 @@ type rowsDateType = {
 
 const fetchProjectSummary = async () => {
   const res = await axios.get('/api/project-summary');
+  console.log('Project Summary Response:', res.data);
   return res.data.data;
 };
 
 export default function ProjectSummaryTable() {
   const lang = useLang(state => state.lang);
-  const [itemFilter, setItemFilter] = React.useState<string>('');
+  const [itemFilter, setItemFilter] = useState<string>('');
 
   const {
     data: rowData = [],

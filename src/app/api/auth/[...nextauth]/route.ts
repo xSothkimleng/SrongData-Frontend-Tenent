@@ -1,7 +1,9 @@
-import NextAuth, { NextAuthOptions } from 'next-auth';
-import CredentialsProvider from 'next-auth/providers/credentials';
+import NextAuth, { NextAuthOptions } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
+import { cookies } from "next/headers";
 
-declare module 'next-auth' {
+declare module "next-auth" {
   interface User {
     accessToken?: string;
   }
@@ -11,7 +13,7 @@ declare module 'next-auth' {
   }
 }
 
-declare module 'next-auth/jwt' {
+declare module "next-auth/jwt" {
   interface JWT {
     accessToken?: string;
   }
@@ -20,15 +22,15 @@ declare module 'next-auth/jwt' {
 const OPTIONS: NextAuthOptions = {
   providers: [
     CredentialsProvider({
-      name: 'Credentials',
+      name: "Credentials",
       credentials: {
-        email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' },
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
       },
-      authorize: async credentials => {
+      authorize: async (credentials) => {
         const res = await fetch(`${process.env.API_URL}/user/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             email: credentials?.email,
             password: credentials?.password,
@@ -48,9 +50,20 @@ const OPTIONS: NextAuthOptions = {
         return null;
       },
     }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code",
+        },
+      },
+    }),
   ],
   session: {
-    strategy: 'jwt',
+    strategy: "jwt",
   },
   jwt: {
     secret: process.env.NEXTAUTH_SECRET,
@@ -66,9 +79,59 @@ const OPTIONS: NextAuthOptions = {
       session.accessToken = token.accessToken;
       return session;
     },
+    async signIn({ account, profile, user }) {
+      console.log("signIn", account, profile, user);
+
+      if (account?.provider === "google") {
+        console.log("google access token:", account.access_token);
+        const tenantId = cookies().get("tenant_id")?.value || null;
+        console.log("tenantId:", tenantId);
+        console.log("acc: ", account.access_token);
+        if (account.access_token && tenantId) {
+          const res = await fetch(`${process.env.API_WEB_URL}/user/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              access_token: account.access_token,
+              tenant_id: tenantId,
+            }),
+          });
+
+          const resJson = await res.json();
+          console.log("res: ", resJson);
+          if (resJson.data.tokens) {
+            console.log("Response from login:", resJson);
+            const oneDayFromNow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+            cookies().set("survey_access_token", resJson.data.tokens, {
+              expires: oneDayFromNow,
+            });
+            if (resJson.data.user) {
+              cookies().set("profile", JSON.stringify(resJson.data?.user), {
+                expires: oneDayFromNow,
+              });
+            }
+
+            return true;
+          }
+        }
+
+        return false;
+      }
+
+      if (account?.provider === "credentials") {
+        if (user && user.accessToken) {
+          return true;
+        } else {
+          console.error("No access token found for credentials user");
+          return false;
+        }
+      }
+
+      return false;
+    },
   },
   pages: {
-    signIn: '/auth/login',
+    signIn: "/auth/login",
   },
 };
 
