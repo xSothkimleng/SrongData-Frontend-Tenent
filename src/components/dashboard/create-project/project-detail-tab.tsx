@@ -123,7 +123,7 @@ const ProjectDetailTab: React.FC<ProjectDetailTabProps> = ({
                       control={<Radio />}
                       label='Computer-Assisted Personal Interviewing (CAPI)'
                     />
-                    {dataCollectionMethod.method === PROJECT_DATA_COLLECTION_METHOD.CAPI && (
+                    {/* {dataCollectionMethod.method === PROJECT_DATA_COLLECTION_METHOD.CAPI && (
                       <Box sx={{ marginLeft: '3rem' }}>
                         <Typography variant='body1'>Setting</Typography>
                         <FormControlLabel
@@ -153,7 +153,7 @@ const ProjectDetailTab: React.FC<ProjectDetailTabProps> = ({
                           </DialogActions>
                         </Dialog>
                       </Box>
-                    )}
+                    )} */}
                     <FormControlLabel
                       value={PROJECT_DATA_COLLECTION_METHOD.WEB}
                       control={<Radio />}
