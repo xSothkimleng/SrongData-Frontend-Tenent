@@ -16,7 +16,7 @@ import { GetContext } from '@/utils/language';
 import CustomToolbar from '@/components/DataGridToolbar';
 import HeaderTitle from '@/components/HeaderTitle';
 import TopicIcon from '@mui/icons-material/Topic';
-import TableActionMenu from '@/components/dashboard/project-managment/table-action-menu';
+import TableActionMenu from '@/components/dashboard/project-management/table-action-menu';
 
 export interface Filter {
   index: number;

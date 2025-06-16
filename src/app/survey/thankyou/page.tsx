@@ -1,52 +1,35 @@
-// app/thank-you/page.tsx or pages/thank-you.tsx (depending on your routing setup)
-"use client"; // If using App Router
-
-import React from "react";
-import {
-  Box,
-  Button,
-  Container,
-  Typography,
-  Paper,
-  Link as MuiLink,
-} from "@mui/material";
-import { useRouter } from "next/navigation"; // or "next/router" if using Pages Router
+'use client';
+import React from 'react';
+import { Box, Container, Typography, Paper, Link as MuiLink } from '@mui/material';
 
 const ThankYouPage: React.FC = () => {
-  const router = useRouter();
-
   return (
     <Container
-      maxWidth="sm"
+      maxWidth='sm'
       sx={{
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
         px: 2, // padding on x-axis for mobile view
-      }}
-    >
-      <Box pt={4} display="flex" flexDirection="column" alignItems="center">
+      }}>
+      <Box pt={4} display='flex' flexDirection='column' alignItems='center'>
         <Paper
           elevation={2}
           sx={{
-            width: "100%",
+            width: '100%',
             p: 3,
             borderRadius: 2,
-            border: "1px solid",
-            borderColor: "divider",
-            backgroundColor: "background.default",
+            border: '1px solid',
+            borderColor: 'divider',
+            backgroundColor: 'background.default',
             mb: 4,
-          }}
-        >
-          <Typography variant="h6" fontWeight="bold" gutterBottom>
+          }}>
+          <Typography variant='h6' fontWeight='bold' gutterBottom>
             Thank you for your response!
           </Typography>
-          <Typography variant="body2">
-            We are looking forward to work with you again later. Have a good
-            day!
-          </Typography>
-          <Typography variant="body2" mt={2} color="text.secondary">
+          <Typography variant='body2'>We are looking forward to work with you again later. Have a good day!</Typography>
+          <Typography variant='body2' mt={2} color='text.secondary'>
             Note: Only one email is allowed per response.
           </Typography>
         </Paper>
