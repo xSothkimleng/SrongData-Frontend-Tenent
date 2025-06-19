@@ -59,7 +59,7 @@ const useMenuItems = () => {
       },
       {
         name: GetContext('project_management', lang),
-        path: '/dashboard/project-history',
+        path: '/dashboard/project-management',
         icon: <HistoryIcon />,
         permission: permissionCode.viewProjectHistory,
       },

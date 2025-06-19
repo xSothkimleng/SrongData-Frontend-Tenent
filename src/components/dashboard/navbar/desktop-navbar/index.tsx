@@ -141,6 +141,7 @@ const DesktopNavbar: React.FC<DesktopNavbarProps> = ({ children, menus }) => {
     { label: GetContext('english', lang), value: 'en', flagUrl: '/dist/images/Flag_of_the_United_States.svg' },
     { label: GetContext('khmer', lang), value: 'km', flagUrl: '/dist/images/Flag_of_Cambodia.svg' },
   ];
+  const [current, setCurrent] = useState(initialOptions[0]);
   const userData = useUserStore(state => state.userData);
   const theme = useTheme();
   const currentPathname = usePathname();
@@ -148,15 +149,13 @@ const DesktopNavbar: React.FC<DesktopNavbarProps> = ({ children, menus }) => {
   const [profileAnchorEl, setProfileAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [selectedLangIndex, setSelectedLangIndex] = useState<number>(0);
-  const [current, setCurrent] = useState(initialOptions[0]);
-
 
   useEffect(() => {
     const lang = localStorage.getItem('lang');
     if (lang && lang == 'km') {
       setCurrent(initialOptions[1]);
-    } 
-  }, [])
+    }
+  }, []);
 
   const handleDrawerToggle = () => {
     setOpen(!open);
