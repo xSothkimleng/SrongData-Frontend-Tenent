@@ -32,7 +32,6 @@ import {
   Toolbar,
   IconButton,
   Typography,
-  Tooltip,
   Menu,
   MenuItem,
   ListItemIcon,
@@ -93,6 +92,8 @@ const TableActionMenu: React.FC<{
   const [openEditProjectDialog, setOpenEditProjectDialog] = useState(false);
   const [openShareLinkDialog, setOpenShareLinkDialog] = useState(false);
   const tenant = useUserStore(state => state.userData);
+
+  const [webLink] = useState<string>(`${process.env.NEXT_PUBLIC_FRONTEND_URL}/survey?s=${row.code}&t=${tenant?.tenant?.id}`);
 
   // Menu state
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -512,17 +513,17 @@ const TableActionMenu: React.FC<{
             sx={{ background: '#f5f5f5', p: 1, borderRadius: 1, mt: 1 }}>
             <Typography
               component='a'
-              href={`${process.env.NEXT_PUBLIC_WEB_URL}/survey?s=${row.code}&t=${tenant?.tenant?.id}`}
+              href={webLink}
               target='_blank'
               rel='noopener noreferrer'
               sx={{
                 fontSize: '14px',
-                color: '#1976d2', // blue
+                color: '#1976d2',
                 textDecoration: 'underline',
                 wordBreak: 'break-all',
                 flexGrow: 1,
               }}>
-              {`${process.env.NEXT_PUBLIC_WEB_URL}/survey?s=${row.code}&t=${tenant?.tenant?.id}`}
+              {webLink}
             </Typography>
           </Box>
         </DialogContent>
@@ -534,7 +535,7 @@ const TableActionMenu: React.FC<{
             variant='contained'
             size='small'
             onClick={() => {
-              navigator.clipboard.writeText(`${process.env.NEXT_PUBLIC_WEB_URL}/survey?s=${row.code}&t=${tenant?.tenant?.id}`);
+              navigator.clipboard.writeText(webLink);
               setOpenShareLinkDialog(false);
             }}>
             {GetContext('copy_link', lang)}

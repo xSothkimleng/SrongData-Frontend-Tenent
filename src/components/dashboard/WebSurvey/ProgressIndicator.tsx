@@ -10,15 +10,14 @@ const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({ currentStep, tota
   const progress = (currentStep / totalSteps) * 100;
 
   return (
-    <Box sx={{ width: '100%', height: 4, bgcolor: '#eee', borderRadius: 2 }}>
+    <Box sx={{ width: '100%', height: 5, bgcolor: '#eee', marginTop: 0.3 }}>
       <Box
-        sx={{
+        sx={theme => ({
           height: '100%',
           width: `${progress}%`,
-          bgcolor: '#6b5de3',
-          borderRadius: 2,
+          bgcolor: theme.palette.primary.main,
           transition: 'width 0.3s ease-in-out',
-        }}
+        })}
       />
     </Box>
   );

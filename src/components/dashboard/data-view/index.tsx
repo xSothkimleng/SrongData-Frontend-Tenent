@@ -170,7 +170,7 @@ const DataView: React.FC<dataViewProps> = ({ singleProjectView = false, singlePr
 
   const router = useRouter();
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
-  const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
+  const [selectedProjects, setSelectedProjects] = useState<{ id: string }[]>([]);
   const [projectLoadingStatus, setProjectLoadingStatus] = useState<ProjectLoadingStatus[]>([]);
   const [openDrawer, setOpenDrawer] = useState<boolean>(false);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -273,7 +273,7 @@ const DataView: React.FC<dataViewProps> = ({ singleProjectView = false, singlePr
 
   useEffect(() => {
     if (singleProjectView && singleProjectDetail) {
-      setSelectedProjects([singleProjectDetail.id]);
+      setSelectedProjects([{ id: singleProjectDetail.id }]);
       loadAllSelectedProjects();
     } else {
       fetchProjects();
@@ -345,13 +345,17 @@ const DataView: React.FC<dataViewProps> = ({ singleProjectView = false, singlePr
       // Update all project statuses to loading
       setProjectLoadingStatus(prev => prev.map(p => ({ ...p, status: 'loading' })));
 
-      console.log('Loading projects:', selectedProjects);
+      const data = {
+        projects: selectedProjects,
+      };
+
+      console.log('Loading projects:', data);
 
       // Single API call to get questions and responses
       const response = await axios.post('/api/config', {
         endpoint: `responses/multiple-projects?lang=${lang}`,
         body: {
-          project_ids: selectedProjects,
+          projects: selectedProjects,
         },
       });
 
@@ -483,7 +487,7 @@ const DataView: React.FC<dataViewProps> = ({ singleProjectView = false, singlePr
       const response = await axios.post('/api/config', {
         endpoint: `responses/multiple-projects?lang=${lang}&page=${1}&limit=${paginationModel.pageSize}`,
         body: {
-          project_ids: selectedProjects,
+          projects: selectedProjects,
           questions: filters,
         },
       });
@@ -540,7 +544,7 @@ const DataView: React.FC<dataViewProps> = ({ singleProjectView = false, singlePr
     const selectedValues = event.target.value as string[];
 
     setShowTooManyProjectsWarning(selectedValues.length > MAX_RECOMMENDED_PROJECTS);
-    setSelectedProjects(selectedValues);
+    setSelectedProjects(selectedValues.map(id => ({ id })));
 
     // Setup project colors for each selected project
     const newProjectStatus: ProjectLoadingStatus[] = [];
@@ -572,7 +576,7 @@ const DataView: React.FC<dataViewProps> = ({ singleProjectView = false, singlePr
 
   // Remove a single project
   const handleRemoveProject = (projectId: string) => {
-    setSelectedProjects(prev => prev.filter(id => id !== projectId));
+    setSelectedProjects(prev => prev.filter(p => p.id !== projectId));
     setShowTooManyProjectsWarning(selectedProjects.length - 1 > MAX_RECOMMENDED_PROJECTS);
     setProjectLoadingStatus(prev => prev.filter(p => p.projectId !== projectId));
 
@@ -887,7 +891,7 @@ const DataView: React.FC<dataViewProps> = ({ singleProjectView = false, singlePr
                   variant='standard'
                   id='project-select'
                   multiple
-                  value={selectedProjects}
+                  value={selectedProjects.map(p => p.id)}
                   label='Projects'
                   onChange={handleProjectChange}>
                   {projects.length === 0 && (

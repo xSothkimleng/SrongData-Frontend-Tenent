@@ -382,7 +382,6 @@ const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ params }) => {
                 <AccordionSummary
                   expandIcon={<ExpandMoreIcon />}
                   sx={{
-                    backgroundColor: 'rgba(0, 0, 0, 0.03)',
                     borderBottom: '1px solid rgba(0, 0, 0, 0.12)',
                   }}>
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -539,7 +538,6 @@ const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ params }) => {
                 <AccordionSummary
                   expandIcon={<ExpandMoreIcon />}
                   sx={{
-                    backgroundColor: 'rgba(0, 0, 0, 0.03)',
                     borderBottom: '1px solid rgba(0, 0, 0, 0.12)',
                   }}>
                   <Typography variant='subtitle1'>

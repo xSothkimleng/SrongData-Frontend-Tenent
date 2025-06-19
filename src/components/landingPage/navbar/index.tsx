@@ -68,7 +68,7 @@ const LandingPageNavbar = () => {
           </Drawer>
         </Grid>
         <Grid item sx={{ display: { xs: 'none', md: 'flex' } }} className='flex items-center'>
-          <Box className='flex navbar-menu'>
+          <Box className='flex navbar-menu' sx={{ marginRight: '2rem !important' }}>
             <Grid container spacing={2}>
               {menuItem.map(item => (
                 <Grid item key={item.title}>
