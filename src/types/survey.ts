@@ -1,4 +1,4 @@
-import { Locale } from './projectDetail';
+import { Locale } from "./projectDetail";
 
 export interface ApiResponse<T> {
   data: T;
@@ -58,7 +58,7 @@ export interface ApiProvince extends ApiLocation {
 
 export interface ApiSkipLogic {
   answer_index: number;
-  action: 'go_to' | 'submit_form' | string;
+  action: "go_to" | "submit_form" | string;
   target: number;
 }
 
@@ -67,8 +67,16 @@ export interface ApiQuestion {
   label: Locale;
   order: number;
   is_required: boolean;
-  type: 'text' | 'decimal' | 'single' | 'multiple' | 'text_area' | 'dropdown' | 'date' | 'time';
-  data_type: 'string' | 'number' | 'array';
+  type:
+    | "text"
+    | "decimal"
+    | "single"
+    | "multiple"
+    | "text_area"
+    | "dropdown"
+    | "date"
+    | "time";
+  data_type: "string" | "number" | "array";
   options: Locale[];
   skip_logics: ApiSkipLogic[];
   section: {
@@ -144,8 +152,8 @@ export interface DataCollection {
 
 export interface TransformedSection {
   id: string;
-  title: string;
-  description: string;
+  title: Locale;
+  description: Locale;
   order: number;
   questions: ApiQuestion[];
 }
