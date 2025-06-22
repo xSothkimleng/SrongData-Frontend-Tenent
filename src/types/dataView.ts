@@ -8,3 +8,9 @@ interface QuestionFilter {
   project_id?: string;
   color?: string;
 }
+
+interface GroupQuestionFilter {
+  project_id: string;
+  project_name?: string;
+  filters: QuestionFilter[];
+}
