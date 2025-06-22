@@ -88,6 +88,7 @@ export interface ApiQuestion {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  answer?: Answer["value"];
 }
 
 export interface ApiSection {
@@ -99,7 +100,7 @@ export interface ApiSection {
 }
 
 export interface ApiSurveyData {
-  locales: Locale;
+  locales: string[];
   location: ApiLocation[];
   project_desc: {
     en: string;

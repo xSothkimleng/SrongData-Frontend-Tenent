@@ -12,6 +12,7 @@ import SectionContent from "./SectionContent";
 import NavigationControls from "./NavigationControls";
 import ProgressIndicator from "./ProgressIndicator";
 import {
+  editResponse,
   fetchSurveyQuestionnaire,
   submitSurveyResponse,
 } from "@/services/surveyApi";
@@ -28,13 +29,16 @@ import {
   ApiSurveyData,
   ApiLocation,
 } from "@/types/survey";
-import { getCookie } from "@/utils/cookies";
+import { deleteCookie, getCookie } from "@/utils/cookies";
 import { useRouter } from "next/navigation";
 import MenuDropDown from "@/components/menuDropDown";
 import { getLocaleValue } from "@/utils/language";
+import { Data } from "@dnd-kit/core";
 
 interface SurveyContainerProps {
   surveyId?: string;
+  responseId?: string;
+  selectedLang: string;
 }
 
 interface LanguageOption {
@@ -56,7 +60,11 @@ const LANGUAGE_OPTIONS: Record<string, LanguageOption> = {
   },
 };
 
-const WebSurveyForm: React.FC<SurveyContainerProps> = ({ surveyId }) => {
+const WebSurveyForm: React.FC<SurveyContainerProps> = ({
+  surveyId,
+  responseId,
+  selectedLang,
+}) => {
   const router = useRouter();
   const [survey, setSurvey] = useState<TransformedSurvey | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -64,16 +72,6 @@ const WebSurveyForm: React.FC<SurveyContainerProps> = ({ surveyId }) => {
   const [currentPage, setCurrentPage] = useState<number>(0);
   const [answers, setAnswers] = useState<AnswerState>({});
   const [navigationHistory, setNavigationHistory] = useState<number[]>([0]);
-
-  // localization
-  const [locale, setLocale] = useState<string[]>(["en", "km"]);
-  const [selectedLang, setSelectedLang] = useState<string>("en");
-  const availableOptions = locale.map((lang) => ({
-    value: lang,
-    ...LANGUAGE_OPTIONS[lang],
-  }));
-  const currentLang =
-    LANGUAGE_OPTIONS[selectedLang as string] || LANGUAGE_OPTIONS[locale[0]];
 
   // loading state
   const [submitSuccess, setSubmitSuccess] = useState<boolean>(false);
@@ -90,20 +88,17 @@ const WebSurveyForm: React.FC<SurveyContainerProps> = ({ surveyId }) => {
           return;
         }
         // console.log("continue fetching");
-        const apiData = await fetchSurveyQuestionnaire(surveyId);
+        const apiData = await fetchSurveyQuestionnaire(surveyId, responseId);
 
         // console.log("Fetched survey data:", apiData);
         // set locale from survey data if available
         if (apiData.locales) {
           console.log("Setting locale from survey data:", apiData.locales);
-          const defaultLocale =
-            (Array.isArray(apiData.locales) ? apiData.locales[0] : undefined) ||
-            "en";
-          console.log("Default locale:", defaultLocale);
-          setLocale(
-            Array.isArray(apiData.locales) ? apiData.locales.map(String) : [],
+          localStorage.setItem(
+            "locales",
+            JSON.stringify(apiData.locales ?? ["en", "km"]),
           );
-          setSelectedLang(defaultLocale);
+          window.dispatchEvent(new Event("languagesUpdated"));
         }
 
         const transformedData = transformSurveyData(apiData);
@@ -120,11 +115,6 @@ const WebSurveyForm: React.FC<SurveyContainerProps> = ({ surveyId }) => {
 
     loadSurvey();
   }, [surveyId]);
-
-  // @ts-ignore
-  const handleSelectLanguage = (selectedOption) => {
-    setSelectedLang(selectedOption.value);
-  };
 
   // Handle answer changes
   const handleAnswerChange = (
@@ -221,69 +211,95 @@ const WebSurveyForm: React.FC<SurveyContainerProps> = ({ surveyId }) => {
   };
 
   const handleSubmit = async (): Promise<void> => {
+    let isEdit = false;
+
     if (!survey || !proj) {
       console.error("No Survey");
       alert(`Survey or Project Not Found!`);
       return;
     }
 
+    const responseId = getCookie("response_id");
+
+    if (responseId) {
+      console.log("Response ID: ", responseId);
+      isEdit = true;
+    }
+
     setLoading(true);
     setSubmitSuccess(false);
 
     try {
-      const formattedDate = new Date().toISOString().split(".")[0];
-      const profile = getCookie("profile");
-      const decodeProfile = JSON.parse(profile ?? "");
-      const lat = getCookie("lat");
-      const long = getCookie("long");
+      if (responseId) {
+        const flatAnswers = extractValuesFromAnswers(answers);
+        const body: DataCollection["responses"] = flatAnswers;
+        const res = await editResponse(responseId, body);
 
-      const province = getCookie("province");
-      if (!province || !decodeProfile.email) {
-        console.error("no province");
-        alert(`Email and Province Not Found!`);
+        console.log("res edit: ", res);
+        deleteCookie("response_id");
+        deleteCookie("survey_code");
+        deleteCookie("survey_access_token");
+        setSubmitSuccess(true);
+
+        router.replace(`/survey/thankyou?lang=${selectedLang}&edit=1`);
+
         return;
-      }
+      } else {
+        const formattedDate = new Date().toISOString().split(".")[0];
+        const profile = getCookie("profile");
+        const decodeProfile = JSON.parse(profile ?? "");
+        const lat = getCookie("lat");
+        const long = getCookie("long");
 
-      const matchedLocation = proj.location.find(
-        (loc: ApiLocation) =>
-          loc.name_en.toLowerCase() === province.toLowerCase(),
-      );
+        const province = getCookie("province");
+        if (!province || !decodeProfile.email) {
+          console.error("no province");
+          alert(`Email and Province Not Found!`);
+          return;
+        }
 
-      const projLocations = proj.location
-        .map((loc: ApiLocation) => loc.name_en)
-        .join(", ");
-
-      if (!matchedLocation) {
-        console.log("no location");
-        alert(
-          `You are in wrong location. Your Location is ${province}. Required Location is ${projLocations}`,
+        const matchedLocation = proj.location.find(
+          (loc: ApiLocation) =>
+            loc.name_en.toLowerCase() === province.toLowerCase(),
         );
+
+        const projLocations = proj.location
+          .map((loc: ApiLocation) => loc.name_en)
+          .join(", ");
+
+        if (!matchedLocation) {
+          console.log("no location");
+          alert(
+            `You are in wrong location. Your Location is ${province}. Required Location is ${projLocations}`,
+          );
+          return;
+        }
+
+        const flatAnswers = extractValuesFromAnswers(answers);
+        const dataCollection: DataCollection = {
+          date: formattedDate,
+          respondent: {
+            name: `${decodeProfile.last_name ?? ""}${decodeProfile.first_name ?? ""}`,
+            email: decodeProfile.email ?? "",
+            user_id: decodeProfile.id ?? "",
+          },
+          location: {
+            lat: Number(lat) ?? 0,
+            lon: Number(long) ?? 0,
+            province: matchedLocation.id,
+          },
+          responses: flatAnswers,
+          survey_code: getCookie("survey_id") ?? "",
+        };
+
+        const res = await submitSurveyResponse(dataCollection);
+
+        console.log("res: ", res);
+
+        setSubmitSuccess(true);
+        router.replace(`/survey/thankyou?lang=${selectedLang}`);
         return;
       }
-
-      const flatAnswers = extractValuesFromAnswers(answers);
-      const dataCollection: DataCollection = {
-        date: formattedDate,
-        respondent: {
-          name: `${decodeProfile.last_name ?? ""}${decodeProfile.first_name ?? ""}`,
-          email: decodeProfile.email ?? "",
-          user_id: decodeProfile.id ?? "",
-        },
-        location: {
-          lat: Number(lat) ?? 0,
-          lon: Number(long) ?? 0,
-          province: matchedLocation.id,
-        },
-        responses: flatAnswers,
-        survey_code: getCookie("survey_id") ?? "",
-      };
-
-      const res = await submitSurveyResponse(dataCollection);
-
-      console.log("res: ", res);
-
-      setSubmitSuccess(true);
-      router.push("/survey/thankyou");
     } catch (err) {
       console.error("Submit error:", err);
       setError("Failed to submit the survey. Please try again.");
@@ -291,21 +307,6 @@ const WebSurveyForm: React.FC<SurveyContainerProps> = ({ surveyId }) => {
       setLoading(false);
     }
   };
-
-  const buttonLabel = (
-    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-      <Avatar
-        src={currentLang.flagUrl}
-        variant="rounded"
-        sx={{
-          color: "white",
-          width: 30,
-          height: 20,
-        }}
-      />
-      {currentLang.displayName}
-    </div>
-  );
 
   // Loading state
   if (loading) {
@@ -344,39 +345,6 @@ const WebSurveyForm: React.FC<SurveyContainerProps> = ({ surveyId }) => {
 
   return (
     <Container maxWidth="sm" sx={{ py: 2 }}>
-      {locale.length > 1 && (
-        <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
-          <MenuDropDown buttonLabel={buttonLabel}>
-            {availableOptions.map((option) => (
-              <div
-                key={option.value}
-                onClick={() => handleSelectLanguage(option)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "10px",
-                  padding: "10px",
-                  cursor: "pointer",
-                  background:
-                    selectedLang === option.value ? "rgba(0,0,0,0.1)" : "none",
-                }}
-              >
-                <Avatar
-                  src={option.flagUrl}
-                  variant="rounded"
-                  sx={{
-                    bgcolor: "rgba(0,0,0,0.3)",
-                    color: "white",
-                    width: 30,
-                    height: 20,
-                  }}
-                />
-                {option.label}
-              </div>
-            ))}
-          </MenuDropDown>
-        </Box>
-      )}
       <Box
         sx={{
           overflow: "hidden",

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Box,
   TextField,
@@ -12,8 +12,8 @@ import {
   InputLabel,
   Select,
   MenuItem,
-} from '@mui/material';
-import { ApiQuestion } from '@/types/survey';
+} from "@mui/material";
+import { ApiQuestion } from "@/types/survey";
 
 interface QuestionRendererProps {
   question: ApiQuestion;
@@ -22,14 +22,21 @@ interface QuestionRendererProps {
   selectedLang?: string;
 }
 
-const QuestionRenderer: React.FC<QuestionRendererProps> = ({ question, value, onChange, selectedLang }) => {
+const QuestionRenderer: React.FC<QuestionRendererProps> = ({
+  question,
+  value,
+  onChange,
+  selectedLang,
+}) => {
   const { type, label, is_required, options, data_type } = question;
 
-  console.log('options:', options);
+  console.log("options:", options);
 
-  type ValueType = QuestionRendererProps['value'];
+  type ValueType = QuestionRendererProps["value"];
 
-  const [selectedValues, setSelectedValues] = useState<ValueType>(value || (type === 'multiple' ? [] : ''));
+  const [selectedValues, setSelectedValues] = useState<ValueType>(
+    value || (type === "multiple" ? [] : ""),
+  );
 
   useEffect(() => {
     if (value !== undefined) {
@@ -39,27 +46,42 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({ question, value, on
 
   // Helper to render the required asterisk
   const requiredMarker = is_required ? (
-    <Typography component='span' color='error' sx={{ ml: 0.5 }}>
+    <Typography component="span" color="error" sx={{ ml: 0.5 }}>
       *
     </Typography>
   ) : null;
 
-  const handleSingleChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    const newValue = event.target.value;
+  const handleSingleChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ): void => {
+    // parse selected index to number (also work for string, but i wanna parse, so what???)
+    const newValue = Number(event.target.value) ?? 0;
+
+    // console.log("type of single select: ", typeof newValue);
     setSelectedValues(newValue);
     onChange(newValue);
   };
 
-  const handleMultipleChange = (optionValue: number, checked: boolean): void => {
+  const handleMultipleChange = (
+    optionValue: number,
+    checked: boolean,
+  ): void => {
     const currentValues = Array.isArray(selectedValues) ? selectedValues : [];
-    const newValues = checked ? [...currentValues, optionValue] : currentValues.filter(val => val !== optionValue);
+    const newValues = checked
+      ? [...currentValues, optionValue]
+      : currentValues.filter((val) => val !== optionValue);
 
     setSelectedValues(newValues);
     onChange(newValues);
   };
 
-  const handleTextChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
-    const newValue = type === 'decimal' ? parseFloat(event.target.value) || event.target.value : event.target.value;
+  const handleTextChange = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ): void => {
+    const newValue =
+      type === "decimal"
+        ? parseFloat(event.target.value) || event.target.value
+        : event.target.value;
     setSelectedValues(newValue);
     onChange(newValue);
   };
@@ -72,92 +94,111 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({ question, value, on
 
   const renderQuestionContent = () => {
     switch (type) {
-      case 'text':
+      case "text":
         return (
           <TextField
             fullWidth
-            placeholder='Your answer'
-            variant='outlined'
-            size='small'
+            placeholder="Your answer"
+            variant="outlined"
+            size="small"
             value={selectedValues}
             onChange={handleTextChange}
           />
         );
 
-      case 'decimal':
+      case "decimal":
         return (
           <TextField
             fullWidth
-            type='number'
+            type="number"
             // step="0.01"
-            placeholder='Enter number'
-            variant='outlined'
-            size='small'
+            placeholder="Enter number"
+            variant="outlined"
+            size="small"
             value={selectedValues}
             onChange={handleTextChange}
           />
         );
 
-      case 'text_area':
+      case "text_area":
         return (
           <TextField
             fullWidth
             multiline
             rows={4}
-            placeholder='Your detailed answer...'
-            variant='outlined'
-            size='small'
+            placeholder="Your detailed answer..."
+            variant="outlined"
+            size="small"
             value={selectedValues}
             onChange={handleTextChange}
           />
         );
 
-      case 'single':
+      case "single":
         return (
           <RadioGroup value={selectedValues} onChange={handleSingleChange}>
-            {options?.map((option, index) => (
-              <FormControlLabel
-                key={index}
-                value={index}
-                control={<Radio size='small' />}
-                label={
-                  typeof option === 'object' && option !== null && selectedLang && option[selectedLang as keyof typeof option]
-                    ? option[selectedLang as keyof typeof option]
-                    : typeof option === 'object' && option !== null && 'en' in option
-                    ? option.en || (option.km ? option.km : '')
-                    : String(option)
-                }
-                sx={{
-                  '& .MuiFormControlLabel-label': {
-                    fontSize: '0.9rem',
-                  },
-                }}
-              />
-            ))}
+            {options?.map((option, index) => {
+              return (
+                <FormControlLabel
+                  key={index}
+                  value={index}
+                  control={<Radio size="small" />}
+                  label={
+                    typeof option === "object" &&
+                    option !== null &&
+                    selectedLang &&
+                    option[selectedLang as keyof typeof option]
+                      ? option[selectedLang as keyof typeof option]
+                      : typeof option === "object" &&
+                          option !== null &&
+                          "en" in option
+                        ? option.en || (option.km ? option.km : "")
+                        : String(option)
+                  }
+                  sx={{
+                    "& .MuiFormControlLabel-label": {
+                      fontSize: "0.9rem",
+                    },
+                  }}
+                />
+              );
+            })}
           </RadioGroup>
         );
 
-      case 'multiple':
+      case "multiple":
         return (
           <FormGroup>
             {options?.map((option, index) => {
-              const isChecked = Array.isArray(selectedValues) && selectedValues.includes(index);
+              const isChecked =
+                Array.isArray(selectedValues) && selectedValues.includes(index);
               return (
                 <FormControlLabel
                   key={index}
                   control={
-                    <Checkbox size='small' checked={isChecked} onChange={e => handleMultipleChange(index, e.target.checked)} />
+                    <Checkbox
+                      size="small"
+                      checked={isChecked}
+                      onChange={(e) =>
+                        handleMultipleChange(index, e.target.checked)
+                      }
+                    />
                   }
                   label={
-                    typeof option === 'object' && option !== null && selectedLang && option[selectedLang as keyof typeof option]
+                    typeof option === "object" &&
+                    option !== null &&
+                    selectedLang &&
+                    option[selectedLang as keyof typeof option]
                       ? option[selectedLang as keyof typeof option]
-                      : typeof option === 'object' && option !== null && 'en' in option
-                      ? option.en || (option.km ? option.km : '')
-                      : String(option)
+                      : typeof option === "object" &&
+                          option !== null &&
+                          "en" in option
+                        ? option.en || (option.km ? option.km : "")
+                        : String(option)
                   }
                   sx={{
-                    '& .MuiFormControlLabel-label': {
-                      fontSize: '0.9rem',
+                    "& .MuiFormControlLabel-label": {
+                      fontSize: "0.9rem",
                     },
                   }}
                 />
@@ -165,23 +206,31 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({ question, value, on
             })}
           </FormGroup>
         );
-      case 'dropdown':
+      case "dropdown":
         return (
-          <FormControl fullWidth size='small'>
-            <InputLabel id={`dropdown-label-${question.id}`}>Select an option</InputLabel>
+          <FormControl fullWidth size="small">
+            <InputLabel id={`dropdown-label-${question.id}`}>
+              Select an option
+            </InputLabel>
             <Select
               labelId={`dropdown-label-${question.id}`}
               id={`dropdown-${question.id}`}
               value={selectedValues}
-              label='Select an option'
-              onChange={handleDropdownChange}>
+              label="Select an option"
+              onChange={handleDropdownChange}
+            >
               {options?.map((option, index) => (
                 <MenuItem key={index} value={index}>
-                  {typeof option === 'object' && option !== null && selectedLang && option[selectedLang as keyof typeof option]
+                  {typeof option === "object" &&
+                  option !== null &&
+                  selectedLang &&
+                  option[selectedLang as keyof typeof option]
                     ? option[selectedLang as keyof typeof option]
-                    : typeof option === 'object' && option !== null && 'en' in option
-                    ? option.en || (option.km ? option.km : '')
-                    : String(option)}
+                    : typeof option === "object" &&
+                        option !== null &&
+                        "en" in option
+                      ? option.en || (option.km ? option.km : "")
+                      : String(option)}
                 </MenuItem>
               ))}
             </Select>
@@ -189,14 +238,18 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({ question, value, on
         );
 
       default:
-        return <Typography color='error'>Unknown question type: {type}</Typography>;
+        return (
+          <Typography color="error">Unknown question type: {type}</Typography>
+        );
     }
   };
 
   return (
-    <Box sx={{ mb: 1, p: 2, background: '#fff', borderRadius: 2 }}>
-      <Typography variant='body1' fontWeight='medium'>
-        {selectedLang && label[selectedLang as keyof typeof label] ? label[selectedLang as keyof typeof label] : 'N/A'}
+    <Box sx={{ mb: 1, p: 2, background: "#fff", borderRadius: 2 }}>
+      <Typography variant="body1" fontWeight="medium">
+        {selectedLang && label[selectedLang as keyof typeof label]
+          ? label[selectedLang as keyof typeof label]
+          : "N/A"}
         {requiredMarker}
       </Typography>
       {renderQuestionContent()}
