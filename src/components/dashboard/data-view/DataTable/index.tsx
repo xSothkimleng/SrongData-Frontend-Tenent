@@ -21,8 +21,8 @@ const DataViewTable: React.FC<DataTableProps> = ({
   paginationModel,
   setPaginationModel,
 }) => {
-  const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const router = useRouter();
+  const [selectedRows, setSelectedRows] = useState<string[]>([]);
 
   const handleSelectionChange = (newSelection: string | any[]) => {
     // Limit to single selection
@@ -81,7 +81,7 @@ const DataViewTable: React.FC<DataTableProps> = ({
 
         <DataGrid
           columns={gridCols}
-          rows={gridRows}
+          rows={gridRows || []}
           rowCount={rowSize}
           paginationMode='server'
           paginationModel={paginationModel}

@@ -387,22 +387,6 @@ const DataView: React.FC<dataViewProps> = ({ singleProjectView = false, singlePr
     setDrawerKey(prevKey => prevKey + 1);
   };
 
-  // filter all the question
-  // function transformGroupFilters(groupFilters: any) {
-  //   return {
-  //     // @ts-ignore
-  //     projects: groupFilters.map(project => ({
-  //       id: project.project_id,
-  //       // @ts-ignore
-  //       questions: project.filters.map(filter => ({
-  //         index: filter.index,
-  //         type: filter.type,
-  //         values: filter.values || [],
-  //       })),
-  //     })),
-  //   };
-  // }
-
   // filter only the question and that has values
   function transformGroupFilters(groupFilters: any) {
     return {
@@ -436,10 +420,8 @@ const DataView: React.FC<dataViewProps> = ({ singleProjectView = false, singlePr
     setDataMaps([]);
 
     try {
-      // console.log('filter body: ', filters);
-      console.log('Group Filters: ', groupFilters);
       const body = transformGroupFilters(groupFilters);
-      console.log('Transformed Group Filters:', { body });
+
       // Single request with filters for all projects
       const response = await axios.post('/api/config', {
         endpoint: `responses/multiple-projects?lang=${lang}`,
@@ -448,46 +430,65 @@ const DataView: React.FC<dataViewProps> = ({ singleProjectView = false, singlePr
 
       console.log('API response for filter:', response.data);
 
-      const { project, responses, count, total } = response.data.data;
-      console.log('Filtered project:', project);
-      console.log('Filtered responses:', responses);
-      console.log('Filtered count:', count);
-      console.log('Filtered total:', total);
+      const { projects, responses, count, total } = response.data.data;
 
-      // Process questions - convert _id to id for consistency with existing code
-      // const processedQuestions = questions.map((question: any) => ({
-      //   ...question,
-      //   id: question._id, // Map _id to id for DataGrid compatibility
-      //   label: typeof question.label === 'object' ? question.label[lang] || question.label.en : question.label,
-      //   label_km: typeof question.label === 'object' ? question.label.km : question.label,
-      // }));
+      console.log('Processing questions...');
 
-      // console.log('New questionnaire: ', responses);
+      const processedQuestions = (questions: any, project_id: string) => {
+        const result = questions.map((question: any) => ({
+          ...question,
+          id: question.id,
+          label: typeof question.label === 'object' ? question.label[lang] || question.label.en : question.label,
+          label_km: typeof question.label === 'object' ? question.label.km : question.label,
+          project_id: project_id || '',
+        }));
+
+        return result;
+      };
+
+      console.log('Processing response..');
 
       // Process responses to extract the correct language values
-      // const processedResponses = responses.map((response: any) => {
-      //   const processedResponse = { ...response };
+      if (!responses || responses.length === 0 || responses === null) {
+        console.log('No responses found for the selected projects.');
+        setGridRows([]);
+      } else {
+        console.log('Processing responses 2...');
+        const processedResponses = responses.map((response: any) => {
+          const processedResponse = { ...response };
 
-      //   // Process each field in the response
-      //   Object.keys(processedResponse).forEach(key => {
-      //     const value = processedResponse[key];
+          // Process each field in the response
+          Object.keys(processedResponse).forEach(key => {
+            const value = processedResponse[key];
 
-      //     // If the value is an object with 'en' and 'km' properties
-      //     if (value && typeof value === 'object' && ('en' in value || 'km' in value)) {
-      //       // Use the current language, fallback to 'en' if the selected language doesn't exist
-      //       processedResponse[key] = value[lang] || value['en'] || value['km'] || 'N/A';
-      //     }
-      //     // If it's already a string, keep it as is
-      //   });
+            // If the value is an object with 'en' and 'km' properties
+            if (value && typeof value === 'object' && ('en' in value || 'km' in value)) {
+              // Use the current language, fallback to 'en' if the selected language doesn't exist
+              // condition wrong, missing fallback if there's no locale
+              processedResponse[key] = value[lang] || value['en'] || value['km'] || 'N/A';
+            }
+            // If it's already a string, keep it as is
+          });
 
-      //   return processedResponse;
-      // });
+          return processedResponse;
+        });
 
-      // console.log('process response: ', processedResponses);
-      // setGridRows(processedResponses);
-      // setRowSize(count);
-      // setTotalData(total);
-      console.log('Filtered');
+        setGridRows(processedResponses);
+      }
+
+      const processedProjectDetails = projects.map((project: any) => ({
+        id: project.id,
+        name: lang == 'en' ? project.name.en : project.name.km,
+        questions: processedQuestions(project.questions, project.id),
+        location_details: extractLocationDetails(responses),
+        submitted_users: extractUniqueUsers(responses),
+      }));
+
+      setMasterProjectDetails(processedProjectDetails);
+      setRowSize(count);
+      setTotalData(total);
+
+      console.log('Filtered successfully:');
     } catch (error) {
       console.error('Error filtering data:', error);
     } finally {
@@ -506,8 +507,6 @@ const DataView: React.FC<dataViewProps> = ({ singleProjectView = false, singlePr
     const selectedValues = event.target.value as string[];
 
     setSelectedProjects(selectedValues.map(id => ({ id })));
-
-    console.log('Selected projects:', selectedValues);
 
     // Setup project colors for each selected project
     const newProjectStatus: ProjectLoadingStatus[] = [];
@@ -627,6 +626,8 @@ const DataView: React.FC<dataViewProps> = ({ singleProjectView = false, singlePr
       }
 
       // const addStaticQuestionFilter = () => {
+      //   const tempFilter = [];
+
       //   if (item.type == 'user') {
       //     if (masterProjectDetails) {
       //       if (masterProjectDetails.submitted_users.length > 0) {

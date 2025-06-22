@@ -72,8 +72,14 @@ interface Question {
 
 interface SectionWithQuestions {
   id: string;
-  title: string;
-  description: string;
+  title: {
+    en: string;
+    km: string;
+  };
+  description: {
+    en: string;
+    km: string;
+  };
   order: number;
   questions: Question[];
 }
@@ -387,7 +393,7 @@ const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ params }) => {
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <SectionIcon sx={{ mr: 1 }} color='action' />
                     <Typography variant='subtitle1'>
-                      Section {section.order}: {section.title}
+                      Section {section.order}: {currentLocale == 'en' ? section.title.en : section.title.km}
                     </Typography>
                   </Box>
                 </AccordionSummary>
