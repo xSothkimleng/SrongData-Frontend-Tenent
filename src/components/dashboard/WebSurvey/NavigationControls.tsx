@@ -24,7 +24,7 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
         display: 'flex',
         justifyContent: 'space-between',
         gap: 2,
-        mb: 2,
+        mb: 1,
       }}>
       {showPrevious ? (
         <Button
@@ -45,15 +45,15 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
         <Button
           variant='contained'
           onClick={onNext}
-          sx={{
+          sx={theme => ({
             flex: 1,
-            borderRadius: 4,
+            borderRadius: 2,
             py: 1,
-            bgcolor: '#6b5de3',
+            bgcolor: theme.palette.primary.main,
             '&:hover': {
-              bgcolor: '#5a4ec2',
+              bgcolor: theme.palette.primary.dark,
             },
-          }}>
+          })}>
           Next
         </Button>
       )}
@@ -62,15 +62,15 @@ const NavigationControls: React.FC<NavigationControlsProps> = ({
         <Button
           variant='contained'
           onClick={onSubmit}
-          sx={{
+          sx={theme => ({
             flex: 1,
             borderRadius: 4,
             py: 1,
-            bgcolor: '#6b5de3',
+            bgcolor: theme.palette.primary.main,
             '&:hover': {
-              bgcolor: '#5a4ec2',
+              bgcolor: theme.palette.primary.dark,
             },
-          }}>
+          })}>
           Submit
         </Button>
       )}

@@ -1,6 +1,14 @@
 'use client';
 import axios from 'axios';
-import * as React from 'react';
+import React, { useState } from 'react';
+import NameCounterCard from "../DashboardNameCounterCard";
+import { MenuItem, SelectChangeEvent, Grid, Box, Typography } from '@mui/material';
+import { useQuery } from '@tanstack/react-query';
+import theme from '@/theme';
+import { GetContext } from '@/utils/language';
+import useLang from '@/store/lang';
+import CustomDataGrid from '@/components/CustomDataGrid';
+import CoolTextInput from '@/components/customButton';
 import {
   DataGrid,
   GridColDef,
@@ -9,66 +17,7 @@ import {
   GridRenderCellParams,
   GridSlots,
 } from '@mui/x-data-grid';
-import { FormControl, InputLabel, Select, MenuItem, SelectChangeEvent, Grid, Box, Skeleton, Typography } from '@mui/material';
-import LinearProgress from '@mui/material/LinearProgress';
-import { useQuery } from '@tanstack/react-query';
-import theme from '@/theme';
-import { GetContext } from '@/utils/language';
-import useLang from '@/store/lang';
-import CustomDataGrid from '@/components/CustomDataGrid';
-import CoolTextInput from '@/components/customButton';
-import { useState } from 'react';
 
-type NameCounterCardProps = {
-  name: string;
-  count: number;
-  bgColor?: string;
-  borderLeftColor?: string;
-  isLoading: any;
-} & React.HTMLAttributes<HTMLDivElement>;
-
-const NameCounterCard: React.FC<NameCounterCardProps> = ({
-  name,
-  count,
-  bgColor = 'rgba(149, 149, 149, 0.08)',
-  borderLeftColor = 'rgb(149, 149, 149)',
-  isLoading,
-  ...rest
-}) => {
-  return isLoading ? (
-    <Skeleton variant='rectangular' width='100%' height={100} />
-  ) : (
-    <Box
-      className='boxShadow-1'
-      sx={{
-        height: '100%',
-        display: 'flex',
-        cursor: 'pointer',
-        flexDirection: 'row',
-        background: bgColor,
-        backgroundColor: bgColor ?? 'white',
-      }}
-      {...rest}>
-      <Box sx={{ width: '5px', background: borderLeftColor, height: '100%' }}></Box>
-      <Box
-        sx={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          alignItems: 'space-between',
-          padding: '8px 12px',
-        }}>
-        <div>
-          <Typography className='text-[1.2rem] font-medium'>{name}</Typography>
-        </div>
-        <div className='flex justify-end'>
-          <Typography className=' font-semibold text-[1.5rem]'>{count}</Typography>
-        </div>
-      </Box>
-    </Box>
-  );
-};
 
 const columns = (lang: string): GridColDef[] => {
   return [
@@ -216,9 +165,6 @@ export default function ProjectSummaryTable() {
     }
   };
 
-  // if (isLoading) {
-  //   return <Box>Loading...</Box>;
-  // }
 
   if (isError) {
     return <Box>{GetContext('fail_loadData', lang)}</Box>;

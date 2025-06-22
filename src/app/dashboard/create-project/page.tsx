@@ -315,14 +315,16 @@ const CreateProjectPage = () => {
             </Button>
 
             {activeStep !== 4 &&
-              (activeStep === 3 && dataCollectionMethod.method == PROJECT_DATA_COLLECTION_METHOD.WEB ? (
+              (activeStep === 3 && dataCollectionMethod.method === PROJECT_DATA_COLLECTION_METHOD.WEB ? (
                 <Button variant='contained' onClick={() => handleComplete()}>
                   {GetContext('create', lang)}
                 </Button>
               ) : (
-                <Button variant='contained' onClick={handleNext}>
-                  {GetContext('next', lang)}
-                </Button>
+                (isSurveyLanguageInEnglish || isSurveyLanguageInKhmer) && (
+                  <Button variant='contained' onClick={handleNext}>
+                    {GetContext('next', lang)}
+                  </Button>
+                )
               ))}
 
             {activeStep === 4 && (
