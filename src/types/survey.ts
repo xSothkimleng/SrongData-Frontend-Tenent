@@ -81,8 +81,8 @@ export interface ApiQuestion {
   skip_logics: ApiSkipLogic[];
   section: {
     id: string;
-    title: string;
-    description: string;
+    title: Locale;
+    description: Locale;
     order: number;
   };
   is_active: boolean;
