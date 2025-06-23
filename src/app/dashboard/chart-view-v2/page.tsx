@@ -363,7 +363,9 @@ const FilterItem: React.FC<FilterItemProps> = ({
             renderValue={(selected) => {
               return selected
                 .map((value) => {
-                  return filter.options[value];
+                  return lang === "en"
+                    ? (filter.options[value].en ?? "N/A")
+                    : (filter.options[value].km ?? "N/A");
                 })
                 .join(", ");
             }}
@@ -371,7 +373,7 @@ const FilterItem: React.FC<FilterItemProps> = ({
             {filter.options.map((option, i) => (
               <MenuItem key={i} value={i}>
                 <Checkbox checked={filter.values.indexOf(i) > -1} />
-                <ListItemText primary={option} />
+                <ListItemText primary={getLocaleValue(option, lang)} />
               </MenuItem>
             ))}
           </Select>
@@ -399,11 +401,7 @@ const FilterItem: React.FC<FilterItemProps> = ({
                     const option = filter.options.find(
                       (option) => value == option.id,
                     );
-                    return option
-                      ? lang == "en"
-                        ? option.name_en
-                        : option.name_km
-                      : "";
+                    return option ? (lang == "en" ? option.en : option.km) : "";
                   })
                   .join(", ");
               }}
@@ -440,7 +438,9 @@ const FilterItem: React.FC<FilterItemProps> = ({
                     const option = filter.options.find(
                       (option) => value == option.id,
                     );
-                    return option ? option.name_en : "";
+                    return option && lang === "en"
+                      ? (option.name_en ?? "")
+                      : (option.name_km ?? "");
                   })
                   .join(", ");
               }}
