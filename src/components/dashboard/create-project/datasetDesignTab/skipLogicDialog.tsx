@@ -32,6 +32,7 @@ interface LogicDialogProps {
     action: string,
     targetSectionId: string,
   ) => void;
+  lang: string;
 }
 
 const SkipLogicDialog: React.FC<LogicDialogProps> = ({
@@ -43,6 +44,7 @@ const SkipLogicDialog: React.FC<LogicDialogProps> = ({
   optionValue,
   currentSkipLogic,
   handleSkipLogicSave,
+  lang,
 }) => {
   console.log("Options Value", optionValue);
   // Initialize state with existing values or defaults
@@ -59,7 +61,7 @@ const SkipLogicDialog: React.FC<LogicDialogProps> = ({
       setAction(currentSkipLogic.action);
       setTargetSectionId(currentSkipLogic.target);
     } else if (open) {
-      setAction("jump_to");
+      setAction("go_to");
       setTargetSectionId("");
     }
   }, [open, currentSkipLogic]);
@@ -119,7 +121,9 @@ const SkipLogicDialog: React.FC<LogicDialogProps> = ({
               >
                 {availableSections.map((section) => (
                   <MenuItem key={section.order} value={section.order}>
-                    {section.title}
+                    {lang === "en"
+                      ? (section.title.en ?? "N/A")
+                      : (section.title.km ?? "N/A")}
                   </MenuItem>
                 ))}
               </Select>
