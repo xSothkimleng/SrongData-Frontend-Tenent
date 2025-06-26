@@ -148,11 +148,9 @@ const DataView: React.FC<dataViewProps> = ({ singleProjectView = false, singlePr
         },
       });
 
-      console.log('API response:', response.data);
       const { projects, responses, count, total } = response.data.data;
-      console.log('API DATA Projects:', projects);
-      console.log('API DATA Responses:', responses);
-      console.log('API DATA Total:', total);
+
+      console.log;
 
       // Processing one questions - convert _id to id for consistency with existing code
       const processedQuestions = (questions: any, project_id: string) => {
@@ -167,7 +165,7 @@ const DataView: React.FC<dataViewProps> = ({ singleProjectView = false, singlePr
         return result;
       };
 
-      // Process responses to extract the correct language values
+      // response row
       const processedResponses = responses.map((response: any) => {
         const processedResponse = { ...response };
 
@@ -288,15 +286,6 @@ const DataView: React.FC<dataViewProps> = ({ singleProjectView = false, singlePr
     }
   };
 
-  useEffect(() => {
-    if (singleProjectView && singleProjectDetail) {
-      setSelectedProjects([{ id: singleProjectDetail.id }]);
-      loadAllSelectedProjects();
-    } else {
-      fetchProjects();
-    }
-  }, []);
-
   const downloadFile = async () => {
     const settings = {
       fileName: 'multi_project_data',
@@ -408,19 +397,19 @@ const DataView: React.FC<dataViewProps> = ({ singleProjectView = false, singlePr
 
   // Filter function
   const handleFilter = async () => {
+    setIsDataLoading(true);
     setPaginationModel({
       page: 0,
       pageSize: paginationModel.pageSize,
     });
-
-    setIsDataLoading(true);
     setRowSize(0);
     setTotalData(0);
     setGridRows([]);
-    setDataMaps([]);
 
     try {
       const body = transformGroupFilters(groupFilters);
+
+      console.log('Filtering with body:', body);
 
       // Single request with filters for all projects
       const response = await axios.post('/api/config', {
@@ -428,25 +417,9 @@ const DataView: React.FC<dataViewProps> = ({ singleProjectView = false, singlePr
         body: body,
       });
 
-      console.log('API response for filter:', response.data);
+      console.log('Filter response:', response.data);
 
-      const { projects, responses, count, total } = response.data.data;
-
-      console.log('Processing questions...');
-
-      const processedQuestions = (questions: any, project_id: string) => {
-        const result = questions.map((question: any) => ({
-          ...question,
-          id: question.id,
-          label: typeof question.label === 'object' ? question.label[lang] || question.label.en : question.label,
-          label_km: typeof question.label === 'object' ? question.label.km : question.label,
-          project_id: project_id || '',
-        }));
-
-        return result;
-      };
-
-      console.log('Processing response..');
+      const { responses, count, total } = response.data.data;
 
       // Process responses to extract the correct language values
       if (!responses || responses.length === 0 || responses === null) {
@@ -473,18 +446,10 @@ const DataView: React.FC<dataViewProps> = ({ singleProjectView = false, singlePr
           return processedResponse;
         });
 
+        console.log('Processed responses:', processedResponses);
         setGridRows(processedResponses);
       }
 
-      const processedProjectDetails = projects.map((project: any) => ({
-        id: project.id,
-        name: lang == 'en' ? project.name.en : project.name.km,
-        questions: processedQuestions(project.questions, project.id),
-        location_details: extractLocationDetails(responses),
-        submitted_users: extractUniqueUsers(responses),
-      }));
-
-      setMasterProjectDetails(processedProjectDetails);
       setRowSize(count);
       setTotalData(total);
 
@@ -570,215 +535,141 @@ const DataView: React.FC<dataViewProps> = ({ singleProjectView = false, singlePr
     setDataset([]);
   };
 
-  // On pagination model change
   useEffect(() => {
-    if (selectedProjects.length > 0 && isDataReady) {
-      setIsDataLoading(true);
-
-      const loadData = async () => {
-        try {
-          const response = await axios.post('/api/config', {
-            endpoint: `responses/multiple-projects?lang=${lang}&page=${paginationModel.page + 1}&limit=${
-              paginationModel.pageSize
-            }`,
-            body: {
-              project_ids: selectedProjects,
-              filters: filters,
-            },
-          });
-
-          const { questions, responses, count, total } = response.data.data;
-          setGridRows(responses);
-          setRowSize(count);
-          setTotalData(total);
-        } catch (error) {
-          console.error('Error loading paginated data:', error);
-        } finally {
-          setIsDataLoading(false);
-        }
-      };
-
-      loadData();
+    if (singleProjectView && singleProjectDetail) {
+      setSelectedProjects([{ id: singleProjectDetail.id }]);
+      loadAllSelectedProjects();
+    } else {
+      fetchProjects();
     }
-  }, [paginationModel, lang]);
+  }, []);
+
+  // On pagination model change
+  // useEffect(() => {
+  //   console.log('trigger');
+  //   if (selectedProjects.length > 0 && isDataReady) {
+  //     setIsDataLoading(true);
+
+  //     const loadData = async () => {
+  //       try {
+  //         const response = await axios.post('/api/config', {
+  //           endpoint: `responses/multiple-projects?lang=${lang}&page=${paginationModel.page + 1}&limit=${
+  //             paginationModel.pageSize
+  //           }`,
+  //           body: {
+  //             project_ids: selectedProjects,
+  //             filters: filters,
+  //           },
+  //         });
+
+  //         const { questions, responses, count, total } = response.data.data;
+  //         setGridRows(responses);
+  //         setRowSize(count);
+  //         setTotalData(total);
+  //       } catch (error) {
+  //         console.error('Error loading paginated data:', error);
+  //       } finally {
+  //         setIsDataLoading(false);
+  //       }
+  //     };
+
+  //     loadData();
+  //   }
+  // }, [paginationModel, lang]);
 
   // Map grid col when selected questions changes
   useEffect(() => {
-    var headerColumn: GridColDef[] = [];
-    var tempQuestion: QuestionFilter[] = [];
-    let tempGroupFilter: GroupQuestionFilter[] = [];
+    const headerColumns: GridColDef[] = [];
+    const groupFilterMap = new Map<string, GroupQuestionFilter>();
 
-    selectedQuestions.map(item => {
-      // console.log('Selected Question in main:', item);
-      // Get Label for DataGrid header
-      let colLabel: string;
+    // Define location type handlers
+    const locationTypeHandlers = {
+      user: (project: any) => project.submitted_users || [],
+      province: (project: any) => project.location_details?.provinces || [],
+      district: (project: any) => project.location_details?.districts || [],
+      commune: (project: any) => project.location_details?.communes || [],
+      village: (project: any) => project.location_details?.villages || [],
+    };
+
+    const getColumnLabel = (item: any): string => {
       if (typeof item.label === 'object') {
-        colLabel = lang === 'en' ? item.label.en : item.label.km;
-      } else {
-        colLabel = item.label;
+        return lang === 'en' ? item.label.en : item.label.km;
       }
+      return item.label;
+    };
 
-      // Get Filter item by grouping
-      // filter out question that are not selected from the project in masterProjectDetails
-      if (masterProjectDetails && !masterProjectDetails.some(p => p.questions.some(q => q.id === item.id))) {
-        console.warn(`Question with id ${item.id} not found in selected projects`);
-        return;
-      }
+    const createQuestionFilter = (item: any, colLabel: string, options: any[]): QuestionFilter => ({
+      label: colLabel,
+      type: item.type,
+      data_type: item.data_type,
+      index:
+        item.type === 'user' ||
+        item.type === 'province' ||
+        item.type === 'district' ||
+        item.type === 'commune' ||
+        item.type === 'village'
+          ? item.order
+          : item.order - 1,
+      values: [],
+      options,
+    });
 
-      // const addStaticQuestionFilter = () => {
-      //   const tempFilter = [];
+    const addFilterToGroup = (projectId: string, projectName: string, filter: QuestionFilter) => {
+      const existingGroup = groupFilterMap.get(projectId);
 
-      //   if (item.type == 'user') {
-      //     if (masterProjectDetails) {
-      //       if (masterProjectDetails.submitted_users.length > 0) {
-      //         tempQuestion.push({
-      //           label:
-      //             typeof item.label === 'object'
-      //               ? lang === 'en'
-      //                 ? item.label.en
-      //                 : item.label.km
-      //               : lang === 'en'
-      //               ? item.label
-      //               : item.label_km || item.label,
-      //           type: item.type,
-      //           data_type: item.data_type,
-      //           index: item.order,
-      //           values: [],
-      //           options: masterProjectDetails.submitted_users,
-      //         });
-      //       }
-      //     }
-      //   } else if (item.type == 'province') {
-      //     tempQuestion.push({
-      //       label:
-      //         typeof item.label === 'object'
-      //           ? lang === 'en'
-      //             ? item.label.en
-      //             : item.label.km
-      //           : lang === 'en'
-      //           ? item.label
-      //           : item.label_km || item.label,
-      //       type: item.type,
-      //       data_type: item.data_type,
-      //       index: item.order,
-      //       values: [],
-      //       options: masterProjectDetails ? masterProjectDetails.location_details.provinces : [],
-      //     });
-      //   } else if (item.type == 'district') {
-      //     tempQuestion.push({
-      //       label:
-      //         typeof item.label === 'object'
-      //           ? lang === 'en'
-      //             ? item.label.en
-      //             : item.label.km
-      //           : lang === 'en'
-      //           ? item.label
-      //           : item.label_km || item.label,
-      //       type: item.type,
-      //       data_type: item.data_type,
-      //       index: item.order,
-      //       values: [],
-      //       options: masterProjectDetails ? masterProjectDetails.location_details.districts : [],
-      //     });
-      //   } else if (item.type == 'commune') {
-      //     tempQuestion.push({
-      //       label:
-      //         typeof item.label === 'object'
-      //           ? lang === 'en'
-      //             ? item.label.en
-      //             : item.label.km
-      //           : lang === 'en'
-      //           ? item.label
-      //           : item.label_km || item.label,
-      //       type: item.type,
-      //       data_type: item.data_type,
-      //       index: item.order,
-      //       values: [],
-      //       options: masterProjectDetails ? masterProjectDetails.location_details.communes : [],
-      //     });
-      //   } else if (item.type == 'village') {
-      //     tempQuestion.push({
-      //       label:
-      //         typeof item.label === 'object'
-      //           ? lang === 'en'
-      //             ? item.label.en
-      //             : item.label.km
-      //           : lang === 'en'
-      //           ? item.label
-      //           : item.label_km || item.label,
-      //       type: item.type,
-      //       data_type: item.data_type,
-      //       index: item.order,
-      //       values: [],
-      //       options: masterProjectDetails ? masterProjectDetails.location_details.villages : [],
-      //     });
-      //   } else if (item.type == 'project') {
-      //     tempQuestion.push({
-      //       label:
-      //         typeof item.label === 'object'
-      //           ? lang === 'en'
-      //             ? item.label.en
-      //             : item.label.km
-      //           : lang === 'en'
-      //           ? item.label
-      //           : item.label_km || item.label,
-      //       type: item.type,
-      //       data_type: item.data_type,
-      //       index: item.order,
-      //       values: [],
-      //       options: item.options,
-      //     });
-      //   } else {
-      //     tempQuestion.push({
-      //       label: typeof item.label === 'object' ? (lang === 'en' ? item.label.en : item.label.km) : item.label,
-      //       type: item.type,
-      //       data_type: item.data_type,
-      //       index: item.order - 1,
-      //       values: [],
-      //       options: item.options,
-      //     });
-      //   }
-      // };
-
-      // create Group Question Filter
-      const groupFilter: GroupQuestionFilter = {
-        project_id: item.project_id || '',
-        project_name: item.project_name || getProjectName(projects.find(p => p.id === item.project_id) || { id: '', name: '' }),
-        filters: [
-          {
-            label: colLabel,
-            type: item.type,
-            data_type: item.data_type,
-            index: item.order - 1,
-            values: [],
-            options: item.options || [],
-          },
-        ],
-      };
-
-      // Check if the project already exists in groupFilters
-      const existingGroup = tempGroupFilter.find(g => g.project_id === groupFilter.project_id);
       if (existingGroup) {
-        // If it exists, add the filter to the existing group
-        existingGroup.filters.push(...groupFilter.filters);
-        tempGroupFilter = tempGroupFilter.map(g => (g.project_id === groupFilter.project_id ? existingGroup : g));
+        existingGroup.filters.push(filter);
       } else {
-        // If it doesn't exist, add the new group
-        tempGroupFilter.push(groupFilter);
+        groupFilterMap.set(projectId, {
+          project_id: projectId,
+          project_name: projectName,
+          filters: [filter],
+        });
+      }
+    };
+
+    const handleLocationTypeQuestion = (item: any, colLabel: string, optionsGetter: (project: any) => any[]) => {
+      masterProjectDetails.forEach(project => {
+        const options = optionsGetter(project);
+        const filter = createQuestionFilter(item, colLabel, options);
+        addFilterToGroup(project.id, getProjectName(project), filter);
+      });
+    };
+
+    const handleRegularQuestion = (item: any, colLabel: string) => {
+      const projectId = item.project_id || '';
+      const projectName =
+        item.project_name || getProjectName(projects.find(p => p.id === item.project_id) || { id: '', name: '' });
+
+      const filter = createQuestionFilter(item, colLabel, item.options || []);
+      addFilterToGroup(projectId, projectName, filter);
+    };
+
+    // Process each selected question
+    selectedQuestions.forEach(item => {
+      const colLabel = getColumnLabel(item);
+
+      // Handle different question types
+      if (item.type in locationTypeHandlers) {
+        console.log(`${item.type.charAt(0).toUpperCase() + item.type.slice(1)} type question selected`);
+        handleLocationTypeQuestion(item, colLabel, locationTypeHandlers[item.type as keyof typeof locationTypeHandlers]);
+      } else {
+        handleRegularQuestion(item, colLabel);
       }
 
       // Add column to the grid
-      headerColumn.push({
+      headerColumns.push({
         field: item.id,
         headerName: colLabel,
         cellClassName: 'text-left',
+        flex: 1,
       });
     });
 
+    const tempGroupFilter = Array.from(groupFilterMap.values());
     console.log('tempGroupFilter', tempGroupFilter);
 
-    setGridCols(headerColumn);
-    setFilters(tempQuestion);
+    setGridCols(headerColumns);
     setGroupFilters(tempGroupFilter);
   }, [selectedQuestions, lang, masterProjectDetails]);
 

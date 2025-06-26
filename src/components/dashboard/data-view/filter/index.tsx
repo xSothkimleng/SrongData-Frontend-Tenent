@@ -29,6 +29,9 @@ interface FilterItemProps {
 const FilterItem: React.FC<FilterItemProps> = ({ filter, index, handleFilterChange, projectId }) => {
   const lang = useLang(state => state.lang);
 
+  // console.log('project ID', projectId);
+  // console.log('FilterItem render', filter);
+
   return (
     <div>
       {!(filter.data_type == 'date' || filter.data_type == 'time') && (
@@ -103,21 +106,11 @@ const FilterItem: React.FC<FilterItemProps> = ({ filter, index, handleFilterChan
               console.log('selected value: ', selected);
               return selected
                 .map((value, i) => {
-                  // console.log('wtf value: ', value);
-                  // console.log('wtf optins: ', filter.options);
                   const opt = filter.options[value];
                   return typeof opt === 'object' ? (lang == 'en' ? opt.en ?? 'N/A' : opt.km ?? 'N/A') : 'N/A';
                 })
                 .join(', ');
-            }}
-            // renderValue={(selected) => {
-            //   return selected
-            //     .map((value) => {
-            //       return filter.options[value];
-            //     })
-            //     .join(", ");
-            // }}
-          >
+            }}>
             {filter.options.map((option, i) => (
               <MenuItem key={i} value={i}>
                 <Checkbox checked={filter.values.indexOf(i) > -1} />
@@ -128,6 +121,7 @@ const FilterItem: React.FC<FilterItemProps> = ({ filter, index, handleFilterChan
         </FormControl>
       )}
 
+      {/* province filter what the fuck is this ?????? */}
       {filter.data_type == 'array' && filter.index == -1 && filter.type != 'user' && filter.type != 'project' && (
         <FormControl fullWidth sx={{ marginBottom: '10px' }}>
           <InputLabel id={`multi-select-label-${index}`}>{GetContext('select_option', lang)}</InputLabel>
@@ -143,14 +137,14 @@ const FilterItem: React.FC<FilterItemProps> = ({ filter, index, handleFilterChan
                 .map(value => {
                   console.log('option value: ', value);
                   const option = filter.options.find(option => value == option.id);
-                  return option ? (lang == 'en' ? option.en ?? 'N/A' : option.km ?? 'N/A') : 'N/A';
+                  return option ? (lang == 'en' ? option.name_en ?? 'N/A' : option.name_km ?? 'N/A') : 'N/A';
                 })
                 .join(', ');
             }}>
             {filter.options.map((option, i) => (
               <MenuItem key={i} value={option.id}>
                 <Checkbox checked={filter.values.indexOf(option.id) > -1} />
-                <ListItemText primary={lang == 'en' ? option.en ?? 'N/A' : option.km ?? 'N/A'} />
+                <ListItemText primary={lang == 'en' ? option.name_en ?? 'N/A' : option.name_km ?? 'N/A'} />
               </MenuItem>
             ))}
           </Select>
