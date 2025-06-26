@@ -13,7 +13,6 @@ import {
   Paper,
   SelectChangeEvent,
   ListSubheader,
-  ListSubheaderProps,
 } from '@mui/material';
 
 const AddQuestions: Question[] = [
@@ -87,28 +86,25 @@ const SelectQuestionFilter: React.FC<SelectQuestionFilterProps> = ({
   setOpenDrawer,
 }) => {
   const lang = useLang(state => state.lang);
-  console.log('masterProjectDetails', masterProjectDetails);
-
-  useEffect(() => {
-    console.log('Selected Questions:', selectedQuestions);
-  }, [selectedQuestions]);
 
   // Question on change function
   const handleQuestionChange = (event: SelectChangeEvent<Question[]>) => {
     const { value } = event.target;
-    console.log('Clicked');
-    console.log('Selected Questions Value:', value);
 
     if (masterProjectDetails) {
       // @ts-ignore
       if (value.includes('all')) {
+        console.log('is Include All Questions');
         // @ts-ignore
         if (selectedQuestions.length === masterProjectDetails.map(project => project.questions).flat().length) {
+          console.log('Unselect All Questions');
           setSelectedQuestions([]);
         } else {
+          console.log('Select All Questions');
           setSelectedQuestions(masterProjectDetails.map(project => project.questions).flat());
         }
       } else {
+        console.log('Add Value');
         // @ts-ignore
         setSelectedQuestions(value);
       }
@@ -146,6 +142,12 @@ const SelectQuestionFilter: React.FC<SelectQuestionFilterProps> = ({
         </MenuItem>
       )),
     ]),
+    <ListSubheader
+      key={`subheader-${'common-questions'}`}
+      sx={{ background: 'rgba(0,0,0,0.05)', fontSize: '16px', color: 'inherit' }}
+      disableSticky>
+      Common Questions
+    </ListSubheader>,
     ...AddQuestions.map(item => (
       // @ts-ignore
       <MenuItem key={item.id} value={item}>
@@ -167,7 +169,7 @@ const SelectQuestionFilter: React.FC<SelectQuestionFilterProps> = ({
           2. Select Questions and Filter Data
         </Typography>
 
-        <FormControl sx={{ minWidth: '100%', marginBottom: 2 }}>
+        <FormControl sx={{ width: '100%', marginBottom: 2 }}>
           <InputLabel id='select-question'>
             {selectedQuestions.length === 0 ? GetContext('select_question_msg', lang) : GetContext('select_question', lang)}{' '}
           </InputLabel>
