@@ -843,6 +843,14 @@ const language: {
     en: "Please allow us to access your location service",
     km: "សូមអនុញ្ញាតឲ្យយើងបានចូលប្រើសេវាទីតាំងរបស់អ្នក",
   },
+  section_title: {
+    en: "Section",
+    km: "ផ្នែក",
+  },
+  location_about: {
+    en: "Locations",
+    km: "ទីតាំង",
+  },
 };
 
 export const GetContext = (key: string, lang: string) => {

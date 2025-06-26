@@ -1,3 +1,5 @@
+import { Locale } from "./projectDetail";
+
 export interface OptionType {
   value: string;
   displaySectionIds: string[] | [];
@@ -13,8 +15,8 @@ export interface skipLogic {
 }
 export interface SectionType {
   order: number;
-  title: string;
-  description: string;
+  title: Locale;
+  description: Locale;
 }
 
 export interface DataDesignForm {
@@ -28,9 +30,18 @@ export interface DataDesignForm {
   skip_logics: skipLogic[] | null;
 }
 
-type QuestionDataType = 'string' | 'number' | 'array' | 'date' | 'time';
+type QuestionDataType = "string" | "number" | "array" | "date" | "time";
 export interface QuestionType {
-  type: 'text' | 'number' | 'decimal' | 'text_area' | 'multiple' | 'single' | 'dropdown' | 'date' | 'time';
+  type:
+    | "text"
+    | "number"
+    | "decimal"
+    | "text_area"
+    | "multiple"
+    | "single"
+    | "dropdown"
+    | "date"
+    | "time";
   label: string;
   data_type: QuestionDataType;
 }
