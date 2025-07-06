@@ -83,7 +83,7 @@ const WebSurveyForm: React.FC<SurveyContainerProps> = ({
       try {
         // console.log("fetching....");
         setLoading(true);
-        if (!surveyId) {
+        if (!responseId && !surveyId) {
           setError("Survey ID is required.");
           return;
         }

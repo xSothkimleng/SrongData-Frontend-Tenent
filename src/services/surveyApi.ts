@@ -1,9 +1,8 @@
 import axios from "axios";
 import { ApiResponse, ApiSurveyData, DataCollection } from "@/types/survey";
-import { getCookie } from "@/utils/cookies";
 
 export const fetchSurveyQuestionnaire = async (
-  surveyId: string,
+  surveyId?: string,
   responseId?: string,
 ): Promise<ApiSurveyData> => {
   try {
@@ -53,10 +52,10 @@ export const editResponse = async (
 ): Promise<any> => {
   try {
     console.log("edit response body: ", data);
-    return;
+    // return;
 
     const response = await axios.put("/api/configWeb", {
-      endpoint: `/responses/edit/${responseId}`,
+      endpoint: `responses/edit/${responseId}`,
       body: data,
     });
 

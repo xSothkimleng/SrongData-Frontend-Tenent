@@ -52,7 +52,7 @@ const App: React.FC = () => {
           return;
         }
 
-        if (surveyId) setCookie("survey_id", surveyId, 1 / 24);
+        // if (surveyId) setCookie("survey_id", surveyId, 1 / 24);
         if (responseId) setCookie("response_id", responseId, 1 / 24);
 
         const acc_token = session?.accessToken;
