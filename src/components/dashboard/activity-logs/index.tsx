@@ -1,18 +1,18 @@
-'use client';
-import React, { useEffect, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import FilterAltIcon from '@mui/icons-material/FilterAlt';
-import EventIcon from '@mui/icons-material/Event';
-import PersonIcon from '@mui/icons-material/Person';
-import CategoryIcon from '@mui/icons-material/Category';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import AddCircleIcon from '@mui/icons-material/AddCircle';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import SettingsIcon from '@mui/icons-material/Settings';
-import LoginIcon from '@mui/icons-material/Login';
-import LogoutIcon from '@mui/icons-material/Logout';
-import axios from 'axios';
+"use client";
+import React, { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import FilterAltIcon from "@mui/icons-material/FilterAlt";
+import EventIcon from "@mui/icons-material/Event";
+import PersonIcon from "@mui/icons-material/Person";
+import CategoryIcon from "@mui/icons-material/Category";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import AddCircleIcon from "@mui/icons-material/AddCircle";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import SettingsIcon from "@mui/icons-material/Settings";
+import LoginIcon from "@mui/icons-material/Login";
+import LogoutIcon from "@mui/icons-material/Logout";
+import axios from "axios";
 import {
   useTheme,
   Box,
@@ -35,9 +35,9 @@ import {
   Chip,
   Paper,
   TextField,
-} from '@mui/material';
-import { GetContext } from '@/utils/language';
-import useLang from '@/store/lang';
+} from "@mui/material";
+import { GetContext } from "@/utils/language";
+import useLang from "@/store/lang";
 
 // Types for real API data
 type Project = {
@@ -45,7 +45,14 @@ type Project = {
   name: string;
 };
 
-type ActivityType = 'Login' | 'Logout' | 'Create' | 'Update' | 'Delete' | 'Settings' | 'Permission';
+type ActivityType =
+  | "Login"
+  | "Logout"
+  | "Create"
+  | "Update"
+  | "Delete"
+  | "Settings"
+  | "Permission";
 
 interface User {
   id: string;
@@ -60,8 +67,9 @@ interface ActivityLog {
   type: number;
   action: string;
   user_id: string;
-  metadata: User;
+  metadata: any;
   created_at: string;
+  created_by: User;
 }
 
 interface ApiResponse {
@@ -75,8 +83,8 @@ interface ApiResponse {
 // API functions
 const fetchProjectData = async () => {
   // You might want to add this API call for projects
-  const response = await axios.post('/api/config', {
-    endpoint: 'projects/all', // Adjust endpoint as needed
+  const response = await axios.post("/api/config", {
+    endpoint: "projects/all", // Adjust endpoint as needed
   });
   return response.data.data || [];
 };
@@ -88,11 +96,11 @@ const fetchActivityLogs = async (filters: {
   dateRange?: { start?: string; end?: string };
 }) => {
   try {
-    const response = await axios.get('/api/config', {
+    const response = await axios.get("/api/config", {
       params: { endpoint: `logs/all` },
     });
 
-    console.log('API Response:', response.data);
+    console.log("API Response:", response.data);
 
     let logs = response.data.data.logs || [];
 
@@ -102,22 +110,28 @@ const fetchActivityLogs = async (filters: {
     }
 
     if (filters.actionType) {
-      logs = logs.filter((log: ActivityLog) => log.action === filters.actionType);
+      logs = logs.filter(
+        (log: ActivityLog) => log.action === filters.actionType,
+      );
     }
 
     if (filters.dateRange?.start) {
       const startDate = new Date(filters.dateRange.start);
-      logs = logs.filter((log: ActivityLog) => new Date(log.created_at) >= startDate);
+      logs = logs.filter(
+        (log: ActivityLog) => new Date(log.created_at) >= startDate,
+      );
     }
 
     if (filters.dateRange?.end) {
       const endDate = new Date(filters.dateRange.end);
-      logs = logs.filter((log: ActivityLog) => new Date(log.created_at) <= endDate);
+      logs = logs.filter(
+        (log: ActivityLog) => new Date(log.created_at) <= endDate,
+      );
     }
 
     return logs;
   } catch (error) {
-    console.error('Error fetching activity logs:', error);
+    console.error("Error fetching activity logs:", error);
     throw error;
   }
 };
@@ -126,7 +140,7 @@ const fetchActivityLogs = async (filters: {
 const groupLogsByDate = (logs: ActivityLog[]) => {
   const groups: { [key: string]: ActivityLog[] } = {};
 
-  logs.forEach(log => {
+  logs.forEach((log) => {
     const date = new Date(log.created_at);
     const today = new Date();
     const yesterday = new Date(today);
@@ -135,9 +149,9 @@ const groupLogsByDate = (logs: ActivityLog[]) => {
     let groupKey: string;
 
     if (date.toDateString() === today.toDateString()) {
-      groupKey = 'Today';
+      groupKey = "Today";
     } else if (date.toDateString() === yesterday.toDateString()) {
-      groupKey = 'Yesterday';
+      groupKey = "Yesterday";
     } else {
       groupKey = date.toLocaleDateString();
     }
@@ -150,8 +164,11 @@ const groupLogsByDate = (logs: ActivityLog[]) => {
   });
 
   // Sort logs within each group by timestamp (newest first)
-  Object.keys(groups).forEach(key => {
-    groups[key].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  Object.keys(groups).forEach((key) => {
+    groups[key].sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    );
   });
 
   return groups;
@@ -160,20 +177,20 @@ const groupLogsByDate = (logs: ActivityLog[]) => {
 // Get icon for activity type - map your real action types
 const getActivityIcon = (action: string) => {
   switch (action.toLowerCase()) {
-    case 'login':
-      return <LoginIcon color='info' />;
-    case 'logout':
+    case "login":
+      return <LoginIcon color="info" />;
+    case "logout":
       return <LogoutIcon />;
-    case 'create':
-      return <AddCircleIcon color='success' />;
-    case 'update':
-      return <EditIcon color='primary' />;
-    case 'delete':
-      return <DeleteIcon color='error' />;
-    case 'settings':
-      return <SettingsIcon color='secondary' />;
-    case 'permission':
-      return <PersonIcon color='warning' />;
+    case "create project":
+      return <AddCircleIcon color="success" />;
+    case "update project":
+      return <EditIcon color="primary" />;
+    case "delete project":
+      return <DeleteIcon color="error" />;
+    case "settings":
+      return <SettingsIcon color="secondary" />;
+    case "permission":
+      return <PersonIcon color="warning" />;
     default:
       return <AccessTimeIcon />;
   }
@@ -182,7 +199,7 @@ const getActivityIcon = (action: string) => {
 // Format timestamp to readable time
 const formatTime = (timestamp: string) => {
   const date = new Date(timestamp);
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 };
 
 // Get user display name
@@ -193,7 +210,7 @@ const getUserDisplayName = (user: User) => {
 // Get unique users from logs for filter
 const getUniqueUsers = (logs: ActivityLog[]) => {
   const userMap = new Map();
-  logs.forEach(log => {
+  logs.forEach((log) => {
     if (!userMap.has(log.user_id)) {
       userMap.set(log.user_id, {
         id: log.user_id,
@@ -207,8 +224,8 @@ const getUniqueUsers = (logs: ActivityLog[]) => {
 
 // Get unique action types from logs
 const getUniqueActionTypes = (logs: ActivityLog[]) => {
-  const actionTypes = new Set(logs.map(log => log.action));
-  return Array.from(actionTypes).map(action => ({
+  const actionTypes = new Set(logs.map((log) => log.action));
+  return Array.from(actionTypes).map((action) => ({
     value: action,
     label: action,
   }));
@@ -216,7 +233,7 @@ const getUniqueActionTypes = (logs: ActivityLog[]) => {
 
 // Main component
 const ActivityLogs = () => {
-  const lang = useLang(state => state.lang);
+  const lang = useLang((state) => state.lang);
   const theme = useTheme();
   const [openDialog, setOpenDialog] = useState(false);
   const [filters, setFilters] = useState<{
@@ -233,7 +250,7 @@ const ActivityLogs = () => {
     error: logsError,
     refetch: refetchLogs,
   } = useQuery<ActivityLog[]>({
-    queryKey: ['activityLogs', filters],
+    queryKey: ["activityLogs", filters],
     queryFn: () => fetchActivityLogs(filters),
     staleTime: 30000, // 30 seconds
     refetchInterval: 60000, // Refetch every minute
@@ -249,20 +266,26 @@ const ActivityLogs = () => {
   // Handle filter changes
   const handleUserChange = (event: SelectChangeEvent<string>) => {
     const userId = event.target.value;
-    setFilters(prev => ({ ...prev, userId: userId === '' ? undefined : userId }));
+    setFilters((prev) => ({
+      ...prev,
+      userId: userId === "" ? undefined : userId,
+    }));
   };
 
   const handleActionTypeChange = (event: SelectChangeEvent<string>) => {
     const actionType = event.target.value;
-    setFilters(prev => ({ ...prev, actionType: actionType === '' ? undefined : actionType }));
+    setFilters((prev) => ({
+      ...prev,
+      actionType: actionType === "" ? undefined : actionType,
+    }));
   };
 
-  const handleDateChange = (type: 'start' | 'end', value: string) => {
-    setFilters(prev => ({
+  const handleDateChange = (type: "start" | "end", value: string) => {
+    setFilters((prev) => ({
       ...prev,
       dateRange: {
         ...prev.dateRange,
-        [type]: value === '' ? undefined : value,
+        [type]: value === "" ? undefined : value,
       },
     }));
   };
@@ -272,46 +295,59 @@ const ActivityLogs = () => {
   };
 
   return (
-    <Box className='border-1 boxShadow-1 h-full'>
+    <Box className="border-1 boxShadow-1 h-full">
       <Box
         sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '1rem',
-        }}>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Avatar sx={{ backgroundColor: '#005A9C' }} className='mr-4'>
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "1rem",
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center" }}>
+          <Avatar sx={{ backgroundColor: "#005A9C" }} className="mr-4">
             {activityLogs.length}
           </Avatar>
-          <p className='text-xl'>Activity Logs</p>
+          <p className="text-xl">Activity Logs</p>
         </Box>
-        <Box className='flex items-center'>
+        <Box className="flex items-center">
           <IconButton onClick={() => setOpenDialog(true)}>
-            <FilterAltIcon color='primary' fontSize='large' />
+            <FilterAltIcon color="primary" fontSize="large" />
           </IconButton>
         </Box>
       </Box>
       <Divider />
-      <Box className='px-[1rem] h-[90vh] overflow-y-scroll'>
-        {logsError && <div>{GetContext('fail_loaddata', lang)}</div>}
+      <Box className="px-[1rem] h-[90vh] overflow-y-scroll">
+        {logsError && <div>{GetContext("fail_loaddata", lang)}</div>}
         {isLoadingLogs ? (
           <>
             <LinearProgress />
-            <Typography className='text-center'>{GetContext('loading', lang)}...</Typography>
+            <Typography className="text-center">
+              {GetContext("loading", lang)}...
+            </Typography>
           </>
         ) : (
           <>
             {activityLogs.length === 0 ? (
-              <Typography className='text-center py-4'>No activities found</Typography>
+              <Typography className="text-center py-4">
+                No activities found
+              </Typography>
             ) : (
-              Object.keys(groupedLogs).map(dateGroup => (
+              Object.keys(groupedLogs).map((dateGroup) => (
                 <Box key={dateGroup} mb={3}>
-                  <Typography variant='h6' py={1} sx={{ backgroundColor: theme.palette.grey[100], px: 2, borderRadius: 1 }}>
+                  <Typography
+                    variant="h6"
+                    py={1}
+                    sx={{
+                      backgroundColor: theme.palette.grey[100],
+                      px: 2,
+                      borderRadius: 1,
+                    }}
+                  >
                     {dateGroup}
                   </Typography>
 
-                  {groupedLogs[dateGroup].map(log => (
+                  {groupedLogs[dateGroup].map((log) => (
                     <Paper
                       key={log.id}
                       elevation={0}
@@ -319,18 +355,19 @@ const ActivityLogs = () => {
                         mb: 1,
                         p: 2,
                         borderLeft: `4px solid ${
-                          log.action.toLowerCase() === 'login'
+                          log.action.toLowerCase() === "login"
                             ? theme.palette.info.main
-                            : log.action.toLowerCase() === 'logout'
-                            ? // @ts-ignore
-                              theme.palette.grey.main
-                            : log.action.toLowerCase().includes('delete')
-                            ? theme.palette.error.main
-                            : theme.palette.primary.main
+                            : log.action.toLowerCase() === "logout"
+                              ? // @ts-ignore
+                                theme.palette.grey.main
+                              : log.action.toLowerCase().includes("delete")
+                                ? theme.palette.error.main
+                                : theme.palette.primary.main
                         }`,
-                        '&:hover': { backgroundColor: theme.palette.grey[50] },
-                      }}>
-                      <Grid container spacing={1} alignItems='center'>
+                        "&:hover": { backgroundColor: theme.palette.grey[50] },
+                      }}
+                    >
+                      <Grid container spacing={1} alignItems="center">
                         <Grid item>
                           <Avatar
                             sx={{
@@ -338,27 +375,37 @@ const ActivityLogs = () => {
                               height: 40,
                               bgcolor: theme.palette.primary.light,
                             }}
-                            src={log.metadata.profile || undefined}>
-                            {getUserDisplayName(log.metadata).charAt(0).toUpperCase()}
+                            src={log.metadata.profile || undefined}
+                          >
+                            {getUserDisplayName(log.created_by)
+                              .charAt(0)
+                              .toUpperCase()}
                           </Avatar>
                         </Grid>
                         <Grid item xs>
-                          <Box display='flex' alignItems='center' mb={0.5}>
-                            <Typography variant='body1' fontWeight='bold' mr={1}>
-                              {getUserDisplayName(log.metadata)}
+                          <Box display="flex" alignItems="center" mb={0.5}>
+                            <Typography
+                              variant="body1"
+                              fontWeight="bold"
+                              mr={1}
+                            >
+                              {getUserDisplayName(log.created_by)}
                             </Typography>
-                            <Typography variant='body2' color='text.secondary'>
+                            <Typography variant="body2" color="text.secondary">
                               {log.action}
                             </Typography>
                           </Box>
-                          <Typography variant='body2' color='text.secondary'>
-                            {log.metadata.email}
+                          <Typography variant="body2" color="text.secondary">
+                            {log.created_by.email}
                           </Typography>
                         </Grid>
                         <Grid item>
-                          <Box display='flex' alignItems='center' gap={1}>
+                          <Box display="flex" alignItems="center" gap={1}>
                             {getActivityIcon(log.action)}
-                            <Typography variant='caption' color='text.secondary'>
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                            >
                               {formatTime(log.created_at)}
                             </Typography>
                           </Box>
@@ -374,22 +421,28 @@ const ActivityLogs = () => {
       </Box>
 
       {/* Filter Dialog */}
-      <Dialog fullWidth maxWidth='sm' open={openDialog} onClose={() => setOpenDialog(false)}>
+      <Dialog
+        fullWidth
+        maxWidth="sm"
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+      >
         <DialogTitle>Filter Activity Logs</DialogTitle>
         <DialogContent dividers>
           <Grid container spacing={2}>
             {/* User Filter */}
             <Grid item xs={12}>
               <FormControl fullWidth>
-                <InputLabel id='user-filter-label'>User</InputLabel>
+                <InputLabel id="user-filter-label">User</InputLabel>
                 <Select
-                  labelId='user-filter-label'
-                  id='user-filter'
-                  value={filters.userId || ''}
-                  label='User'
-                  onChange={handleUserChange}>
-                  <MenuItem value=''>All Users</MenuItem>
-                  {users.map(user => (
+                  labelId="user-filter-label"
+                  id="user-filter"
+                  value={filters.userId || ""}
+                  label="User"
+                  onChange={handleUserChange}
+                >
+                  <MenuItem value="">All Users</MenuItem>
+                  {users.map((user) => (
                     <MenuItem key={user.id} value={user.id}>
                       {user.name} ({user.email})
                     </MenuItem>
@@ -401,15 +454,16 @@ const ActivityLogs = () => {
             {/* Action Type Filter */}
             <Grid item xs={12}>
               <FormControl fullWidth>
-                <InputLabel id='action-filter-label'>Action Type</InputLabel>
+                <InputLabel id="action-filter-label">Action Type</InputLabel>
                 <Select
-                  labelId='action-filter-label'
-                  id='action-filter'
-                  value={filters.actionType || ''}
-                  label='Action Type'
-                  onChange={handleActionTypeChange}>
-                  <MenuItem value=''>All Actions</MenuItem>
-                  {actionTypes.map(type => (
+                  labelId="action-filter-label"
+                  id="action-filter"
+                  value={filters.actionType || ""}
+                  label="Action Type"
+                  onChange={handleActionTypeChange}
+                >
+                  <MenuItem value="">All Actions</MenuItem>
+                  {actionTypes.map((type) => (
                     <MenuItem key={type.value} value={type.value}>
                       {type.label}
                     </MenuItem>
@@ -421,31 +475,31 @@ const ActivityLogs = () => {
             {/* Date Range Filter */}
             <Grid item xs={12} sm={6}>
               <TextField
-                label='From Date'
-                type='date'
+                label="From Date"
+                type="date"
                 fullWidth
-                value={filters.dateRange?.start || ''}
-                onChange={e => handleDateChange('start', e.target.value)}
+                value={filters.dateRange?.start || ""}
+                onChange={(e) => handleDateChange("start", e.target.value)}
                 InputLabelProps={{ shrink: true }}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
-                label='To Date'
-                type='date'
+                label="To Date"
+                type="date"
                 fullWidth
-                value={filters.dateRange?.end || ''}
-                onChange={e => handleDateChange('end', e.target.value)}
+                value={filters.dateRange?.end || ""}
+                onChange={(e) => handleDateChange("end", e.target.value)}
                 InputLabelProps={{ shrink: true }}
               />
             </Grid>
           </Grid>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleResetFilters} color='secondary'>
+          <Button onClick={handleResetFilters} color="secondary">
             Reset Filters
           </Button>
-          <Button onClick={() => setOpenDialog(false)} color='primary'>
+          <Button onClick={() => setOpenDialog(false)} color="primary">
             Apply
           </Button>
         </DialogActions>
