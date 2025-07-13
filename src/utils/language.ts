@@ -100,7 +100,7 @@ const language: {
     km: "បង្កើតQR",
   },
   request_logs: {
-    en: "Request Logs",
+    en: "All Logs",
     km: "ទិន្នន័យដែលបានស្នើសុំ",
   },
   active: {
