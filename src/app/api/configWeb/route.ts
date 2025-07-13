@@ -25,8 +25,20 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(response.data, { status: 200 });
   } catch (error) {
-    console.error(`Error in GET request to :`, url);
-    throw error;
+    if (axios.isAxiosError(error)) {
+      const status = error.response?.status || 500;
+      const data = error.response?.data || {
+        message: "Unknown server error",
+        code: "UNKNOWN_ERROR",
+      };
+
+      return NextResponse.json(data, { status });
+    }
+
+    return NextResponse.json(
+      { message: "Unexpected error", code: "UNEXPECTED" },
+      { status: 500 },
+    );
   }
 }
 
