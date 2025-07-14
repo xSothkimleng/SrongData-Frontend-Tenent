@@ -38,6 +38,7 @@ import {
 } from '@mui/material';
 import { GetContext } from '@/utils/language';
 import useLang from '@/store/lang';
+import MetadataDisplayContent from './MetadataDisplayContent';
 
 // Types for real API data
 type Project = {
@@ -398,7 +399,9 @@ const ActivityLogs = () => {
       {/* Meta Data logs */}
       <Dialog fullWidth maxWidth='sm' open={openMetaDataDialog} onClose={() => setOpenMetaDataDialog(false)}>
         <DialogTitle>Activity Details</DialogTitle>
-        {/* <DialogContent dividers>{selectedLog}</DialogContent> */}
+        <DialogContent dividers>
+          <MetadataDisplayContent selectedLog={selectedLog} />
+        </DialogContent>
       </Dialog>
 
       {/* Filter Dialog */}
