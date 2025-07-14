@@ -2,9 +2,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { styled } from '@mui/system';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 import CloseIcon from '@mui/icons-material/Close';
 import AddCircleOutlineOutlinedIcon from '@mui/icons-material/AddCircleOutlineOutlined';
 import {
@@ -27,13 +24,8 @@ import {
   TextField,
   IconButton,
   DialogContent,
-  AppBar,
-  Toolbar,
-  Typography,
   LinearProgress,
-  Tooltip,
 } from '@mui/material';
-import ViewRoleDetailCard from '@/components/dashboard/view-role-detail-card';
 import AuthorizationCheck from '@/components/AuthorizationCheck';
 import { permissionCode } from '@/utils/permissionCode';
 import useCheckFeatureAuthorization from '@/hooks/useCheckFeatureAuthorization';
@@ -43,7 +35,7 @@ import { GetContext } from '@/utils/language';
 import HeaderTitle from '@/components/HeaderTitle';
 import Groups3Icon from '@mui/icons-material/Groups3';
 import CustomToolbar from '@/components/DataGridToolbar';
-import ConfirmationDialog from '@/components/dashboard/confirmation-dialog';
+import RoleTableAction from './TableAction';
 
 interface RoleType {
   id: string;
@@ -60,179 +52,11 @@ interface TransformedRole extends RoleType {
   role_id: string;
 }
 
-const ActionCell: React.FC<{ row: RoleType; canUpdateRole: boolean; canDeleteRole: boolean; canViewRole: boolean }> = ({
-  row,
-  canUpdateRole,
-  canDeleteRole,
-  canViewRole,
-}) => {
-  const lang = useLang(state => state.lang);
-  const queryClient = useQueryClient();
-  const [roleNameEdit, setRoleNameEdit] = useState(row.role_description);
-  const [roleDescriptionEdit, setRoleDescriptionEdit] = useState(row.role_description);
-  const [openEditRoleDialog, setOpenEditRoleDialog] = useState(false);
-  const [openViewRoleDialog, setOpenViewRoleDialog] = useState(false);
-  const [openDeleteRoleDialog, setOpenDeleteRoleDialog] = useState(false);
-
-  const editRoleMutation = useMutation({
-    mutationFn: async (data: any) => {
-      // console.log('Update Role API', row.id);
-      const encodedIds = encodeURIComponent(`${row.id}`);
-      const response = await axios.put(`/api/update-role/${encodedIds}`, data);
-      return response.data;
-    },
-    onSuccess: data => {
-      setRoleNameEdit('');
-      setRoleDescriptionEdit('');
-      //@ts-ignore
-      queryClient.invalidateQueries(['allRoles']);
-      showSnackbar(data.message, 'success');
-      setOpenEditRoleDialog(false);
-    },
-    onError: error => {
-      console.error('Error approving request:', error);
-      showSnackbar(error.message, 'error');
-    },
-  });
-
-  const deleteRoleMutation = useMutation({
-    mutationFn: async () => {
-      // console.log('Delete Role API', row.id);
-      const encodedIds = encodeURIComponent(`${row.id}`);
-      const response = await axios.delete(`/api/delete-role/${encodedIds}`);
-      return response.data;
-    },
-    onSuccess: data => {
-      //@ts-ignore
-      queryClient.invalidateQueries(['allRoles']);
-      showSnackbar(data.message, 'success');
-    },
-    onError: error => {
-      console.error('Error approving request:', error);
-      showSnackbar(error.message, 'error');
-    },
-  });
-
-  const handleEditRole = () => {
-    if (!roleNameEdit || !roleDescriptionEdit) return;
-    editRoleMutation.mutate({ role_name: roleNameEdit, role_description: roleDescriptionEdit });
-  };
-
-  const handleDeleteRole = () => {
-    if (!row.id) return;
-    deleteRoleMutation.mutate();
-  };
-
-  return (
-    <div>
-      {canUpdateRole && (
-        <Tooltip title='Edit Role Detail'>
-          <Button variant='contained' color='primary' sx={{ borderRadius: '28px' }} onClick={() => setOpenEditRoleDialog(true)}>
-            <EditIcon />
-          </Button>
-        </Tooltip>
-      )}
-      {canDeleteRole && (
-        <Tooltip title='Delete Role'>
-          <Button
-            variant='contained'
-            color='secondary'
-            sx={{ borderRadius: '28px', margin: '0 0.5rem' }}
-            // onClick={() => handleDeleteRole()}
-            onClick={() => setOpenDeleteRoleDialog(true)}>
-            <DeleteIcon />
-          </Button>
-        </Tooltip>
-      )}
-      {canViewRole && (
-        <Tooltip title='View Role Detail'>
-          <Button variant='contained' color='info' sx={{ borderRadius: '28px' }} onClick={() => setOpenViewRoleDialog(true)}>
-            <RemoveRedEyeIcon />
-          </Button>
-        </Tooltip>
-      )}
-      <Dialog fullWidth maxWidth='sm' open={openEditRoleDialog} onClose={() => setOpenEditRoleDialog(!openEditRoleDialog)}>
-        <DialogTitle className='flex justify-between items-center'>
-          <p>{GetContext('edit_role', lang)}</p>
-          <IconButton onClick={() => setOpenEditRoleDialog(false)}>
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent dividers>
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <TextField
-                required
-                label={GetContext('role_name', lang)}
-                variant='filled'
-                fullWidth
-                value={roleNameEdit}
-                onChange={e => setRoleNameEdit(e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                required
-                label={GetContext('role_description', lang)}
-                variant='filled'
-                fullWidth
-                value={roleDescriptionEdit}
-                onChange={e => setRoleDescriptionEdit(e.target.value)}
-              />
-            </Grid>
-          </Grid>
-        </DialogContent>
-        <DialogActions className='flex justify-center'>
-          <Button variant='contained' onClick={handleEditRole} disabled={editRoleMutation.isPending}>
-            {GetContext('edit', lang)}
-          </Button>
-        </DialogActions>
-      </Dialog>
-      <Dialog fullScreen open={openViewRoleDialog} onClose={() => setOpenViewRoleDialog(false)}>
-        <AppBar sx={{ position: 'relative' }}>
-          <Toolbar>
-            <IconButton edge='start' color='inherit' onClick={() => setOpenViewRoleDialog(false)} aria-label='close'>
-              <CloseIcon />
-            </IconButton>
-            <Typography sx={{ ml: 2, flex: 1 }} variant='h6' component='div'>
-              {GetContext('view_role_detail', lang)}
-            </Typography>
-          </Toolbar>
-        </AppBar>
-        <Box sx={{ padding: '2%' }}>
-          <ViewRoleDetailCard id={row.id} />
-        </Box>
-      </Dialog>
-
-      <ConfirmationDialog
-        title='Delete Role Confirmation'
-        message='Are you sure you sur, you want to delete this role ?'
-        open={openDeleteRoleDialog}
-        onClose={() => setOpenDeleteRoleDialog(false)}
-        onConfirm={handleDeleteRole}
-      />
-    </div>
-  );
-};
-
-const CustomQuickFilter = styled(GridToolbarQuickFilter)(({ theme }) => ({
-  width: '100%',
-  padding: '1rem 0',
-  '& .MuiSvgIcon-root': {
-    fontSize: '2rem !important',
-    color: theme.palette.primary.main,
-  },
-  '& .MuiInputBase-input': {
-    fontSize: '1.5rem !important',
-  },
-}));
-
 const UserManagementRolePage = () => {
   const lang = useLang(state => state.lang);
   const [roleName, setRoleName] = useState('');
   const [roleDescription, setRoleDescription] = useState('');
   const [openCreateRoleDialog, setOpenCreateRoleDialog] = useState(false);
-  const queryClient = useQueryClient();
   const canEditRole = useCheckFeatureAuthorization(permissionCode.updateRolePermission);
   const canDeleteRole = useCheckFeatureAuthorization(permissionCode.deleteRole);
   const canViewRole = useCheckFeatureAuthorization(permissionCode.viewUsersInRole);
@@ -290,7 +114,7 @@ const UserManagementRolePage = () => {
         flex: 1,
         headerClassName: 'super-app-theme--header',
         renderCell: (params: GridRenderCellParams<RoleType>) => (
-          <ActionCell row={params.row} canUpdateRole={canEditRole} canDeleteRole={canDeleteRole} canViewRole={canViewRole} />
+          <RoleTableAction row={params.row} canUpdateRole={canEditRole} canDeleteRole={canDeleteRole} canViewRole={canViewRole} />
         ),
       },
     ],

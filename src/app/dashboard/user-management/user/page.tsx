@@ -1,22 +1,24 @@
 'use client';
 import React, { useState, useMemo, useEffect } from 'react';
 import axios from 'axios';
-import { styled } from '@mui/system';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import DeleteIcon from '@mui/icons-material/Delete';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import CloseIcon from '@mui/icons-material/Close';
 import { enqueueSnackbar } from 'notistack';
-import {
-  DataGrid,
-  GridColDef,
-  GridToolbarContainer,
-  GridToolbarQuickFilter,
-  GridRenderCellParams,
-  GridSlots,
-  GridFilterModel,
-} from '@mui/x-data-grid';
+import { DataGrid, GridColDef, GridRenderCellParams, GridSlots, GridFilterModel } from '@mui/x-data-grid';
+import AuthorizationCheck from '@/components/AuthorizationCheck';
+import { permissionCode } from '@/utils/permissionCode';
+import { UserProfile } from '@/types/user';
+import useCheckFeatureAuthorization from '@/hooks/useCheckFeatureAuthorization';
+import useLang from '@/store/lang';
+import { GetContext } from '@/utils/language';
+import HeaderTitle from '@/components/HeaderTitle';
+import CustomToolbar from '@/components/DataGridToolbar';
+import Groups3Icon from '@mui/icons-material/Groups3';
+import showSnackbar from '@/utils/snackbarHelper';
+import UserManagementTableAction from './TableAction';
 import {
   Box,
   Grid,
@@ -34,230 +36,20 @@ import {
   Chip,
   SelectChangeEvent,
   IconButton,
-  Tooltip,
 } from '@mui/material';
-import AuthorizationCheck from '@/components/AuthorizationCheck';
-import { permissionCode } from '@/utils/permissionCode';
-import { UserProfile } from '@/types/user';
-import useCheckFeatureAuthorization from '@/hooks/useCheckFeatureAuthorization';
-import useLang from '@/store/lang';
-import { GetContext } from '@/utils/language';
-import CustomDataGrid from '@/components/CustomDataGrid';
-import HeaderTitle from '@/components/HeaderTitle';
-import CustomToolbar from '@/components/DataGridToolbar';
-import Groups3Icon from '@mui/icons-material/Groups3';
-import showSnackbar from '@/utils/snackbarHelper';
 
 const fetchAllRoles = async () => {
   const res = await axios.get('/api/get-all-roles');
-  // console.log('role fetch', res.data.data.roles);
   return res.data.data.roles;
 };
 
 const inviteUser = async (body: any): Promise<any> => {
-  // console.log('invite user:', body);
   const response = await axios.post('/api/invite-user', body);
-  // console.log('invite user response:', response.data);
   return response.data;
-};
-
-const ActionCell: React.FC<{ row: UserProfile; allRoles: any; canEditUser: boolean; canDeleteUser: boolean }> = ({
-  row,
-  allRoles,
-  canEditUser,
-  canDeleteUser,
-}) => {
-  const lang = useLang(state => state.lang);
-  const queryClient = useQueryClient();
-  const [editFirstName, setEditFirstName] = useState(row.first_name);
-  const [editLastName, setEditLastName] = useState(row.last_name);
-  const [editEmail, setEditEmail] = useState(row.email);
-  const [selectedEditRole, setEditSelectedRole] = useState([]);
-  const [openEditUserDialog, setOpenEditUserDialog] = useState(false);
-  const [openDeleteUserDialog, setOpenDeleteUserDialog] = useState(false);
-
-  useEffect(() => {
-    // @ts-ignore
-    const selected = allRoles.filter(role => row.roles.includes(role.id));
-    setEditSelectedRole(selected);
-  }, [row, allRoles]);
-
-  const editUserMutation = useMutation({
-    mutationFn: async (data: any) => {
-      // console.log('Update Role API', row.id);
-      const encodedIds = encodeURIComponent(`${row.id}`);
-      const response = await axios.put(`/api/update-user/${encodedIds}`, data);
-      return response.data;
-    },
-    onSuccess: data => {
-      //@ts-ignore
-      queryClient.invalidateQueries(['fetchAllUsersPage']);
-      setOpenEditUserDialog(false);
-      showSnackbar(data.message, 'success');
-    },
-    onError: error => {
-      console.error('Error approving request:', error);
-      showSnackbar(error.message, 'error');
-    },
-  });
-
-  const deleteUserMutation = useMutation({
-    mutationFn: async () => {
-      // console.log('Delete Role API', row.id);
-      const encodedIds = encodeURIComponent(`${row.id}`);
-      const response = await axios.delete(`/api/delete-user/${encodedIds}`);
-      return response.data;
-    },
-    onSuccess: data => {
-      //@ts-ignore
-      queryClient.invalidateQueries(['fetchAllUsersPage']);
-      showSnackbar(data.message, 'success');
-    },
-    onError: error => {
-      console.error('Error approving request:', error);
-      showSnackbar(error.message, 'error');
-    },
-  });
-
-  const handleEdit = (row: UserProfile) => {
-    // console.log('Edit user:', row);
-    setOpenEditUserDialog(true);
-  };
-
-  const handleDeleteUser = () => {
-    // console.log('Delete user:', row.id);
-    deleteUserMutation.mutate();
-  };
-
-  const handleEditUser = () => {
-    // console.log('Edit user:', editFirstName, editLastName, editEmail, selectedEditRole);
-    if (editFirstName && editLastName && editEmail && selectedEditRole.length > 0) {
-      // @ts-ignore
-      const selectedRole = selectedEditRole.map(role => role.id);
-      // console.log('selectedRole:', selectedRole);
-      editUserMutation.mutate({
-        first_name: editFirstName,
-        last_name: editLastName,
-        email: editEmail,
-        roles: selectedRole,
-      });
-    } else {
-      showSnackbar('Please select all required fields.', 'warning');
-    }
-  };
-
-  const handleRoleChange = (event: SelectChangeEvent<string[]>) => {
-    const value = event.target.value as string[];
-    // @ts-ignore
-    const selected = allRoles.filter(role => value.includes(role.id));
-    setEditSelectedRole(selected);
-  };
-
-  return (
-    <div>
-      {canEditUser && (
-        <Tooltip title='Manage User'>
-          <Button variant='contained' color='primary' sx={{ borderRadius: '28px' }} onClick={() => handleEdit(row)}>
-            <ManageAccountsIcon />
-          </Button>
-        </Tooltip>
-      )}
-      {canDeleteUser && (
-        <Tooltip title='Remove User'>
-          <Button
-            variant='contained'
-            color='secondary'
-            sx={{ borderRadius: '28px', margin: '0 0.5rem' }}
-            onClick={() => setOpenDeleteUserDialog(true)}>
-            <DeleteIcon />
-          </Button>
-        </Tooltip>
-      )}
-      <Dialog fullWidth maxWidth='sm' open={openEditUserDialog} onClose={() => setOpenEditUserDialog(!openEditUserDialog)}>
-        <DialogTitle className='flex justify-between items-center'>
-          <p>{GetContext('edit_user', lang)}</p>{' '}
-          <IconButton onClick={() => setOpenEditUserDialog(false)}>
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent dividers>
-          <Grid container spacing={3}>
-            <Grid item xs={6}>
-              <TextField
-                required
-                label={GetContext('first_name', lang)}
-                variant='filled'
-                fullWidth
-                value={editFirstName}
-                onChange={e => setEditFirstName(e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                required
-                label={GetContext('last_name', lang)}
-                variant='filled'
-                fullWidth
-                value={editLastName}
-                onChange={e => setEditLastName(e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <FormControl sx={{ width: '100%', marginBottom: 2 }}>
-                <InputLabel id='user-filter-label'>{GetContext('role', lang)}</InputLabel>
-                <Select
-                  required
-                  labelId='user-filter-label'
-                  id='users-filter'
-                  multiple
-                  variant='filled'
-                  // @ts-ignore
-                  value={selectedEditRole.map(role => role?.id)}
-                  onChange={handleRoleChange}
-                  renderValue={selectedIds => (
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                      {selectedEditRole.map(role => (
-                        // @ts-ignore
-                        <Chip key={role.id} label={role.role_name} />
-                      ))}
-                    </Box>
-                  )}>
-                  {/* @ts-ignore */}
-                  {allRoles?.map(role => (
-                    <MenuItem key={role.id} value={role.id}>
-                      {role.role_name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-          </Grid>
-        </DialogContent>
-        <DialogActions className='flex justify-center'>
-          <Button variant='contained' onClick={() => handleEditUser()}>
-            {GetContext('edit', lang)}
-          </Button>
-        </DialogActions>
-      </Dialog>
-      <Dialog fullWidth maxWidth='xs' open={openDeleteUserDialog} onClose={() => setOpenDeleteUserDialog(!openDeleteUserDialog)}>
-        <DialogTitle>
-          <p>{GetContext('delete_user', lang)}</p>
-        </DialogTitle>
-        <DialogContent>{GetContext('delete_msg', lang)}</DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDeleteUserDialog(false)}>{GetContext('cancel', lang)}</Button>
-          <Button variant='contained' onClick={() => handleDeleteUser()} color='secondary'>
-            {GetContext('delete', lang)}
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </div>
-  );
 };
 
 const UserManagementUserPage = () => {
   const lang = useLang(state => state.lang);
-  const queryClient = useQueryClient();
   const [email, setEmail] = useState('');
   const [lastName, setLastName] = useState('');
   const [firstName, setFirstName] = useState('');
@@ -454,10 +246,17 @@ const UserManagementUserPage = () => {
       {
         field: 'action',
         headerName: GetContext('action', lang),
-        flex: 1.2,
+        flex: 0.5,
         headerClassName: 'super-app-theme--header',
         renderCell: (params: GridRenderCellParams<UserProfile>) => {
-          return <ActionCell row={params.row} allRoles={allRole} canDeleteUser={canDeleteUser} canEditUser={canEditUser} />;
+          return (
+            <UserManagementTableAction
+              row={params.row}
+              allRoles={allRole}
+              canEditUser={canEditUser}
+              canDeleteUser={canDeleteUser}
+            />
+          );
         },
       },
     ];
