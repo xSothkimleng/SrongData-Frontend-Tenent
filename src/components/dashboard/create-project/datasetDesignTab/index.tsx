@@ -10,7 +10,16 @@ import {
   FormatListBulleted as SectionIcon,
   QuestionAnswer as QuestionIcon,
 } from '@mui/icons-material';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  closestCorners,
+} from '@dnd-kit/core';
 import {
   arrayMove,
   SortableContext,
@@ -105,7 +114,7 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 5, // 5px minimum drag distance to start drag
+        distance: 8,
       },
     }),
     useSensor(KeyboardSensor, {
@@ -113,15 +122,47 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
     }),
   );
 
-  // Handle drag end for questions
-  const handleDragEnd = useCallback(
+  const handleUnifiedDragEnd = useCallback(
     (event: DragEndEvent) => {
       const { active, over } = event;
 
-      if (over && active.id !== over.id) {
+      console.log('Drag event:', { activeId: active.id, overId: over?.id });
+
+      if (!over || active.id === over.id) return;
+
+      const activeData = active.data.current;
+      const overData = over.data.current;
+
+      // Only allow same-type drops
+      if (activeData?.type !== overData?.type) {
+        console.log('Different types - ignoring drag');
+        return;
+      }
+
+      if (activeData?.type === 'section' && overData?.type === 'section') {
+        console.log('Section drag detected');
+        const activeOrder = activeData.order;
+        const overOrder = overData.order;
+
+        setSections(items => {
+          const oldIndex = items.findIndex(item => item.order === activeOrder);
+          const newIndex = items.findIndex(item => item.order === overOrder);
+
+          const newArray = arrayMove(items, oldIndex, newIndex);
+
+          return newArray.map((item, index) => ({
+            ...item,
+            order: index + 1,
+          }));
+        });
+      } else if (activeData?.type === 'question' && overData?.type === 'question') {
+        console.log('Question drag detected');
+        const activeOrder = activeData.order;
+        const overOrder = overData.order;
+
         setDataDesignForms(items => {
-          const oldIndex = items.findIndex(item => item.order === active.id);
-          const newIndex = items.findIndex(item => item.order === over.id);
+          const oldIndex = items.findIndex(item => item.order === activeOrder);
+          const newIndex = items.findIndex(item => item.order === overOrder);
 
           const newArray = arrayMove(items, oldIndex, newIndex);
 
@@ -134,25 +175,6 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
     },
     [setDataDesignForms],
   );
-
-  // Handle section drag end
-  const handleSectionDragEnd = useCallback((event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (over && active.id !== over.id) {
-      setSections(items => {
-        const oldIndex = items.findIndex(item => item.order === active.id);
-        const newIndex = items.findIndex(item => item.order === over.id);
-
-        const newArray = arrayMove(items, oldIndex, newIndex);
-
-        return newArray.map((item, index) => ({
-          ...item,
-          order: index + 1,
-        }));
-      });
-    }
-  }, []);
 
   const handleQuestionTypeChange = useCallback(
     (formOrder: number, value: string) => {
@@ -556,12 +578,38 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
   );
 
   // Organize forms by section for rendering
-  const formsBySection = sections.map(section => {
-    return {
-      section,
-      forms: dataDesignForms.length > 0 ? dataDesignForms.filter(form => form.section?.order === section.order) : [],
-    };
-  });
+  // const formsBySection = sections.map(section => {
+  //   return {
+  //     section,
+  //     forms: dataDesignForms.length > 0 ? dataDesignForms.filter(form => form.section?.order === section.order) : [],
+  //   };
+  // });
+
+  const formsBySection = sections
+    .sort((a, b) => a.order - b.order)
+    .map(section => {
+      return {
+        section,
+        forms: dataDesignForms.filter(form => {
+          return form.section?.title.en === section.title.en;
+        }),
+      };
+    });
+
+  console.log(
+    'FormsBySection after sort:',
+    formsBySection.map(item => ({
+      sectionOrder: item.section.order,
+      sectionTitle: item.section.title.en,
+      questionCount: item.forms.length,
+    })),
+  );
+
+  console.log(
+    'Sections for dragging:',
+    sections.map(section => `section-${section.order}`),
+  );
+  console.log('Sections data:', sections);
 
   return (
     <Box sx={{ padding: 2 }}>
@@ -570,12 +618,12 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
       </Typography>
 
       {/* Sections with their questions */}
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleSectionDragEnd}>
-        <SortableContext items={sections.map(section => section.order)} strategy={verticalListSortingStrategy}>
-          {formsBySection.map(({ section, forms }) => (
+      <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={handleUnifiedDragEnd}>
+        <SortableContext items={sections.map(section => `section-${section.order}`)} strategy={verticalListSortingStrategy}>
+          {formsBySection.map(({ section, forms }, index) => (
             <SortableSectionContainer
-              key={section.order}
-              order={section.order}
+              key={section.order} // Use section.order, not index
+              order={section.order} // Use section.order, not index + 1
               isSurveyLanguageInEnglish={isSurveyLanguageInEnglish}
               isSurveyLanguageInKhmer={isSurveyLanguageInKhmer}
               title={section.title}
@@ -586,346 +634,344 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                 handleUpdateSectionDescription(section.order, newDescription, isEnglish)
               }>
               {/* Questions within the section */}
-              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                <SortableContext items={forms.map(form => form.order)} strategy={verticalListSortingStrategy}>
-                  <Grid container spacing={1}>
-                    {forms.map(form => (
-                      <Grid item xs={12} key={form.order}>
-                        <SortableQuestionContainer
-                          order={form.order}
-                          // title={form.label.en ? form.label.en : 'Question Not Set'}
-                          onRemove={() => handleRemoveForm(form.order)}>
-                          <Grid container spacing={2}>
-                            <Grid
-                              item
-                              xs={isSurveyInBothLanguages ? 8 : 6}
-                              sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 2,
-                              }}>
-                              {isSurveyLanguageInEnglish && (
-                                <TextField
-                                  sx={{
-                                    width: isSurveyLanguageInKhmer ? '50%' : '100%',
-                                  }}
-                                  label={GetContext('question', lang)}
-                                  name='label'
-                                  value={form.label.en}
-                                  onChange={event => handleInputChangeEn(form.order, event)}
-                                  required
-                                />
-                              )}
-                              {isSurveyLanguageInKhmer && (
-                                <TextField
-                                  sx={{
-                                    width: isSurveyLanguageInEnglish ? '50%' : '100%',
-                                  }}
-                                  label='សំណួរ'
-                                  name='label'
-                                  value={form.label.km}
-                                  onChange={event => handleInputChangeKm(form.order, event)}
-                                  required
-                                />
-                              )}
-                            </Grid>
-                            <Grid item xs={isSurveyInBothLanguages ? 2 : 4}>
+              <SortableContext items={forms.map(form => `question-${form.order}`)} strategy={verticalListSortingStrategy}>
+                <Grid container spacing={1}>
+                  {forms.map(form => (
+                    <Grid item xs={12} key={form.order}>
+                      <SortableQuestionContainer
+                        order={form.order}
+                        // title={form.label.en ? form.label.en : 'Question Not Set'}
+                        onRemove={() => handleRemoveForm(form.order)}>
+                        <Grid container spacing={2}>
+                          <Grid
+                            item
+                            xs={isSurveyInBothLanguages ? 8 : 6}
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 2,
+                            }}>
+                            {isSurveyLanguageInEnglish && (
                               <TextField
-                                fullWidth
-                                select
-                                label={GetContext('question_type', lang)}
-                                value={form.type}
-                                onChange={event => handleQuestionTypeChange(form.order, event.target.value)}
-                                required>
-                                {questionTypes.map(option => (
-                                  <MenuItem key={option.type} value={option.type}>
-                                    {option.label}
-                                  </MenuItem>
-                                ))}
-                              </TextField>
-                            </Grid>
-                            <Grid item xs={2}>
+                                sx={{
+                                  width: isSurveyLanguageInKhmer ? '50%' : '100%',
+                                }}
+                                label={GetContext('question', lang)}
+                                name='label'
+                                value={form.label.en}
+                                onChange={event => handleInputChangeEn(form.order, event)}
+                                required
+                              />
+                            )}
+                            {isSurveyLanguageInKhmer && (
                               <TextField
-                                fullWidth
-                                select
-                                label={GetContext('is_required', lang)}
-                                value={form.is_required ? 'true' : 'false'}
-                                onChange={event => handleIsRequiredChange(form.order, event.target.value === 'true')}
-                                required>
-                                {[true, false].map((option, index) => (
-                                  <MenuItem key={index} value={option.toString()}>
-                                    {option ? GetContext('yes', lang) : GetContext('noo', lang)}
-                                  </MenuItem>
-                                ))}
-                              </TextField>
-                            </Grid>
-
-                            {(form.type === 'text' || form.type === 'decimal' || form.type === 'number') && (
-                              <Grid item xs={12}>
-                                <TextField fullWidth label='Short Answer' disabled />
-                              </Grid>
-                            )}
-                            {form.type === 'text_area' && (
-                              <Grid item xs={12}>
-                                <TextField fullWidth label='Paragraph' multiline rows={4} disabled />
-                              </Grid>
-                            )}
-                            {form.type === 'single' && (
-                              <Grid item xs={12}>
-                                {form.options.map((optionValue, optionIndex) => {
-                                  const formIndex = dataDesignForms.findIndex(f => f.order === form.order);
-                                  const hasSkipLogic =
-                                    formIndex >= 0 && form.skip_logics?.some(logic => logic.answer_index === optionIndex);
-
-                                  return (
-                                    <Grid
-                                      container
-                                      spacing={2}
-                                      alignItems='center'
-                                      key={optionIndex}
-                                      sx={{ marginBottom: '0.5rem' }}>
-                                      <Grid
-                                        item
-                                        xs={0.5}
-                                        sx={{
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          justifyContent: 'center',
-                                        }}>
-                                        <Radio disabled />
-                                      </Grid>
-                                      <Grid
-                                        item
-                                        xs={8.5}
-                                        sx={{
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          gap: 2,
-                                        }}>
-                                        {isSurveyLanguageInEnglish && (
-                                          <TextField
-                                            sx={{
-                                              width: isSurveyLanguageInKhmer ? '50%' : '100%',
-                                            }}
-                                            label={GetContext('option', lang)}
-                                            value={optionValue.en}
-                                            onChange={event => {
-                                              handleOptionValueChangeEn(form.order, optionIndex, event.target.value);
-                                            }}
-                                            required
-                                          />
-                                        )}
-                                        {isSurveyLanguageInKhmer && (
-                                          <TextField
-                                            sx={{
-                                              width: isSurveyLanguageInEnglish ? '50%' : '100%',
-                                            }}
-                                            label='ជម្រើស'
-                                            value={optionValue.km}
-                                            onChange={event => {
-                                              handleOptionValueChangeKm(form.order, optionIndex, event.target.value);
-                                            }}
-                                            required
-                                          />
-                                        )}
-                                      </Grid>
-                                      <Grid item xs={3}>
-                                        <Button
-                                          variant='outlined'
-                                          color={hasSkipLogic ? 'success' : 'primary'}
-                                          onClick={() => {
-                                            const formIndex = dataDesignForms.findIndex(f => f.order === form.order);
-                                            setActiveDialog({
-                                              isOpen: true,
-                                              formIndex: formIndex,
-                                              optionValue: optionIndex,
-                                            });
-                                          }}>
-                                          {hasSkipLogic ? 'Edit Skip Logic' : 'Add Skip Logic'}
-                                        </Button>
-                                        <IconButton onClick={() => handleRemoveOption(form.order, optionIndex)}>
-                                          <CloseIcon />
-                                        </IconButton>
-                                      </Grid>
-                                    </Grid>
-                                  );
-                                })}
-                                <Button onClick={() => handleAddOption(form.order)}>{GetContext('add_option', lang)}</Button>
-                              </Grid>
-                            )}
-                            {form.type === 'dropdown' && (
-                              <Grid item xs={12}>
-                                {form.options.map((optionValue, optionIndex) => {
-                                  const formIndex = dataDesignForms.findIndex(f => f.order === form.order);
-                                  const hasSkipLogic =
-                                    formIndex >= 0 && form.skip_logics?.some(logic => logic.answer_index === optionIndex);
-
-                                  return (
-                                    <Grid
-                                      container
-                                      spacing={2}
-                                      alignItems='center'
-                                      key={optionIndex}
-                                      sx={{ marginBottom: '0.5rem' }}>
-                                      <Grid
-                                        item
-                                        xs={9}
-                                        sx={{
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          gap: 2,
-                                        }}>
-                                        {isSurveyLanguageInEnglish && (
-                                          <TextField
-                                            sx={{
-                                              width: isSurveyLanguageInKhmer ? '50%' : '100%',
-                                            }}
-                                            label={GetContext('option', lang)}
-                                            value={optionValue.en}
-                                            onChange={event => {
-                                              handleOptionValueChangeEn(form.order, optionIndex, event.target.value);
-                                            }}
-                                            required
-                                          />
-                                        )}
-                                        {isSurveyLanguageInKhmer && (
-                                          <TextField
-                                            sx={{
-                                              width: isSurveyLanguageInEnglish ? '50%' : '100%',
-                                            }}
-                                            label='ជម្រើស'
-                                            value={optionValue.km}
-                                            onChange={event => {
-                                              handleOptionValueChangeKm(form.order, optionIndex, event.target.value);
-                                            }}
-                                            required
-                                          />
-                                        )}
-                                      </Grid>
-                                      <Grid item xs={3}>
-                                        <Button
-                                          variant='outlined'
-                                          color={hasSkipLogic ? 'success' : 'primary'}
-                                          onClick={() => {
-                                            const formIndex = dataDesignForms.findIndex(f => f.order === form.order);
-                                            setActiveDialog({
-                                              isOpen: true,
-                                              formIndex: formIndex,
-                                              optionValue: optionIndex,
-                                            });
-                                          }}>
-                                          {hasSkipLogic ? 'Edit Skip Logic' : 'Add Skip Logic'}
-                                        </Button>
-                                        <IconButton onClick={() => handleRemoveOption(form.order, optionIndex)}>
-                                          <CloseIcon />
-                                        </IconButton>
-                                      </Grid>
-                                    </Grid>
-                                  );
-                                })}
-                                <Button onClick={() => handleAddOption(form.order)}>{GetContext('add_option', lang)}</Button>
-                              </Grid>
-                            )}
-                            {form.type === 'multiple' && (
-                              <Grid item xs={12}>
-                                {form.options.map((optionValue, optionIndex) => {
-                                  const formIndex = dataDesignForms.findIndex(f => f.order === form.order);
-                                  const hasSkipLogic =
-                                    formIndex >= 0 && form.skip_logics?.some(logic => logic.answer_index === optionIndex);
-
-                                  return (
-                                    <Grid
-                                      container
-                                      spacing={2}
-                                      alignItems='center'
-                                      key={optionIndex}
-                                      sx={{ marginBottom: '0.5rem' }}>
-                                      <Grid
-                                        item
-                                        xs={0.5}
-                                        sx={{
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          justifyContent: 'center',
-                                        }}>
-                                        <Checkbox disabled />
-                                      </Grid>
-                                      <Grid
-                                        item
-                                        xs={8.5}
-                                        sx={{
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          gap: 2,
-                                        }}>
-                                        {isSurveyLanguageInEnglish && (
-                                          <TextField
-                                            sx={{
-                                              width: isSurveyLanguageInKhmer ? '50%' : '100%',
-                                            }}
-                                            label={GetContext('option', lang)}
-                                            value={optionValue.en}
-                                            onChange={event => {
-                                              handleOptionValueChangeEn(form.order, optionIndex, event.target.value);
-                                            }}
-                                            required
-                                          />
-                                        )}
-                                        {isSurveyLanguageInKhmer && (
-                                          <TextField
-                                            sx={{
-                                              width: isSurveyLanguageInEnglish ? '50%' : '100%',
-                                            }}
-                                            label='ជម្រើស'
-                                            value={optionValue.km}
-                                            onChange={event => {
-                                              handleOptionValueChangeKm(form.order, optionIndex, event.target.value);
-                                            }}
-                                            required
-                                          />
-                                        )}
-                                      </Grid>
-                                      <Grid item xs={3}>
-                                        <Button
-                                          variant='outlined'
-                                          color={hasSkipLogic ? 'success' : 'primary'}
-                                          onClick={() => {
-                                            const formIndex = dataDesignForms.findIndex(f => f.order === form.order);
-                                            setActiveDialog({
-                                              isOpen: true,
-                                              formIndex: formIndex,
-                                              optionValue: optionIndex,
-                                            });
-                                          }}>
-                                          {hasSkipLogic ? 'Edit Skip Logic' : 'Add Skip Logic'}
-                                        </Button>
-                                        <IconButton onClick={() => handleRemoveOption(form.order, optionIndex)}>
-                                          <CloseIcon />
-                                        </IconButton>
-                                      </Grid>
-                                    </Grid>
-                                  );
-                                })}
-                                <Button onClick={() => handleAddOption(form.order)}>{GetContext('add_option', lang)}</Button>
-                              </Grid>
-                            )}
-                            {form.type === 'date' && (
-                              <Grid item xs={12}>
-                                <TextField fullWidth type='date' disabled />
-                              </Grid>
-                            )}
-                            {form.type === 'time' && (
-                              <Grid item xs={12}>
-                                <TextField fullWidth type='time' disabled />
-                              </Grid>
+                                sx={{
+                                  width: isSurveyLanguageInEnglish ? '50%' : '100%',
+                                }}
+                                label='សំណួរ'
+                                name='label'
+                                value={form.label.km}
+                                onChange={event => handleInputChangeKm(form.order, event)}
+                                required
+                              />
                             )}
                           </Grid>
-                        </SortableQuestionContainer>
-                      </Grid>
-                    ))}
-                  </Grid>
-                </SortableContext>
-              </DndContext>
+                          <Grid item xs={isSurveyInBothLanguages ? 2 : 4}>
+                            <TextField
+                              fullWidth
+                              select
+                              label={GetContext('question_type', lang)}
+                              value={form.type}
+                              onChange={event => handleQuestionTypeChange(form.order, event.target.value)}
+                              required>
+                              {questionTypes.map(option => (
+                                <MenuItem key={option.type} value={option.type}>
+                                  {option.label}
+                                </MenuItem>
+                              ))}
+                            </TextField>
+                          </Grid>
+                          <Grid item xs={2}>
+                            <TextField
+                              fullWidth
+                              select
+                              label={GetContext('is_required', lang)}
+                              value={form.is_required ? 'true' : 'false'}
+                              onChange={event => handleIsRequiredChange(form.order, event.target.value === 'true')}
+                              required>
+                              {[true, false].map((option, index) => (
+                                <MenuItem key={index} value={option.toString()}>
+                                  {option ? GetContext('yes', lang) : GetContext('noo', lang)}
+                                </MenuItem>
+                              ))}
+                            </TextField>
+                          </Grid>
+
+                          {(form.type === 'text' || form.type === 'decimal' || form.type === 'number') && (
+                            <Grid item xs={12}>
+                              <TextField fullWidth label='Short Answer' disabled />
+                            </Grid>
+                          )}
+                          {form.type === 'text_area' && (
+                            <Grid item xs={12}>
+                              <TextField fullWidth label='Paragraph' multiline rows={4} disabled />
+                            </Grid>
+                          )}
+                          {form.type === 'single' && (
+                            <Grid item xs={12}>
+                              {form.options.map((optionValue, optionIndex) => {
+                                const formIndex = dataDesignForms.findIndex(f => f.order === form.order);
+                                const hasSkipLogic =
+                                  formIndex >= 0 && form.skip_logics?.some(logic => logic.answer_index === optionIndex);
+
+                                return (
+                                  <Grid
+                                    container
+                                    spacing={2}
+                                    alignItems='center'
+                                    key={optionIndex}
+                                    sx={{ marginBottom: '0.5rem' }}>
+                                    <Grid
+                                      item
+                                      xs={0.5}
+                                      sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                      }}>
+                                      <Radio disabled />
+                                    </Grid>
+                                    <Grid
+                                      item
+                                      xs={8.5}
+                                      sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 2,
+                                      }}>
+                                      {isSurveyLanguageInEnglish && (
+                                        <TextField
+                                          sx={{
+                                            width: isSurveyLanguageInKhmer ? '50%' : '100%',
+                                          }}
+                                          label={GetContext('option', lang)}
+                                          value={optionValue.en}
+                                          onChange={event => {
+                                            handleOptionValueChangeEn(form.order, optionIndex, event.target.value);
+                                          }}
+                                          required
+                                        />
+                                      )}
+                                      {isSurveyLanguageInKhmer && (
+                                        <TextField
+                                          sx={{
+                                            width: isSurveyLanguageInEnglish ? '50%' : '100%',
+                                          }}
+                                          label='ជម្រើស'
+                                          value={optionValue.km}
+                                          onChange={event => {
+                                            handleOptionValueChangeKm(form.order, optionIndex, event.target.value);
+                                          }}
+                                          required
+                                        />
+                                      )}
+                                    </Grid>
+                                    <Grid item xs={3}>
+                                      <Button
+                                        variant='outlined'
+                                        color={hasSkipLogic ? 'success' : 'primary'}
+                                        onClick={() => {
+                                          const formIndex = dataDesignForms.findIndex(f => f.order === form.order);
+                                          setActiveDialog({
+                                            isOpen: true,
+                                            formIndex: formIndex,
+                                            optionValue: optionIndex,
+                                          });
+                                        }}>
+                                        {hasSkipLogic ? 'Edit Skip Logic' : 'Add Skip Logic'}
+                                      </Button>
+                                      <IconButton onClick={() => handleRemoveOption(form.order, optionIndex)}>
+                                        <CloseIcon />
+                                      </IconButton>
+                                    </Grid>
+                                  </Grid>
+                                );
+                              })}
+                              <Button onClick={() => handleAddOption(form.order)}>{GetContext('add_option', lang)}</Button>
+                            </Grid>
+                          )}
+                          {form.type === 'dropdown' && (
+                            <Grid item xs={12}>
+                              {form.options.map((optionValue, optionIndex) => {
+                                const formIndex = dataDesignForms.findIndex(f => f.order === form.order);
+                                const hasSkipLogic =
+                                  formIndex >= 0 && form.skip_logics?.some(logic => logic.answer_index === optionIndex);
+
+                                return (
+                                  <Grid
+                                    container
+                                    spacing={2}
+                                    alignItems='center'
+                                    key={optionIndex}
+                                    sx={{ marginBottom: '0.5rem' }}>
+                                    <Grid
+                                      item
+                                      xs={9}
+                                      sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 2,
+                                      }}>
+                                      {isSurveyLanguageInEnglish && (
+                                        <TextField
+                                          sx={{
+                                            width: isSurveyLanguageInKhmer ? '50%' : '100%',
+                                          }}
+                                          label={GetContext('option', lang)}
+                                          value={optionValue.en}
+                                          onChange={event => {
+                                            handleOptionValueChangeEn(form.order, optionIndex, event.target.value);
+                                          }}
+                                          required
+                                        />
+                                      )}
+                                      {isSurveyLanguageInKhmer && (
+                                        <TextField
+                                          sx={{
+                                            width: isSurveyLanguageInEnglish ? '50%' : '100%',
+                                          }}
+                                          label='ជម្រើស'
+                                          value={optionValue.km}
+                                          onChange={event => {
+                                            handleOptionValueChangeKm(form.order, optionIndex, event.target.value);
+                                          }}
+                                          required
+                                        />
+                                      )}
+                                    </Grid>
+                                    <Grid item xs={3}>
+                                      <Button
+                                        variant='outlined'
+                                        color={hasSkipLogic ? 'success' : 'primary'}
+                                        onClick={() => {
+                                          const formIndex = dataDesignForms.findIndex(f => f.order === form.order);
+                                          setActiveDialog({
+                                            isOpen: true,
+                                            formIndex: formIndex,
+                                            optionValue: optionIndex,
+                                          });
+                                        }}>
+                                        {hasSkipLogic ? 'Edit Skip Logic' : 'Add Skip Logic'}
+                                      </Button>
+                                      <IconButton onClick={() => handleRemoveOption(form.order, optionIndex)}>
+                                        <CloseIcon />
+                                      </IconButton>
+                                    </Grid>
+                                  </Grid>
+                                );
+                              })}
+                              <Button onClick={() => handleAddOption(form.order)}>{GetContext('add_option', lang)}</Button>
+                            </Grid>
+                          )}
+                          {form.type === 'multiple' && (
+                            <Grid item xs={12}>
+                              {form.options.map((optionValue, optionIndex) => {
+                                const formIndex = dataDesignForms.findIndex(f => f.order === form.order);
+                                const hasSkipLogic =
+                                  formIndex >= 0 && form.skip_logics?.some(logic => logic.answer_index === optionIndex);
+
+                                return (
+                                  <Grid
+                                    container
+                                    spacing={2}
+                                    alignItems='center'
+                                    key={optionIndex}
+                                    sx={{ marginBottom: '0.5rem' }}>
+                                    <Grid
+                                      item
+                                      xs={0.5}
+                                      sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                      }}>
+                                      <Checkbox disabled />
+                                    </Grid>
+                                    <Grid
+                                      item
+                                      xs={8.5}
+                                      sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 2,
+                                      }}>
+                                      {isSurveyLanguageInEnglish && (
+                                        <TextField
+                                          sx={{
+                                            width: isSurveyLanguageInKhmer ? '50%' : '100%',
+                                          }}
+                                          label={GetContext('option', lang)}
+                                          value={optionValue.en}
+                                          onChange={event => {
+                                            handleOptionValueChangeEn(form.order, optionIndex, event.target.value);
+                                          }}
+                                          required
+                                        />
+                                      )}
+                                      {isSurveyLanguageInKhmer && (
+                                        <TextField
+                                          sx={{
+                                            width: isSurveyLanguageInEnglish ? '50%' : '100%',
+                                          }}
+                                          label='ជម្រើស'
+                                          value={optionValue.km}
+                                          onChange={event => {
+                                            handleOptionValueChangeKm(form.order, optionIndex, event.target.value);
+                                          }}
+                                          required
+                                        />
+                                      )}
+                                    </Grid>
+                                    <Grid item xs={3}>
+                                      <Button
+                                        variant='outlined'
+                                        color={hasSkipLogic ? 'success' : 'primary'}
+                                        onClick={() => {
+                                          const formIndex = dataDesignForms.findIndex(f => f.order === form.order);
+                                          setActiveDialog({
+                                            isOpen: true,
+                                            formIndex: formIndex,
+                                            optionValue: optionIndex,
+                                          });
+                                        }}>
+                                        {hasSkipLogic ? 'Edit Skip Logic' : 'Add Skip Logic'}
+                                      </Button>
+                                      <IconButton onClick={() => handleRemoveOption(form.order, optionIndex)}>
+                                        <CloseIcon />
+                                      </IconButton>
+                                    </Grid>
+                                  </Grid>
+                                );
+                              })}
+                              <Button onClick={() => handleAddOption(form.order)}>{GetContext('add_option', lang)}</Button>
+                            </Grid>
+                          )}
+                          {form.type === 'date' && (
+                            <Grid item xs={12}>
+                              <TextField fullWidth type='date' disabled />
+                            </Grid>
+                          )}
+                          {form.type === 'time' && (
+                            <Grid item xs={12}>
+                              <TextField fullWidth type='time' disabled />
+                            </Grid>
+                          )}
+                        </Grid>
+                      </SortableQuestionContainer>
+                    </Grid>
+                  ))}
+                </Grid>
+              </SortableContext>
 
               {/* Add question button for this section */}
               <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
