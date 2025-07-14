@@ -34,6 +34,7 @@ import { useRouter } from "next/navigation";
 import MenuDropDown from "@/components/menuDropDown";
 import { getLocaleValue } from "@/utils/language";
 import { Data } from "@dnd-kit/core";
+import axios from "axios";
 
 interface SurveyContainerProps {
   surveyId?: string;
@@ -106,7 +107,24 @@ const WebSurveyForm: React.FC<SurveyContainerProps> = ({
         setProj(apiData);
         setError(null);
       } catch (err) {
-        setError("Failed to load survey. Please try again.");
+        if (axios.isAxiosError(err)) {
+          const code = err.response?.data?.code;
+          const message = err.response?.data?.message;
+
+          console.error("Survey loading error:", code, message);
+
+          if (code === 32) {
+            // setError("You have already submitted this survey.");
+            router.replace(`/survey/thankyou?lang=${selectedLang}`);
+            return;
+          } else {
+            setError(message || "Failed to load survey. Please try again.");
+          }
+        } else {
+          console.error("Unexpected error:", err);
+          setError("Failed to load survey. Please try again.");
+        }
+        // setError("Failed to load survey. Please try again.");
         console.error("Survey loading error:", err);
       } finally {
         setLoading(false);
