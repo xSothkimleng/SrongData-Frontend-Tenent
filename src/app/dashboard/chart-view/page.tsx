@@ -244,25 +244,25 @@ const AddQuestions: Question[] = [
     created_at: "",
     updated_at: "",
   },
-  {
-    id: "project",
-    order: -1,
-    label: { en: "Project", km: "គម្រោង" },
-    type: "project",
-    data_type: "array",
-    options: [],
-    is_required: false,
-    skip_logics: [],
-    section: {
-      id: "",
-      title: { en: "", km: "" },
-      description: { en: "", km: "" },
-      order: 0,
-    },
-    is_active: true,
-    created_at: "",
-    updated_at: "",
-  },
+  // {
+  //   id: "project",
+  //   order: -1,
+  //   label: { en: "Project", km: "គម្រោង" },
+  //   type: "project",
+  //   data_type: "array",
+  //   options: [],
+  //   is_required: false,
+  //   skip_logics: [],
+  //   section: {
+  //     id: "",
+  //     title: { en: "", km: "" },
+  //     description: { en: "", km: "" },
+  //     order: 0,
+  //   },
+  //   is_active: true,
+  //   created_at: "",
+  //   updated_at: "",
+  // },
 ];
 
 interface FilterItemProps {
@@ -361,9 +361,15 @@ const FilterItem: React.FC<FilterItemProps> = ({
               handleFilterChange(event, index);
             }}
             renderValue={(selected) => {
+              console.log("selected value: ", selected);
               return selected
-                .map((value) => {
-                  return filter.options[value];
+                .map((value, i) => {
+                  const opt = filter.options[value];
+                  return typeof opt === "object"
+                    ? lang == "en"
+                      ? (opt.en ?? "N/A")
+                      : (opt.km ?? "N/A")
+                    : "N/A";
                 })
                 .join(", ");
             }}
@@ -371,7 +377,11 @@ const FilterItem: React.FC<FilterItemProps> = ({
             {filter.options.map((option, i) => (
               <MenuItem key={i} value={i}>
                 <Checkbox checked={filter.values.indexOf(i) > -1} />
-                <ListItemText primary={option} />
+                <ListItemText
+                  primary={
+                    lang == "en" ? (option.en ?? "N/A") : (option.km ?? "N/A")
+                  }
+                />
               </MenuItem>
             ))}
           </Select>
@@ -420,40 +430,40 @@ const FilterItem: React.FC<FilterItemProps> = ({
           </FormControl>
         )}
 
-      {filter.data_type == "array" &&
-        filter.index == -1 &&
-        filter.type == "project" && (
-          <FormControl fullWidth sx={{ marginBottom: "10px" }}>
-            <InputLabel id={`multi-select-label-${index}`}>
-              {GetContext("select_option", lang)}
-            </InputLabel>
-            <Select
-              labelId={`multi-select-label-${index}`}
-              multiple
-              value={filter.values}
-              onChange={(event) => {
-                handleFilterChange(event, index);
-              }}
-              renderValue={(selected) => {
-                return selected
-                  .map((value) => {
-                    const option = filter.options.find(
-                      (option) => value == option.id,
-                    );
-                    return option ? option.name_en : "";
-                  })
-                  .join(", ");
-              }}
-            >
-              {filter.options.map((option, i) => (
-                <MenuItem key={i} value={option.id}>
-                  <Checkbox checked={filter.values.indexOf(option.id) > -1} />
-                  <ListItemText primary={option.name_en} />
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        )}
+      {/* {filter.data_type == "array" && */}
+      {/*   filter.index == -1 && */}
+      {/*   filter.type == "project" && ( */}
+      {/*     <FormControl fullWidth sx={{ marginBottom: "10px" }}> */}
+      {/*       <InputLabel id={`multi-select-label-${index}`}> */}
+      {/*         {GetContext("select_option", lang)} */}
+      {/*       </InputLabel> */}
+      {/*       <Select */}
+      {/*         labelId={`multi-select-label-${index}`} */}
+      {/*         multiple */}
+      {/*         value={filter.values} */}
+      {/*         onChange={(event) => { */}
+      {/*           handleFilterChange(event, index); */}
+      {/*         }} */}
+      {/*         renderValue={(selected) => { */}
+      {/*           return selected */}
+      {/*             .map((value) => { */}
+      {/*               const option = filter.options.find( */}
+      {/*                 (option) => value == option.id, */}
+      {/*               ); */}
+      {/*               return option ? option.name_en : ""; */}
+      {/*             }) */}
+      {/*             .join(", "); */}
+      {/*         }} */}
+      {/*       > */}
+      {/*         {filter.options.map((option, i) => ( */}
+      {/*           <MenuItem key={i} value={option.id}> */}
+      {/*             <Checkbox checked={filter.values.indexOf(option.id) > -1} /> */}
+      {/*             <ListItemText primary={option.name_en} /> */}
+      {/*           </MenuItem> */}
+      {/*         ))} */}
+      {/*       </Select> */}
+      {/*     </FormControl> */}
+      {/*   )} */}
 
       {filter.data_type == "array" &&
         filter.index == -1 &&
@@ -540,7 +550,7 @@ const ChartCard: React.FC<{
     ? `${getLocaleValue(question.label, lang)} (${getLocaleValue(question.project_name, lang)})`
     : getLocaleValue(question.label, lang);
 
-  console.log("Quesitons: ", question, "\ndataset: ", data);
+  // console.log("Quesitons: ", question);
   return (
     <Card
       variant="outlined"
@@ -953,6 +963,7 @@ const DataViewPage = () => {
     // Merge all projects
     for (const projectId in projectsDetails) {
       const project = projectsDetails[projectId];
+      console.log("merge project: ", project);
       const projectStatus = projectLoadingStatus.find(
         (p) => p.projectId === projectId,
       );
@@ -1150,7 +1161,6 @@ const DataViewPage = () => {
     ) {
       return;
     }
-
     // Update chart data map to indicate loading
     setChartDataMap((prev) => ({
       ...prev,
@@ -1206,6 +1216,8 @@ const DataViewPage = () => {
         endpoint: `responses/virtualize/${projectId}?index=${index}&type=${type}`,
         body,
       });
+
+      console.log("res chart view: ", response);
 
       // Update chart data with fetched data
       setChartDataMap((prev) => ({
@@ -1319,6 +1331,8 @@ const DataViewPage = () => {
         km: "N/A",
       };
       const colorIndex = index % PROJECT_COLORS.length;
+
+      console.log("here");
 
       newProjectStatus.push({
         projectId,
