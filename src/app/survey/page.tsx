@@ -158,7 +158,7 @@ const App: React.FC = () => {
             py: 2,
           }}
         >
-          {responseId === null && locationData !== null ? (
+          {responseId === null && locationData === null ? (
             <Box
               sx={{
                 height: "100vh",

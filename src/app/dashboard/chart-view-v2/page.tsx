@@ -83,19 +83,6 @@ interface LocationMap {
   villages: any[];
 }
 
-// interface Question {
-//   id: string;
-//   order: number;
-//   label: string;
-//   label_km: string;
-//   type: string;
-//   data_type: string;
-//   options: any[];
-//   project_id?: string; // Added to track source project
-//   project_name?: string; // Added to track source project name
-//   color?: string; // Added for project color coding
-// }
-
 export interface Question extends Omit<ApiQuestion, "type"> {
   type: string; // Override the original union type with string
   project_id?: string;
@@ -540,7 +527,7 @@ const ChartCard: React.FC<{
     ? `${getLocaleValue(question.label, lang)} (${getLocaleValue(question.project_name, lang)})`
     : getLocaleValue(question.label, lang);
 
-  console.log("Quesitons: ", question, "\ndataset: ", data);
+  // console.log("Quesitons: ", question, "\ndataset: ", data);
   return (
     <Card
       variant="outlined"
@@ -1141,6 +1128,124 @@ const DataViewPage = () => {
     }
   };
 
+  interface VisualizationProp {
+    project_id: string;
+    indices: number[];
+    questions: QuestionFilter[];
+    type: string;
+  }
+
+  // Fetch visualization data for a list of questions
+  const getAllVisualizationData = async (props: VisualizationProp[]) => {
+    try {
+      // const projectId = question.project_id || selectedProjects[0];
+      //
+      // if (!projectId) {
+      //   setChartDataMap((prev) => ({
+      //     ...prev,
+      //     [question.id]: {
+      //       question,
+      //       data: [],
+      //       isLoading: false,
+      //       error: "No project ID available",
+      //     },
+      //   }));
+      //   return;
+      // }
+
+      // let index = question.order;
+      // let type = question.type;
+
+      // if (
+      //   !(
+      //     type == "user" ||
+      //     type == "province" ||
+      //     type == "district" ||
+      //     type == "commune" ||
+      //     type == "village" ||
+      //     type == "project"
+      //   )
+      // ) {
+      //   index -= 1;
+      // }
+
+      // Filter only the filters relevant to this project
+      // const projectFilters = currentFilter.filter(
+      //   (f) => !f.project_id || f.project_id === projectId,
+      // );
+
+      let body = {
+        projects: props,
+        lang,
+        // questions: projectFilters,
+      };
+
+      console.log("body: ", body);
+
+      const response = await axios.post("/api/config", {
+        endpoint: `responses/virtualize-multiple-projects`,
+        body,
+      });
+
+      console.log("res: ", response.data);
+
+      const currentPageQuestions = getCurrentPageCharts();
+      if (response.data.data && response.data.data.length > 0) {
+        response.data.data.forEach((res: any) => {
+          const project = res.project as ProjectDetail;
+          // const questions = project.questions;
+
+          const data = res.results as {
+            freq: number;
+            index: number;
+            value: any;
+          }[];
+
+          console.log("result: ", data);
+          // Update chart data with fetched data
+          currentPageQuestions.forEach((pageQuestion) => {
+            pageQuestion.project_name = project.name;
+            setChartDataMap((prev) => ({
+              ...prev,
+              [pageQuestion.id]: {
+                question: pageQuestion,
+                data: data,
+                isLoading: false,
+              },
+            }));
+          });
+        });
+      } else {
+        currentPageQuestions.forEach((pageQuestion) => {
+          setChartDataMap((prev) => ({
+            ...prev,
+            [pageQuestion.id]: {
+              question: pageQuestion,
+              data: [],
+              isLoading: false,
+              error: "Failed to load chart data",
+            },
+          }));
+        });
+      }
+    } catch (error) {
+      console.error("Error: ", error);
+      // console.error(
+      //   `Error fetching visualization data for question ${question.id}:`,
+      //   error,
+      // );
+      // setChartDataMap((prev) => ({
+      //   ...prev,
+      //   [question.id]: {
+      //     question,
+      //     data: [],
+      //     isLoading: false,
+      //     error: "Failed to load chart data",
+      //   },
+      // }));
+    }
+  };
+
   // Fetch visualization data for a single question
   const getDataVisualization = async (question: Question) => {
     // Skip if already loading or loaded this question
@@ -1233,6 +1338,60 @@ const DataViewPage = () => {
     }
   };
 
+  const formatQuestions = (questions: Question[]) => {
+    const grouped: Record<
+      string,
+      { indices: number[]; questions: any[]; type: string }
+    > = {};
+
+    for (const q of questions) {
+      const projectId = q.project_id || selectedProjects[0];
+      if (!q.project_id) {
+        q.project_id = projectId;
+      }
+      console.log("Q: ", q);
+      const key: string = q.project_id ?? "";
+      let i = q.order;
+      let type = q.type;
+      if (
+        !(
+          type == "user" ||
+          type == "province" ||
+          type == "district" ||
+          type == "commune" ||
+          type == "village" ||
+          type == "project"
+        )
+      ) {
+        i -= 1;
+      }
+
+      if (!grouped[key]) {
+        grouped[key] = {
+          indices: [],
+          questions: [],
+          type: type,
+        };
+      }
+
+      // const index = questions.indexOf(q);
+
+      grouped[key].indices.push(i);
+      // grouped[key].questions.push({
+      //   index: q.order,
+      //   type: q.type,
+      //   values: q.options ?? [],
+      // });
+    }
+
+    // Convert object to array
+    const result = Object.entries(grouped).map(([project_id, group]) => ({
+      project_id,
+      ...group,
+    }));
+
+    return result;
+  };
   // Load visualization data for all questions on the current page
   const loadCurrentPageCharts = async () => {
     const currentPageQuestions = getCurrentPageCharts();
@@ -1243,10 +1402,28 @@ const DataViewPage = () => {
       setChartDataMap({});
     }
 
-    // Fetch data for all questions on current page
-    for (const question of currentPageQuestions) {
-      await getDataVisualization(question);
-    }
+    // // Fetch data for all questions on current page
+    // for (const question of currentPageQuestions) {
+    //   console.log("Question: ", question);
+    //   await getDataVisualization(question);
+    // }
+
+    const formattedQ = formatQuestions(currentPageQuestions);
+
+    const visProp: VisualizationProp[] = [];
+
+    formattedQ.forEach((res) => {
+      const formatted: VisualizationProp = {
+        project_id: res.project_id,
+        indices: res.indices,
+        type: res.type,
+        questions: res.questions, // don't forget this if your type requires it
+      };
+
+      visProp.push(formatted);
+    });
+
+    await getAllVisualizationData(visProp);
 
     setIsLoadingCharts(false);
   };
