@@ -160,8 +160,8 @@ const AddQuestions: Question[] = [
     skip_logics: [],
     section: {
       id: "",
-      title: "",
-      description: "",
+      title: { en: "", km: "" },
+      description: { en: "", km: "" },
       order: 0,
     },
     is_active: true,
@@ -179,8 +179,8 @@ const AddQuestions: Question[] = [
     skip_logics: [],
     section: {
       id: "",
-      title: "",
-      description: "",
+      title: { en: "", km: "" },
+      description: { en: "", km: "" },
       order: 0,
     },
     is_active: true,
@@ -198,8 +198,8 @@ const AddQuestions: Question[] = [
     skip_logics: [],
     section: {
       id: "",
-      title: "",
-      description: "",
+      title: { en: "", km: "" },
+      description: { en: "", km: "" },
       order: 0,
     },
     is_active: true,
@@ -217,8 +217,8 @@ const AddQuestions: Question[] = [
     skip_logics: [],
     section: {
       id: "",
-      title: "",
-      description: "",
+      title: { en: "", km: "" },
+      description: { en: "", km: "" },
       order: 0,
     },
     is_active: true,
@@ -236,33 +236,33 @@ const AddQuestions: Question[] = [
     skip_logics: [],
     section: {
       id: "",
-      title: "",
-      description: "",
+      title: { en: "", km: "" },
+      description: { en: "", km: "" },
       order: 0,
     },
     is_active: true,
     created_at: "",
     updated_at: "",
   },
-  {
-    id: "project",
-    order: -1,
-    label: { en: "Project", km: "គម្រោង" },
-    type: "project",
-    data_type: "array",
-    options: [],
-    is_required: false,
-    skip_logics: [],
-    section: {
-      id: "",
-      title: "",
-      description: "",
-      order: 0,
-    },
-    is_active: true,
-    created_at: "",
-    updated_at: "",
-  },
+  // {
+  //   id: "project",
+  //   order: -1,
+  //   label: { en: "Project", km: "គម្រោង" },
+  //   type: "project",
+  //   data_type: "array",
+  //   options: [],
+  //   is_required: false,
+  //   skip_logics: [],
+  //   section: {
+  //     id: "",
+  //     title: { en: "", km: "" },
+  //     description: { en: "", km: "" },
+  //     order: 0,
+  //   },
+  //   is_active: true,
+  //   created_at: "",
+  //   updated_at: "",
+  // },
 ];
 
 interface FilterItemProps {
@@ -361,9 +361,15 @@ const FilterItem: React.FC<FilterItemProps> = ({
               handleFilterChange(event, index);
             }}
             renderValue={(selected) => {
+              console.log("selected value: ", selected);
               return selected
-                .map((value) => {
-                  return filter.options[value];
+                .map((value, i) => {
+                  const opt = filter.options[value];
+                  return typeof opt === "object"
+                    ? lang == "en"
+                      ? (opt.en ?? "N/A")
+                      : (opt.km ?? "N/A")
+                    : "N/A";
                 })
                 .join(", ");
             }}
@@ -371,7 +377,11 @@ const FilterItem: React.FC<FilterItemProps> = ({
             {filter.options.map((option, i) => (
               <MenuItem key={i} value={i}>
                 <Checkbox checked={filter.values.indexOf(i) > -1} />
-                <ListItemText primary={option} />
+                <ListItemText
+                  primary={
+                    lang == "en" ? (option.en ?? "N/A") : (option.km ?? "N/A")
+                  }
+                />
               </MenuItem>
             ))}
           </Select>
@@ -420,40 +430,40 @@ const FilterItem: React.FC<FilterItemProps> = ({
           </FormControl>
         )}
 
-      {filter.data_type == "array" &&
-        filter.index == -1 &&
-        filter.type == "project" && (
-          <FormControl fullWidth sx={{ marginBottom: "10px" }}>
-            <InputLabel id={`multi-select-label-${index}`}>
-              {GetContext("select_option", lang)}
-            </InputLabel>
-            <Select
-              labelId={`multi-select-label-${index}`}
-              multiple
-              value={filter.values}
-              onChange={(event) => {
-                handleFilterChange(event, index);
-              }}
-              renderValue={(selected) => {
-                return selected
-                  .map((value) => {
-                    const option = filter.options.find(
-                      (option) => value == option.id,
-                    );
-                    return option ? option.name_en : "";
-                  })
-                  .join(", ");
-              }}
-            >
-              {filter.options.map((option, i) => (
-                <MenuItem key={i} value={option.id}>
-                  <Checkbox checked={filter.values.indexOf(option.id) > -1} />
-                  <ListItemText primary={option.name_en} />
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        )}
+      {/* {filter.data_type == "array" && */}
+      {/*   filter.index == -1 && */}
+      {/*   filter.type == "project" && ( */}
+      {/*     <FormControl fullWidth sx={{ marginBottom: "10px" }}> */}
+      {/*       <InputLabel id={`multi-select-label-${index}`}> */}
+      {/*         {GetContext("select_option", lang)} */}
+      {/*       </InputLabel> */}
+      {/*       <Select */}
+      {/*         labelId={`multi-select-label-${index}`} */}
+      {/*         multiple */}
+      {/*         value={filter.values} */}
+      {/*         onChange={(event) => { */}
+      {/*           handleFilterChange(event, index); */}
+      {/*         }} */}
+      {/*         renderValue={(selected) => { */}
+      {/*           return selected */}
+      {/*             .map((value) => { */}
+      {/*               const option = filter.options.find( */}
+      {/*                 (option) => value == option.id, */}
+      {/*               ); */}
+      {/*               return option ? option.name_en : ""; */}
+      {/*             }) */}
+      {/*             .join(", "); */}
+      {/*         }} */}
+      {/*       > */}
+      {/*         {filter.options.map((option, i) => ( */}
+      {/*           <MenuItem key={i} value={option.id}> */}
+      {/*             <Checkbox checked={filter.values.indexOf(option.id) > -1} /> */}
+      {/*             <ListItemText primary={option.name_en} /> */}
+      {/*           </MenuItem> */}
+      {/*         ))} */}
+      {/*       </Select> */}
+      {/*     </FormControl> */}
+      {/*   )} */}
 
       {filter.data_type == "array" &&
         filter.index == -1 &&
@@ -540,9 +550,10 @@ const ChartCard: React.FC<{
     ? `${getLocaleValue(question.label, lang)} (${getLocaleValue(question.project_name, lang)})`
     : getLocaleValue(question.label, lang);
 
-  console.log("Quesitons: ", question, "\ndataset: ", data);
+  // console.log("Quesitons: ", question);
   return (
     <Card
+      id={`chart-${question.id}`}
       variant="outlined"
       sx={{ height: "100%", display: "flex", flexDirection: "column" }}
     >
@@ -929,6 +940,7 @@ const DataViewPage = () => {
         en: "",
         km: "",
       },
+      locales: [],
       location: [],
       location_details: {
         provinces: [],
@@ -952,6 +964,7 @@ const DataViewPage = () => {
     // Merge all projects
     for (const projectId in projectsDetails) {
       const project = projectsDetails[projectId];
+      console.log("merge project: ", project);
       const projectStatus = projectLoadingStatus.find(
         (p) => p.projectId === projectId,
       );
@@ -1149,7 +1162,6 @@ const DataViewPage = () => {
     ) {
       return;
     }
-
     // Update chart data map to indicate loading
     setChartDataMap((prev) => ({
       ...prev,
@@ -1206,6 +1218,10 @@ const DataViewPage = () => {
         body,
       });
 
+      console.log("res chart view: ", response);
+      const projectName = projectsDetails[projectId]?.name || projectId;
+
+      question.project_name = projectName;
       // Update chart data with fetched data
       setChartDataMap((prev) => ({
         ...prev,
@@ -1319,6 +1335,8 @@ const DataViewPage = () => {
       };
       const colorIndex = index % PROJECT_COLORS.length;
 
+      console.log("here");
+
       newProjectStatus.push({
         projectId,
         projectName,
@@ -1430,11 +1448,15 @@ const DataViewPage = () => {
   // Download a single chart
   const handleDownloadChart = async (questionId: string) => {
     const chartData = chartDataMap[questionId];
+    console.log("chart data: ", chartData);
     if (!chartData) return;
 
     // Find the chart's DOM element
     const chartContainer = document.getElementById(`chart-${questionId}`);
-    if (!chartContainer) return;
+    if (!chartContainer) {
+      console.warn("no chart container found");
+      return;
+    }
 
     try {
       const canvas = await html2canvas(chartContainer);
@@ -1857,7 +1879,7 @@ const DataViewPage = () => {
           {isDataReady && masterProjectDetails && (
             <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
               <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-                2. Select Questions and Filter Data
+                2. Select Questions
               </Typography>
 
               <FormControl sx={{ minWidth: "100%", marginBottom: 2 }}>
@@ -1911,15 +1933,15 @@ const DataViewPage = () => {
               </FormControl>
 
               <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                {selectedQuestions.length > 0 && (
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={() => setOpenDrawer(true)}
-                  >
-                    {GetContext("filter", lang)}
-                  </Button>
-                )}
+                {/* {selectedQuestions.length > 0 && ( */}
+                {/*   <Button */}
+                {/*     variant="contained" */}
+                {/*     color="primary" */}
+                {/*     onClick={() => setOpenDrawer(true)} */}
+                {/*   > */}
+                {/*     {GetContext("filter", lang)} */}
+                {/*   </Button> */}
+                {/* )} */}
 
                 {selectedQuestions.length > 0 && (
                   <Button
@@ -1931,16 +1953,16 @@ const DataViewPage = () => {
                   </Button>
                 )}
 
-                {selectedQuestions.length > 0 && (
-                  <Button
-                    variant="contained"
-                    color="success"
-                    startIcon={<PictureAsPdfIcon />}
-                    onClick={handleExportAllCharts}
-                  >
-                    Export All Charts
-                  </Button>
-                )}
+                {/* {selectedQuestions.length > 0 && ( */}
+                {/*   <Button */}
+                {/*     variant="contained" */}
+                {/*     color="success" */}
+                {/*     startIcon={<PictureAsPdfIcon />} */}
+                {/*     onClick={handleExportAllCharts} */}
+                {/*   > */}
+                {/*     Export All Charts */}
+                {/*   </Button> */}
+                {/* )} */}
 
                 {masterProjectDetails && (
                   <Button
@@ -1976,14 +1998,14 @@ const DataViewPage = () => {
                   </Typography>
                 </Box>
 
-                <Box
-                  sx={{ p: 1, border: "1px solid #e0e0e0", borderRadius: 1 }}
-                >
-                  <Typography variant="body2" color="text.secondary">
-                    Total Records
-                  </Typography>
-                  <Typography variant="h6">{totalData}</Typography>
-                </Box>
+                {/* <Box */}
+                {/*   sx={{ p: 1, border: "1px solid #e0e0e0", borderRadius: 1 }} */}
+                {/* > */}
+                {/*   <Typography variant="body2" color="text.secondary"> */}
+                {/*     Total Records */}
+                {/*   </Typography> */}
+                {/*   <Typography variant="h6">{totalData}</Typography> */}
+                {/* </Box> */}
 
                 <Box
                   sx={{ p: 1, border: "1px solid #e0e0e0", borderRadius: 1 }}

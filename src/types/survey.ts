@@ -81,13 +81,14 @@ export interface ApiQuestion {
   skip_logics: ApiSkipLogic[];
   section: {
     id: string;
-    title: string;
-    description: string;
+    title: Locale;
+    description: Locale;
     order: number;
   };
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  answer?: Answer["value"];
 }
 
 export interface ApiSection {
@@ -99,6 +100,7 @@ export interface ApiSection {
 }
 
 export interface ApiSurveyData {
+  locales: string[];
   location: ApiLocation[];
   project_desc: {
     en: string;
@@ -151,8 +153,8 @@ export interface DataCollection {
 
 export interface TransformedSection {
   id: string;
-  title: string;
-  description: string;
+  title: Locale;
+  description: Locale;
   order: number;
   questions: ApiQuestion[];
 }

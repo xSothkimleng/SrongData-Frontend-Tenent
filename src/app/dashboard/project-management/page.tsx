@@ -16,7 +16,7 @@ import { GetContext } from '@/utils/language';
 import CustomToolbar from '@/components/DataGridToolbar';
 import HeaderTitle from '@/components/HeaderTitle';
 import TopicIcon from '@mui/icons-material/Topic';
-import TableActionMenu from '@/components/dashboard/project-managment/table-action-menu';
+import TableActionMenu from '@/components/dashboard/project-management/table-action-menu';
 
 export interface Filter {
   index: number;
@@ -172,6 +172,16 @@ const ProjectHistoryPage = () => {
         },
       },
       {
+        field: 'collectionMethod',
+        headerName: 'Collection Method',
+        cellClassName: 'text-left',
+        flex: 1,
+        headerClassName: 'super-app-theme--header',
+        renderCell: (params: any) => {
+          return <Box>{params.value}</Box>;
+        },
+      },
+      {
         field: 'data_collected',
         headerName: GetContext('data_collected', lang),
         cellClassName: 'text-left',
@@ -257,6 +267,7 @@ const ProjectHistoryPage = () => {
     projectId: project.id,
     status: project.status == '1' ? 'Active' : project.status == '2' ? 'Completed' : 'Inactive',
     isStarted: project.data_collected > 0 ? true : false,
+    collectionMethod: project.code ? 'Web' : 'CAPI',
     users: fetchedUserData.filter(user => project.users.includes(user.id)),
   }));
 

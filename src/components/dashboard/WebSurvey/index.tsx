@@ -1,10 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { Box, Container, Paper, CircularProgress, Alert } from "@mui/material";
+import {
+  Box,
+  Container,
+  CircularProgress,
+  Alert,
+  Typography,
+  Avatar,
+} from "@mui/material";
 import SurveyHeader from "./SurveyHeader";
 import SectionContent from "./SectionContent";
 import NavigationControls from "./NavigationControls";
 import ProgressIndicator from "./ProgressIndicator";
 import {
+  editResponse,
   fetchSurveyQuestionnaire,
   submitSurveyResponse,
 } from "@/services/surveyApi";
@@ -21,16 +29,44 @@ import {
   ApiSurveyData,
   ApiLocation,
 } from "@/types/survey";
-import { getCookie } from "@/utils/cookies";
+import { deleteCookie, getCookie } from "@/utils/cookies";
 import { useRouter } from "next/navigation";
+import MenuDropDown from "@/components/menuDropDown";
+import { getLocaleValue } from "@/utils/language";
+import { Data } from "@dnd-kit/core";
+import axios from "axios";
 
 interface SurveyContainerProps {
   surveyId?: string;
+  responseId?: string;
+  selectedLang: string;
 }
 
-const SurveyContainer: React.FC<SurveyContainerProps> = ({
-  surveyId = "683b04f07eadb773b81e5358",
+interface LanguageOption {
+  label: string;
+  flagUrl: string;
+  displayName: string;
+}
+
+const LANGUAGE_OPTIONS: Record<string, LanguageOption> = {
+  en: {
+    label: "english",
+    flagUrl: "/dist/images/Flag_of_the_United_States.svg",
+    displayName: "English",
+  },
+  km: {
+    label: "khmer",
+    flagUrl: "/dist/images/Flag_of_Cambodia.svg",
+    displayName: "ខ្មែរ",
+  },
+};
+
+const WebSurveyForm: React.FC<SurveyContainerProps> = ({
+  surveyId,
+  responseId,
+  selectedLang,
 }) => {
+  const router = useRouter();
   const [survey, setSurvey] = useState<TransformedSurvey | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,26 +74,57 @@ const SurveyContainer: React.FC<SurveyContainerProps> = ({
   const [answers, setAnswers] = useState<AnswerState>({});
   const [navigationHistory, setNavigationHistory] = useState<number[]>([0]);
 
-  const router = useRouter();
   // loading state
   const [submitSuccess, setSubmitSuccess] = useState<boolean>(false);
-
   const [proj, setProj] = useState<ApiSurveyData | null>(null);
 
   // Fetch survey data
   useEffect(() => {
     const loadSurvey = async (): Promise<void> => {
       try {
-        console.log("fetching");
+        // console.log("fetching....");
         setLoading(true);
-        const apiData = await fetchSurveyQuestionnaire(surveyId);
-        console.log("Fetched survey data:", apiData);
+        if (!responseId && !surveyId) {
+          setError("Survey ID is required.");
+          return;
+        }
+        // console.log("continue fetching");
+        const apiData = await fetchSurveyQuestionnaire(surveyId, responseId);
+
+        // console.log("Fetched survey data:", apiData);
+        // set locale from survey data if available
+        if (apiData.locales) {
+          console.log("Setting locale from survey data:", apiData.locales);
+          localStorage.setItem(
+            "locales",
+            JSON.stringify(apiData.locales ?? ["en", "km"]),
+          );
+          window.dispatchEvent(new Event("languagesUpdated"));
+        }
+
         const transformedData = transformSurveyData(apiData);
         setSurvey(transformedData);
         setProj(apiData);
         setError(null);
       } catch (err) {
-        setError("Failed to load survey. Please try again.");
+        if (axios.isAxiosError(err)) {
+          const code = err.response?.data?.code;
+          const message = err.response?.data?.message;
+
+          console.error("Survey loading error:", code, message);
+
+          if (code === 32) {
+            // setError("You have already submitted this survey.");
+            router.replace(`/survey/thankyou?lang=${selectedLang}`);
+            return;
+          } else {
+            setError(message || "Failed to load survey. Please try again.");
+          }
+        } else {
+          console.error("Unexpected error:", err);
+          setError("Failed to load survey. Please try again.");
+        }
+        // setError("Failed to load survey. Please try again.");
         console.error("Survey loading error:", err);
       } finally {
         setLoading(false);
@@ -121,6 +188,7 @@ const SurveyContainer: React.FC<SurveyContainerProps> = ({
         });
         console.log("skip logic exist: ", applicableSkipLogic);
         // Apply skip logic if found
+        // @ts-expect-error - applicableSkipLogic type doesn't include action property
         if (
           applicableSkipLogic !== null &&
           applicableSkipLogic?.action === "go_to"
@@ -161,69 +229,95 @@ const SurveyContainer: React.FC<SurveyContainerProps> = ({
   };
 
   const handleSubmit = async (): Promise<void> => {
+    let isEdit = false;
+
     if (!survey || !proj) {
       console.error("No Survey");
       alert(`Survey or Project Not Found!`);
       return;
     }
 
+    const responseId = getCookie("response_id");
+
+    if (responseId) {
+      console.log("Response ID: ", responseId);
+      isEdit = true;
+    }
+
     setLoading(true);
     setSubmitSuccess(false);
 
     try {
-      const formattedDate = new Date().toISOString().split(".")[0];
-      const profile = getCookie("profile");
-      const decodeProfile = JSON.parse(profile ?? "");
-      const lat = getCookie("lat");
-      const long = getCookie("long");
+      if (responseId) {
+        const flatAnswers = extractValuesFromAnswers(answers);
+        const body: DataCollection["responses"] = flatAnswers;
+        const res = await editResponse(responseId, body);
 
-      const province = getCookie("province");
-      if (!province || !decodeProfile.email) {
-        console.error("no province");
-        alert(`Email and Province Not Found!`);
+        console.log("res edit: ", res);
+        deleteCookie("response_id");
+        deleteCookie("survey_code");
+        deleteCookie("survey_access_token");
+        setSubmitSuccess(true);
+
+        router.replace(`/survey/thankyou?lang=${selectedLang}&edit=1`);
+
         return;
-      }
+      } else {
+        const formattedDate = new Date().toISOString().split(".")[0];
+        const profile = getCookie("profile");
+        const decodeProfile = JSON.parse(profile ?? "");
+        const lat = getCookie("lat");
+        const long = getCookie("long");
 
-      const matchedLocation = proj.location.find(
-        (loc: ApiLocation) =>
-          loc.name_en.toLowerCase() === province.toLowerCase(),
-      );
+        const province = getCookie("province");
+        if (!province || !decodeProfile.email) {
+          console.error("no province");
+          alert(`Email and Province Not Found!`);
+          return;
+        }
 
-      const projLocations = proj.location
-        .map((loc: ApiLocation) => loc.name_en)
-        .join(", ");
-
-      if (!matchedLocation) {
-        console.log("no location");
-        alert(
-          `You are in wrong location. Your Location is ${province}. Required Location is ${projLocations}`,
+        const matchedLocation = proj.location.find(
+          (loc: ApiLocation) =>
+            loc.name_en.toLowerCase() === province.toLowerCase(),
         );
+
+        const projLocations = proj.location
+          .map((loc: ApiLocation) => loc.name_en)
+          .join(", ");
+
+        if (!matchedLocation) {
+          console.log("no location");
+          alert(
+            `You are in wrong location. Your Location is ${province}. Required Location is ${projLocations}`,
+          );
+          return;
+        }
+
+        const flatAnswers = extractValuesFromAnswers(answers);
+        const dataCollection: DataCollection = {
+          date: formattedDate,
+          respondent: {
+            name: `${decodeProfile.last_name ?? ""}${decodeProfile.first_name ?? ""}`,
+            email: decodeProfile.email ?? "",
+            user_id: decodeProfile.id ?? "",
+          },
+          location: {
+            lat: Number(lat) ?? 0,
+            lon: Number(long) ?? 0,
+            province: matchedLocation.id,
+          },
+          responses: flatAnswers,
+          survey_code: getCookie("survey_id") ?? "",
+        };
+
+        const res = await submitSurveyResponse(dataCollection);
+
+        console.log("res: ", res);
+
+        setSubmitSuccess(true);
+        router.replace(`/survey/thankyou?lang=${selectedLang}`);
         return;
       }
-
-      const flatAnswers = extractValuesFromAnswers(answers);
-      const dataCollection: DataCollection = {
-        date: formattedDate,
-        respondent: {
-          name: `${decodeProfile.last_name ?? ""}${decodeProfile.first_name ?? ""}`,
-          email: decodeProfile.email ?? "",
-          user_id: decodeProfile.id ?? "",
-        },
-        location: {
-          lat: Number(lat) ?? 0,
-          lon: Number(long) ?? 0,
-          province: matchedLocation.id,
-        },
-        responses: flatAnswers,
-        survey_code: getCookie("survey_id") ?? "",
-      };
-
-      const res = await submitSurveyResponse(dataCollection);
-
-      console.log("res: ", res);
-
-      setSubmitSuccess(true);
-      router.push("/survey/thankyou");
     } catch (err) {
       console.error("Submit error:", err);
       setError("Failed to submit the survey. Please try again.");
@@ -269,45 +363,69 @@ const SurveyContainer: React.FC<SurveyContainerProps> = ({
 
   return (
     <Container maxWidth="sm" sx={{ py: 2 }}>
-      <Paper
-        elevation={1}
+      <Box
         sx={{
-          borderRadius: 2,
           overflow: "hidden",
           height: "100%",
           display: "flex",
           flexDirection: "column",
         }}
       >
-        <SurveyHeader
-          title={`${survey.title} - ${isLastPage ? "Ready to Submit" : `Page ${currentPage + 1}`}`}
-        />
+        <Box
+          sx={{
+            mb: 1,
+            borderBottom: "1px solid #eee",
+            backgroundColor: "#ffffff",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            justifyContent: "center",
+            borderRadius: 2,
+            overflow: "hidden",
+          }}
+        >
+          <Box sx={{ width: "100%" }}>
+            <SurveyHeader
+              title={survey.title}
+              page={`${isLastPage ? "End of Survey" : `Page ${currentPage + 1}`}`}
+            />
+            <ProgressIndicator
+              currentStep={currentPage + 1}
+              totalSteps={totalPages}
+            />
+          </Box>
+          <Box sx={{ p: 2 }}>
+            <Typography variant="h6" fontWeight="bold">
+              {getLocaleValue(currentSection?.title, selectedLang)}
+            </Typography>
+            {currentSection?.description && (
+              <Typography variant="body2" color="text.secondary">
+                {getLocaleValue(currentSection.description, selectedLang)}
+              </Typography>
+            )}
+          </Box>
+        </Box>
 
-        <Box sx={{ p: 3, flex: 1, overflowY: "auto" }}>
+        <Box sx={{ flex: 1, overflowY: "auto" }}>
           <SectionContent
             section={currentSection}
             answers={answers}
             onAnswerChange={handleAnswerChange}
+            selectedLang={selectedLang}
           />
         </Box>
 
-        <Box sx={{ p: 2 }}>
-          <NavigationControls
-            onNext={handleNext}
-            onPrevious={handlePrevious}
-            onSubmit={handleSubmit}
-            showPrevious={!isFirstPage}
-            showNext={!isLastPage}
-            showSubmit={isLastPage}
-          />
-          <ProgressIndicator
-            currentStep={currentPage + 1}
-            totalSteps={totalPages}
-          />
-        </Box>
-      </Paper>
+        <NavigationControls
+          onNext={handleNext}
+          onPrevious={handlePrevious}
+          onSubmit={handleSubmit}
+          showPrevious={!isFirstPage}
+          showNext={!isLastPage}
+          showSubmit={isLastPage}
+        />
+      </Box>
     </Container>
   );
 };
 
-export default SurveyContainer;
+export default WebSurveyForm;

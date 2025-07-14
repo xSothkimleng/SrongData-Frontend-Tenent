@@ -3,155 +3,185 @@ import React, { useEffect, useState } from "react";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import { Box, Button } from "@mui/material";
-import SurveyContainer from "@/components/dashboard/WebSurvey";
-import { signIn } from "next-auth/react";
+import WebSurveyForm from "@/components/dashboard/WebSurvey";
+import { signIn, useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { getCookie, setCookie } from "@/utils/cookies";
 import { LongLat } from "@/types/locations";
-
-// Create a custom theme to match the design
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: "#6b5de3",
-    },
-    secondary: {
-      main: "#ff6b6b",
-    },
-    background: {
-      default: "#f7f7f7",
-    },
-  },
-  typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-    fontSize: 14,
-  },
-  components: {
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: 20,
-          textTransform: "none",
-        },
-      },
-    },
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          borderRadius: 12,
-        },
-      },
-    },
-  },
-});
+import { requestLocation } from "@/services/requestLocation";
+import LocationPermissionCard from "@/components/survey/locationPermissionCard";
+import LoginPermissionCard from "@/components/survey/loginPermissionCard";
+import MenuDropDown from "@/components/menuDropDown";
+import LanguageSelector, {
+  LANGUAGE_OPTIONS,
+  LanguageOption,
+} from "@/components/languageSelector";
+import { GetContext } from "@/utils/language";
 
 const App: React.FC = () => {
   const searchParams = useSearchParams();
   const surveyId = searchParams.get("s");
   const tenantId = searchParams.get("t");
+  const responseId = searchParams.get("r_id");
+
   const [allowAccessToSurvey, setAllowAccessToSurvey] = useState(false);
   const [locationData, setLocation] = useState<LongLat | null>(null);
-  const handleGoogleLogin = () => {
-    signIn("google");
+  const { data: session } = useSession();
+  const [loading, setLoading] = useState(true);
+
+  // localization
+  const [selectedLang, setSelectedLang] = useState<string>("en");
+  const [locales, setLocales] = useState<string[]>(["en"]);
+
+  // @ts-ignore
+  const handleSelectLanguage = (selectedOption: LanguageOption) => {
+    // console.log("selected lang: ", selectedOption);
+    setSelectedLang(selectedOption.value);
+    if (typeof window !== undefined) {
+      localStorage.setItem("lang", selectedOption.value);
+    }
   };
 
   useEffect(() => {
-    const init = async () => {
-      const surveyAccessToken = getCookie("survey_access_token");
+    const initEditData = async () => {
+      setLoading(true);
+      try {
+        console.log("init edit data");
+        if (!responseId) {
+          console.warn("no response id");
+          return;
+        }
 
-      if (surveyId !== null && tenantId !== null) {
-        if (surveyId) setCookie("survey_id", surveyId, 1 / 24);
-        if (tenantId) setCookie("tenant_id", tenantId, 1 / 24);
-      }
+        // if (surveyId) setCookie("survey_id", surveyId, 1 / 24);
+        if (responseId) setCookie("response_id", responseId, 1 / 24);
 
-      if (surveyAccessToken === null) {
-        signIn("google");
-        return;
-      }
+        const acc_token = session?.accessToken;
+        if (!acc_token) {
+          console.warn("Tenant has no access token");
+          return;
+        }
 
-      setAllowAccessToSurvey(true);
-
-      const location = await requestLocation();
-      if (location) {
-        setLocation(location);
+        setCookie("survey_access_token", acc_token, 12 / 24);
+        setAllowAccessToSurvey(true);
+      } finally {
+        setLoading(false);
       }
     };
 
-    init();
-  }, []);
+    const init = async () => {
+      setLoading(true);
+      try {
+        const surveyAccessToken = getCookie("survey_access_token");
 
-  const requestLocation = async (): Promise<LongLat | null> => {
-    return new Promise((resolve) => {
-      if (!navigator.geolocation) {
-        console.warn("Geolocation is not supported.");
-        resolve(null);
-        return;
+        if (surveyId && tenantId) {
+          setCookie("survey_id", surveyId, 1 / 24);
+          setCookie("tenant_id", tenantId, 1 / 24);
+        }
+
+        if (!surveyAccessToken) return;
+
+        setAllowAccessToSurvey(true);
+        const location = await requestLocation();
+        if (location) setLocation(location);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (responseId !== null) {
+      initEditData();
+    } else {
+      init();
+    }
+  }, [responseId, surveyId, tenantId, session, selectedLang]);
+
+  useEffect(() => {
+    const defaultLocales = ["en", "km"];
+
+    const initLocales = () => {
+      const storedLocales = localStorage.getItem("locales");
+
+      if (!storedLocales) {
+        localStorage.setItem("locales", JSON.stringify(defaultLocales));
+        setLocales(defaultLocales);
+      } else {
+        try {
+          const parsed = JSON.parse(storedLocales);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setLocales(parsed);
+          } else {
+            throw new Error("Invalid or empty locales");
+          }
+        } catch (e) {
+          console.warn("Invalid locales in localStorage, resetting.");
+          localStorage.setItem("locales", JSON.stringify(defaultLocales));
+          setLocales(defaultLocales);
+        }
       }
 
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          setCookie("lat", latitude.toString(), 1 / 24);
-          setCookie("long", longitude.toString(), 1 / 24);
-          console.log("Location saved:", latitude, longitude);
+      const lang = localStorage.getItem("lang");
+      if (lang && defaultLocales.includes(lang)) {
+        setSelectedLang(lang);
+      } else {
+        setSelectedLang("en");
+        localStorage.setItem("lang", "en");
+      }
+    };
 
-          // Do reverse geocoding in a separate async function
-          (async () => {
-            try {
-              const res = await fetch(
-                `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
-                {
-                  headers: {
-                    "User-Agent": "YourAppName/1.0 (you@example.com)",
-                  },
-                },
-              );
-              const data = await res.json();
-              const address = data.address || {};
+    // Run on mount
+    initLocales();
 
-              if (address.state) setCookie("province", address.state, 1 / 24);
-              if (address.town) setCookie("city", address.town, 1 / 24);
-              if (address.village)
-                setCookie("district", address.village, 1 / 24);
-              if (address.neighbourhood || address.hamlet)
-                setCookie(
-                  "commune",
-                  address.neighbourhood || address.hamlet,
-                  1,
-                );
-              console.log("Address info saved:", address);
-            } catch (err) {
-              console.error("Error during reverse geocoding:", err);
-            }
+    // Listen for language update from child component
+    const handleLocalesUpdate = () => {
+      initLocales();
+    };
 
-            resolve({ long: longitude, lat: latitude });
-          })();
-        },
-        (error) => {
-          console.warn("Location access denied or error:", error.message);
-          resolve(null);
-        },
-      );
-    });
-  };
+    window.addEventListener("languagesUpdated", handleLocalesUpdate);
+    return () => {
+      window.removeEventListener("languagesUpdated", handleLocalesUpdate);
+    };
+  }, []);
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
+    <Box>
+      <LanguageSelector
+        availableOptions={locales}
+        selectedLang={selectedLang}
+        onSelectLanguage={handleSelectLanguage}
+      />
+
       {allowAccessToSurvey ? (
         <Box
           sx={{
             minHeight: "100vh",
-            background: "linear-gradient(to bottom, #f7f7f7, #e0e0e0)",
+            background: "#ebf4f3",
             py: 2,
           }}
         >
-          {locationData !== null ? (
-            <SurveyContainer surveyId={surveyId ?? undefined} />
+          {responseId === null && locationData === null ? (
+            <Box
+              sx={{
+                height: "100vh",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <LocationPermissionCard
+                title={GetContext("location_request_title", selectedLang)}
+                description={GetContext(
+                  "location_request_description",
+                  selectedLang,
+                )}
+              />
+            </Box>
           ) : (
-            <Button onClick={requestLocation}>
-              Allow location to continue
-            </Button>
+            <WebSurveyForm
+              surveyId={surveyId ?? undefined}
+              responseId={responseId ?? undefined}
+              selectedLang={selectedLang ?? "en"}
+            />
           )}
         </Box>
       ) : (
@@ -164,12 +194,15 @@ const App: React.FC = () => {
             alignItems: "center",
           }}
         >
-          <Button onClick={() => handleGoogleLogin()} variant="contained">
-            Login To Google to continue
-          </Button>
+          <LoginPermissionCard
+            title={""}
+            description={""}
+            loading={loading}
+            lang={selectedLang}
+          />
         </Box>
       )}
-    </ThemeProvider>
+    </Box>
   );
 };
 

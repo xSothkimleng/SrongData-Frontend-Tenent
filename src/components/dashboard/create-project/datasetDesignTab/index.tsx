@@ -24,6 +24,7 @@ import useLang from '@/store/lang';
 import SkipLogicDialog from './skipLogicDialog';
 import SortableSectionContainer from './sortableSectionContainer';
 import SortableQuestionContainer from './sortableQuestionContainer';
+import { Locale } from '@/types/projectDetail';
 
 interface DatasetDesignTabProps {
   questionTypes: QuestionType[];
@@ -47,7 +48,7 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
   const [activeDialog, setActiveDialog] = useState<{
     isOpen: boolean;
     formIndex: number | null;
-    optionValue: string | null;
+    optionValue: number | null;
   }>({
     isOpen: false,
     formIndex: null,
@@ -62,7 +63,13 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
     if (!initialized.current) {
       if (dataDesignForms.length === 0) {
         // Initialize with default data
-        setSections([{ order: 1, title: 'Section 1', description: '' }]);
+        setSections([
+          {
+            order: 1,
+            title: { en: 'Section 1', km: 'វគ្គ ១' },
+            description: { en: '', km: '' },
+          },
+        ]);
         setDataDesignForms([
           {
             order: 1,
@@ -74,7 +81,11 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
             data_type: '',
             is_required: true,
             options: [],
-            section: { order: 1, title: 'Section 1', description: '' },
+            section: {
+              order: 1,
+              title: { en: 'Section 1', km: 'វគ្គ ១' },
+              description: { en: '', km: '' },
+            },
             skip_logics: null,
           },
         ]);
@@ -215,8 +226,8 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
       ...prevSections,
       {
         order: prevSections.length + 1,
-        title: `section ${prevSections.length + 1}`,
-        description: '',
+        title: { en: `section ${prevSections.length + 1}`, km: '' },
+        description: { en: '', km: '' },
       },
     ]);
   }, []);
@@ -225,32 +236,119 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
     console.log('Data', dataDesignForms);
   };
 
-  const handleUpdateSectionTitle = useCallback((sectionOrder: number, newTitle: string) => {
+  const handleUpdateSectionTitle = useCallback((sectionOrder: number, newTitle: string, isEnglish: boolean) => {
+    console.log('title section: ', newTitle, ' is english: ', isEnglish);
     // Update sections state
-    setSections(prevSections =>
-      prevSections.map(section => (section.order === sectionOrder ? { ...section, title: newTitle } : section)),
-    );
+    if (isEnglish) {
+      setSections(prevSections =>
+        prevSections.map(section =>
+          section.order === sectionOrder ? { ...section, title: { ...section.title, en: newTitle } } : section,
+        ),
+      );
 
-    // Also update the section reference in all forms that belong to this section
-    setDataDesignForms(prevForms =>
-      prevForms.map(form =>
-        form.section?.order === sectionOrder ? { ...form, section: { ...form.section, title: newTitle } } : form,
-      ),
-    );
+      // Also update the section reference in all forms that belong to this section
+      setDataDesignForms(prevForms =>
+        prevForms.map(form =>
+          form.section?.order === sectionOrder
+            ? {
+                ...form,
+                section: {
+                  ...form.section,
+                  title: { ...form.section.title, en: newTitle },
+                },
+              }
+            : form,
+        ),
+      );
+    } else {
+      setSections(prevSections =>
+        prevSections.map(section =>
+          section.order === sectionOrder ? { ...section, title: { ...section.title, km: newTitle } } : section,
+        ),
+      );
+
+      // Also update the section reference in all forms that belong to this section
+      setDataDesignForms(prevForms =>
+        prevForms.map(form =>
+          form.section?.order === sectionOrder
+            ? {
+                ...form,
+                section: {
+                  ...form.section,
+                  title: { ...form.section.title, km: newTitle },
+                },
+              }
+            : form,
+        ),
+      );
+    }
   }, []);
 
-  const handleUpdateSectionDescription = useCallback((sectionOrder: number, newDescription: string) => {
-    // Update sections state
-    setSections(prevSections =>
-      prevSections.map(section => (section.order === sectionOrder ? { ...section, description: newDescription } : section)),
-    );
+  const handleUpdateSectionDescription = useCallback((sectionOrder: number, newDescription: string, isEnglish: boolean) => {
+    console.log('desc: ', newDescription, ' Desc lang is english: ', isEnglish);
+    if (isEnglish) {
+      // for english section desc
+      // Update sections state
+      setSections(prevSections =>
+        prevSections.map(section =>
+          section.order === sectionOrder
+            ? {
+                ...section,
+                description: { ...section.description, en: newDescription },
+              }
+            : section,
+        ),
+      );
 
-    // Also update the section reference in all forms that belong to this section
-    setDataDesignForms(prevForms =>
-      prevForms.map(form =>
-        form.section?.order === sectionOrder ? { ...form, section: { ...form.section, description: newDescription } } : form,
-      ),
-    );
+      // Also update the section reference in all forms that belong to this section
+      setDataDesignForms(prevForms =>
+        prevForms.map(form =>
+          form.section?.order === sectionOrder
+            ? {
+                ...form,
+                section: {
+                  ...form.section,
+                  description: {
+                    ...form.section.description,
+                    en: newDescription,
+                  },
+                },
+              }
+            : form,
+        ),
+      );
+    } else {
+      // for khmer desc
+      // Update sections state
+      setSections(prevSections =>
+        prevSections.map(section =>
+          section.order === sectionOrder
+            ? {
+                ...section,
+                description: { ...section.description, km: newDescription },
+              }
+            : section,
+        ),
+      );
+
+      // Also update the section reference in all forms that belong to this section
+      setDataDesignForms(prevForms =>
+        prevForms.map(form =>
+          form.section?.order === sectionOrder
+            ? {
+                ...form,
+                section: {
+                  ...form.section,
+                  description: {
+                    ...form.section.description,
+                    km: newDescription,
+                  },
+                },
+              }
+            : form,
+        ),
+      );
+    }
   }, []);
 
   const handleRemoveSection = useCallback(
@@ -478,10 +576,15 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
             <SortableSectionContainer
               key={section.order}
               order={section.order}
+              isSurveyLanguageInEnglish={isSurveyLanguageInEnglish}
+              isSurveyLanguageInKhmer={isSurveyLanguageInKhmer}
               title={section.title}
+              description={section.description}
               onRemove={() => handleRemoveSection(section.order)}
-              onTitleChange={newTitle => handleUpdateSectionTitle(section.order, newTitle)}
-              onDescriptionChange={newDescription => handleUpdateSectionDescription(section.order, newDescription)}>
+              onTitleChange={(newTitle, isEnglish) => handleUpdateSectionTitle(section.order, newTitle, isEnglish)}
+              onDescriptionChange={(newDescription, isEnglish) =>
+                handleUpdateSectionDescription(section.order, newDescription, isEnglish)
+              }>
               {/* Questions within the section */}
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                 <SortableContext items={forms.map(form => form.order)} strategy={verticalListSortingStrategy}>
@@ -490,7 +593,7 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                       <Grid item xs={12} key={form.order}>
                         <SortableQuestionContainer
                           order={form.order}
-                          title={form.label.en ? form.label.en : 'Question Not Set'}
+                          // title={form.label.en ? form.label.en : 'Question Not Set'}
                           onRemove={() => handleRemoveForm(form.order)}>
                           <Grid container spacing={2}>
                             <Grid
@@ -635,7 +738,7 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                                             setActiveDialog({
                                               isOpen: true,
                                               formIndex: formIndex,
-                                              optionValue: optionValue.en,
+                                              optionValue: optionIndex,
                                             });
                                           }}>
                                           {hasSkipLogic ? 'Edit Skip Logic' : 'Add Skip Logic'}
@@ -708,7 +811,7 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                                             setActiveDialog({
                                               isOpen: true,
                                               formIndex: formIndex,
-                                              optionValue: optionValue.en,
+                                              optionValue: optionIndex,
                                             });
                                           }}>
                                           {hasSkipLogic ? 'Edit Skip Logic' : 'Add Skip Logic'}
@@ -791,7 +894,7 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                                             setActiveDialog({
                                               isOpen: true,
                                               formIndex: formIndex,
-                                              optionValue: optionValue.en,
+                                              optionValue: optionIndex,
                                             });
                                           }}>
                                           {hasSkipLogic ? 'Edit Skip Logic' : 'Add Skip Logic'}
@@ -831,7 +934,7 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                   color='primary'
                   startIcon={<AddCircleOutlineIcon />}
                   onClick={() => handleAddQuestion(section.order)}>
-                  Add Question To {section.title}
+                  Add Question To Section
                 </Button>
               </Box>
             </SortableSectionContainer>
@@ -862,10 +965,11 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
           }
           formList={dataDesignForms}
           sectionList={sections}
-          optionValue={activeDialog.formIndex}
+          optionValue={activeDialog.optionValue}
           formIndex={activeDialog.formIndex}
           handleSkipLogicSave={handleSkipLogicSave}
-          currentSkipLogic={getSkipLogicForOption(activeDialog.formIndex, activeDialog.formIndex)}
+          currentSkipLogic={getSkipLogicForOption(activeDialog.formIndex, activeDialog.optionValue)}
+          lang={lang}
         />
       )}
     </Box>

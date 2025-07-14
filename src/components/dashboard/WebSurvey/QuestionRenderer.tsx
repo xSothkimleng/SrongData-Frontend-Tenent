@@ -19,14 +19,19 @@ interface QuestionRendererProps {
   question: ApiQuestion;
   value?: string | number | number[];
   onChange: (value: string | number | number[]) => void;
+  selectedLang?: string;
 }
 
 const QuestionRenderer: React.FC<QuestionRendererProps> = ({
   question,
   value,
   onChange,
+  selectedLang,
 }) => {
   const { type, label, is_required, options, data_type } = question;
+
+  console.log("options:", options);
+
   type ValueType = QuestionRendererProps["value"];
 
   const [selectedValues, setSelectedValues] = useState<ValueType>(
@@ -49,7 +54,10 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
   const handleSingleChange = (
     event: React.ChangeEvent<HTMLInputElement>,
   ): void => {
-    const newValue = event.target.value;
+    // parse selected index to number (also work for string, but i wanna parse, so what???)
+    const newValue = Number(event.target.value) ?? 0;
+
+    // console.log("type of single select: ", typeof newValue);
     setSelectedValues(newValue);
     onChange(newValue);
   };
@@ -93,7 +101,6 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
             placeholder="Your answer"
             variant="outlined"
             size="small"
-            sx={{ mt: 1 }}
             value={selectedValues}
             onChange={handleTextChange}
           />
@@ -108,7 +115,6 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
             placeholder="Enter number"
             variant="outlined"
             size="small"
-            sx={{ mt: 1 }}
             value={selectedValues}
             onChange={handleTextChange}
           />
@@ -123,7 +129,6 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
             placeholder="Your detailed answer..."
             variant="outlined"
             size="small"
-            sx={{ mt: 1 }}
             value={selectedValues}
             onChange={handleTextChange}
           />
@@ -131,36 +136,39 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
 
       case "single":
         return (
-          <RadioGroup
-            sx={{ mt: 1 }}
-            value={selectedValues}
-            onChange={handleSingleChange}
-          >
-            {options?.map((option, index) => (
-              <FormControlLabel
-                key={index}
-                value={index}
-                control={<Radio size="small" />}
-                label={
-                  typeof option === "object" &&
-                  option !== null &&
-                  "en" in option
-                    ? option.en || (option.km ? option.km : "")
-                    : String(option)
-                }
-                sx={{
-                  "& .MuiFormControlLabel-label": {
-                    fontSize: "0.9rem",
-                  },
-                }}
-              />
-            ))}
+          <RadioGroup value={selectedValues} onChange={handleSingleChange}>
+            {options?.map((option, index) => {
+              return (
+                <FormControlLabel
+                  key={index}
+                  value={index}
+                  control={<Radio size="small" />}
+                  label={
+                    typeof option === "object" &&
+                    option !== null &&
+                    selectedLang &&
+                    option[selectedLang as keyof typeof option]
+                      ? option[selectedLang as keyof typeof option]
+                      : typeof option === "object" &&
+                          option !== null &&
+                          "en" in option
+                        ? option.en || (option.km ? option.km : "")
+                        : String(option)
+                  }
+                  sx={{
+                    "& .MuiFormControlLabel-label": {
+                      fontSize: "0.9rem",
+                    },
+                  }}
+                />
+              );
+            })}
           </RadioGroup>
         );
 
       case "multiple":
         return (
-          <FormGroup sx={{ mt: 1 }}>
+          <FormGroup>
             {options?.map((option, index) => {
               const isChecked =
                 Array.isArray(selectedValues) && selectedValues.includes(index);
@@ -179,9 +187,14 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
                   label={
                     typeof option === "object" &&
                     option !== null &&
-                    "en" in option
-                      ? option.en || (option.km ? option.km : "")
-                      : String(option)
+                    selectedLang &&
+                    option[selectedLang as keyof typeof option]
+                      ? option[selectedLang as keyof typeof option]
+                      : typeof option === "object" &&
+                          option !== null &&
+                          "en" in option
+                        ? option.en || (option.km ? option.km : "")
+                        : String(option)
                   }
                   sx={{
                     "& .MuiFormControlLabel-label": {
@@ -195,7 +208,7 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
         );
       case "dropdown":
         return (
-          <FormControl fullWidth size="small" sx={{ mt: 1 }}>
+          <FormControl fullWidth size="small">
             <InputLabel id={`dropdown-label-${question.id}`}>
               Select an option
             </InputLabel>
@@ -210,9 +223,14 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
                 <MenuItem key={index} value={index}>
                   {typeof option === "object" &&
                   option !== null &&
-                  "en" in option
-                    ? option.en || (option.km ? option.km : "")
-                    : String(option)}
+                  selectedLang &&
+                  option[selectedLang as keyof typeof option]
+                    ? option[selectedLang as keyof typeof option]
+                    : typeof option === "object" &&
+                        option !== null &&
+                        "en" in option
+                      ? option.en || (option.km ? option.km : "")
+                      : String(option)}
                 </MenuItem>
               ))}
             </Select>
@@ -226,12 +244,12 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
     }
   };
 
-  // console.log("question label: ", label);
-
   return (
-    <Box sx={{ mb: 4 }}>
+    <Box sx={{ mb: 1, p: 2, background: "#fff", borderRadius: 2 }}>
       <Typography variant="body1" fontWeight="medium">
-        {label.en ?? label.km ?? "N/A"}
+        {selectedLang && label[selectedLang as keyof typeof label]
+          ? label[selectedLang as keyof typeof label]
+          : "N/A"}
         {requiredMarker}
       </Typography>
       {renderQuestionContent()}

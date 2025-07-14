@@ -100,7 +100,7 @@ const language: {
     km: "បង្កើតQR",
   },
   request_logs: {
-    en: "Request Logs",
+    en: "All Logs",
     km: "ទិន្នន័យដែលបានស្នើសុំ",
   },
   active: {
@@ -794,6 +794,62 @@ const language: {
   combined_project: {
     en: "Combined Project",
     km: "គម្រោងរួមបញ្ចូលគ្នា",
+  },
+  thank_you_web: {
+    en: "Thank you for your response!",
+    km: "សូមអរគុណចំពោះការឆ្លើយតបរបស់អ្នក!",
+  },
+  thank_you_web_description: {
+    en: "We are looking forward to work with you again later. Have a good day!",
+    km: "យើងរំពឹងថានឹងបានធ្វើការជាមួយអ្នកម្ដងទៀត។ សូមអរគុណ និងសូមអោយមានថ្ងៃល្អ!",
+  },
+  thank_you_web_note: {
+    en: "Note: Only one email is allowed per response.",
+    km: "ចំណាំ៖ អ៊ីមែលតែមួយប៉ុណ្ណោះត្រូវបានអនុញ្ញាតសម្រាប់ការឆ្លើយតបមួយដង។",
+  },
+  thank_you_edit: {
+    en: "You have edited your data successfully!",
+    km: "អ្នកបានកែសម្រួលទិន្នន័យដោយជោគជ័យ!",
+  },
+  thank_you_edit_description: {
+    en: "Your submission has been updated. Thank you!",
+    km: "ការដាក់ស្នើរបស់អ្នកត្រូវបានធ្វើបច្ចុប្បន្នភាព។ សូមអរគុណ!",
+  },
+  thank_you_edit_note: {
+    en: "Click here to go back",
+    km: "ចុចទីនេះដើម្បីត្រលប់ក្រោយ",
+  },
+  google_login_title: {
+    en: "Please Login to Continue",
+    km: "សូមចូលគណនីដើម្បីបន្ត",
+  },
+  google_login_desc: {
+    en: "Please login with Google account to access the survey",
+    km: "សូមចូលគណនី Google របស់អ្នកដើម្បីចូលប្រើសំណួរ",
+  },
+  google_login_button: {
+    en: "Login with Google",
+    km: "ចូលដោយប្រើ Google",
+  },
+  google_login_not_now: {
+    en: "Not now",
+    km: "មិនមែនឥឡូវនេះទេ",
+  },
+  location_request_title: {
+    en: "ENABLE YOUR LOCATION",
+    km: "អនុញ្ញាតឲ្យប្រើទីតាំងរបស់អ្នក",
+  },
+  location_request_description: {
+    en: "Please allow us to access your location service",
+    km: "សូមអនុញ្ញាតឲ្យយើងបានចូលប្រើសេវាទីតាំងរបស់អ្នក",
+  },
+  section_title: {
+    en: "Section",
+    km: "ផ្នែក",
+  },
+  location_about: {
+    en: "Locations",
+    km: "ទីតាំង",
   },
 };
 
