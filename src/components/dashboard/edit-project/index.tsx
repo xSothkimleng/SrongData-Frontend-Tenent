@@ -255,6 +255,7 @@ const EditProjectPage: React.FC<EditProjectPageProps> = ({
 
   const updateProjectMutation = useMutation<unknown, Error, any>({
     mutationFn: async (data: any) => {
+      console.log("update data: ", data);
       const encodedIds = encodeURIComponent(`${projectDetail.id}`);
       const res = await axios.put(
         `/api/update-project-detail/${encodedIds}`,

@@ -38,6 +38,7 @@ export async function PUT(req: NextRequest) {
       questions,
       users,
       locales,
+      method,
     } = body;
     // console.log('project Detail', body);
 
@@ -58,6 +59,7 @@ export async function PUT(req: NextRequest) {
         project_location: project_location,
         questions: questions,
         users: users,
+        method: method,
         locales: locales,
       }),
       {
