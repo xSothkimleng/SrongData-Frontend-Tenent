@@ -553,6 +553,7 @@ const ChartCard: React.FC<{
   // console.log("Quesitons: ", question);
   return (
     <Card
+      id={`chart-${question.id}`}
       variant="outlined"
       sx={{ height: "100%", display: "flex", flexDirection: "column" }}
     >
@@ -1218,7 +1219,9 @@ const DataViewPage = () => {
       });
 
       console.log("res chart view: ", response);
+      const projectName = projectsDetails[projectId]?.name || projectId;
 
+      question.project_name = projectName;
       // Update chart data with fetched data
       setChartDataMap((prev) => ({
         ...prev,
@@ -1445,11 +1448,15 @@ const DataViewPage = () => {
   // Download a single chart
   const handleDownloadChart = async (questionId: string) => {
     const chartData = chartDataMap[questionId];
+    console.log("chart data: ", chartData);
     if (!chartData) return;
 
     // Find the chart's DOM element
     const chartContainer = document.getElementById(`chart-${questionId}`);
-    if (!chartContainer) return;
+    if (!chartContainer) {
+      console.warn("no chart container found");
+      return;
+    }
 
     try {
       const canvas = await html2canvas(chartContainer);
@@ -1872,7 +1879,7 @@ const DataViewPage = () => {
           {isDataReady && masterProjectDetails && (
             <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
               <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-                2. Select Questions and Filter Data
+                2. Select Questions
               </Typography>
 
               <FormControl sx={{ minWidth: "100%", marginBottom: 2 }}>
@@ -1926,15 +1933,15 @@ const DataViewPage = () => {
               </FormControl>
 
               <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                {selectedQuestions.length > 0 && (
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={() => setOpenDrawer(true)}
-                  >
-                    {GetContext("filter", lang)}
-                  </Button>
-                )}
+                {/* {selectedQuestions.length > 0 && ( */}
+                {/*   <Button */}
+                {/*     variant="contained" */}
+                {/*     color="primary" */}
+                {/*     onClick={() => setOpenDrawer(true)} */}
+                {/*   > */}
+                {/*     {GetContext("filter", lang)} */}
+                {/*   </Button> */}
+                {/* )} */}
 
                 {selectedQuestions.length > 0 && (
                   <Button
@@ -1946,16 +1953,16 @@ const DataViewPage = () => {
                   </Button>
                 )}
 
-                {selectedQuestions.length > 0 && (
-                  <Button
-                    variant="contained"
-                    color="success"
-                    startIcon={<PictureAsPdfIcon />}
-                    onClick={handleExportAllCharts}
-                  >
-                    Export All Charts
-                  </Button>
-                )}
+                {/* {selectedQuestions.length > 0 && ( */}
+                {/*   <Button */}
+                {/*     variant="contained" */}
+                {/*     color="success" */}
+                {/*     startIcon={<PictureAsPdfIcon />} */}
+                {/*     onClick={handleExportAllCharts} */}
+                {/*   > */}
+                {/*     Export All Charts */}
+                {/*   </Button> */}
+                {/* )} */}
 
                 {masterProjectDetails && (
                   <Button
@@ -1991,14 +1998,14 @@ const DataViewPage = () => {
                   </Typography>
                 </Box>
 
-                <Box
-                  sx={{ p: 1, border: "1px solid #e0e0e0", borderRadius: 1 }}
-                >
-                  <Typography variant="body2" color="text.secondary">
-                    Total Records
-                  </Typography>
-                  <Typography variant="h6">{totalData}</Typography>
-                </Box>
+                {/* <Box */}
+                {/*   sx={{ p: 1, border: "1px solid #e0e0e0", borderRadius: 1 }} */}
+                {/* > */}
+                {/*   <Typography variant="body2" color="text.secondary"> */}
+                {/*     Total Records */}
+                {/*   </Typography> */}
+                {/*   <Typography variant="h6">{totalData}</Typography> */}
+                {/* </Box> */}
 
                 <Box
                   sx={{ p: 1, border: "1px solid #e0e0e0", borderRadius: 1 }}
