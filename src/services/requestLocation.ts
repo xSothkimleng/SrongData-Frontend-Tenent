@@ -9,14 +9,14 @@ export const requestLocation = async (): Promise<LongLat | null> => {
       return;
     }
 
-    navigator.geolocation.watchPosition(
-      (position) => {
-        console.log(position.coords.latitude, position.coords.longitude);
-      },
-      (error) => {
-        console.log("Error watch position: ", error);
-      },
-    );
+    // navigator.geolocation.watchPosition(
+    //   (position) => {
+    //     console.log(position.coords.latitude, position.coords.longitude);
+    //   },
+    //   (error) => {
+    //     console.log("Error watch position: ", error);
+    //   },
+    // );
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
