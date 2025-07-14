@@ -55,7 +55,7 @@ const DataViewSelectProjects = ({
         1. Select Projects
       </Typography>
 
-      <FormControl sx={{ minWidth: '100%', mb: 2 }}>
+      <FormControl sx={{ width: '100%', mb: 2 }}>
         <InputLabel id='project-select'>
           {selectedProjects.length === 0 ? GetContext('select_project_msg', lang) : GetContext('select_project', lang)}{' '}
         </InputLabel>

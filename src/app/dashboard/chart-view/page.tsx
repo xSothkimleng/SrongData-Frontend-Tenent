@@ -244,27 +244,6 @@ const AddQuestions: Question[] = [
     created_at: '',
     updated_at: '',
   },
-<<<<<<< HEAD
-  {
-    id: 'project',
-    order: -1,
-    label: { en: 'Project', km: 'គម្រោង' },
-    type: 'project',
-    data_type: 'array',
-    options: [],
-    is_required: false,
-    skip_logics: [],
-    section: {
-      id: '',
-      title: { en: '', km: '' },
-      description: { en: '', km: '' },
-      order: 0,
-    },
-    is_active: true,
-    created_at: '',
-    updated_at: '',
-  },
-=======
   // {
   //   id: "project",
   //   order: -1,
@@ -284,7 +263,6 @@ const AddQuestions: Question[] = [
   //   created_at: "",
   //   updated_at: "",
   // },
->>>>>>> ef707926e79fb11e33f43fb8f9c22511bb9a2e34
 ];
 
 interface FilterItemProps {
@@ -370,34 +348,19 @@ const FilterItem: React.FC<FilterItemProps> = ({ filter, index, handleFilterChan
             onChange={event => {
               handleFilterChange(event, index);
             }}
-<<<<<<< HEAD
             renderValue={selected => {
-              return selected
-                .map(value => {
-                  return filter.options[value];
-=======
-            renderValue={(selected) => {
-              console.log("selected value: ", selected);
+              console.log('selected value: ', selected);
               return selected
                 .map((value, i) => {
                   const opt = filter.options[value];
-                  return typeof opt === "object"
-                    ? lang == "en"
-                      ? (opt.en ?? "N/A")
-                      : (opt.km ?? "N/A")
-                    : "N/A";
->>>>>>> ef707926e79fb11e33f43fb8f9c22511bb9a2e34
+                  return typeof opt === 'object' ? (lang == 'en' ? opt.en ?? 'N/A' : opt.km ?? 'N/A') : 'N/A';
                 })
                 .join(', ');
             }}>
             {filter.options.map((option, i) => (
               <MenuItem key={i} value={i}>
                 <Checkbox checked={filter.values.indexOf(i) > -1} />
-                <ListItemText
-                  primary={
-                    lang == "en" ? (option.en ?? "N/A") : (option.km ?? "N/A")
-                  }
-                />
+                <ListItemText primary={lang == 'en' ? option.en ?? 'N/A' : option.km ?? 'N/A'} />
               </MenuItem>
             ))}
           </Select>
@@ -432,35 +395,6 @@ const FilterItem: React.FC<FilterItemProps> = ({ filter, index, handleFilterChan
         </FormControl>
       )}
 
-<<<<<<< HEAD
-      {filter.data_type == 'array' && filter.index == -1 && filter.type == 'project' && (
-        <FormControl fullWidth sx={{ marginBottom: '10px' }}>
-          <InputLabel id={`multi-select-label-${index}`}>{GetContext('select_option', lang)}</InputLabel>
-          <Select
-            labelId={`multi-select-label-${index}`}
-            multiple
-            value={filter.values}
-            onChange={event => {
-              handleFilterChange(event, index);
-            }}
-            renderValue={selected => {
-              return selected
-                .map(value => {
-                  const option = filter.options.find(option => value == option.id);
-                  return option ? option.name_en : '';
-                })
-                .join(', ');
-            }}>
-            {filter.options.map((option, i) => (
-              <MenuItem key={i} value={option.id}>
-                <Checkbox checked={filter.values.indexOf(option.id) > -1} />
-                <ListItemText primary={option.name_en} />
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      )}
-=======
       {/* {filter.data_type == "array" && */}
       {/*   filter.index == -1 && */}
       {/*   filter.type == "project" && ( */}
@@ -495,7 +429,6 @@ const FilterItem: React.FC<FilterItemProps> = ({ filter, index, handleFilterChan
       {/*       </Select> */}
       {/*     </FormControl> */}
       {/*   )} */}
->>>>>>> ef707926e79fb11e33f43fb8f9c22511bb9a2e34
 
       {filter.data_type == 'array' && filter.index == -1 && filter.type == 'user' && (
         <FormControl fullWidth sx={{ marginBottom: '10px' }}>
@@ -571,19 +504,9 @@ const ChartCard: React.FC<{
     ? `${getLocaleValue(question.label, lang)} (${getLocaleValue(question.project_name, lang)})`
     : getLocaleValue(question.label, lang);
 
-<<<<<<< HEAD
-  console.log('Quesitons: ', question, '\ndataset: ', data);
-  return (
-    <Card variant='outlined' sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-=======
   // console.log("Quesitons: ", question);
   return (
-    <Card
-      id={`chart-${question.id}`}
-      variant="outlined"
-      sx={{ height: "100%", display: "flex", flexDirection: "column" }}
-    >
->>>>>>> ef707926e79fb11e33f43fb8f9c22511bb9a2e34
+    <Card id={`chart-${question.id}`} variant='outlined' sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <CardContent sx={{ p: 2, pb: 1, flexGrow: 0 }}>
         <Box
           sx={{
@@ -965,16 +888,9 @@ const DataViewPage = () => {
     // Merge all projects
     for (const projectId in projectsDetails) {
       const project = projectsDetails[projectId];
-<<<<<<< HEAD
+      console.log('merge project: ', project);
       const projectStatus = projectLoadingStatus.find(p => p.projectId === projectId);
       const projectColor = projectStatus?.color || '#000000';
-=======
-      console.log("merge project: ", project);
-      const projectStatus = projectLoadingStatus.find(
-        (p) => p.projectId === projectId,
-      );
-      const projectColor = projectStatus?.color || "#000000";
->>>>>>> ef707926e79fb11e33f43fb8f9c22511bb9a2e34
 
       // Merge questions
       project.questions.forEach(question => {
@@ -1199,7 +1115,7 @@ const DataViewPage = () => {
         body,
       });
 
-      console.log("res chart view: ", response);
+      console.log('res chart view: ', response);
       const projectName = projectsDetails[projectId]?.name || projectId;
 
       question.project_name = projectName;
@@ -1304,7 +1220,7 @@ const DataViewPage = () => {
       };
       const colorIndex = index % PROJECT_COLORS.length;
 
-      console.log("here");
+      console.log('here');
 
       newProjectStatus.push({
         projectId,
@@ -1406,13 +1322,13 @@ const DataViewPage = () => {
   // Download a single chart
   const handleDownloadChart = async (questionId: string) => {
     const chartData = chartDataMap[questionId];
-    console.log("chart data: ", chartData);
+    console.log('chart data: ', chartData);
     if (!chartData) return;
 
     // Find the chart's DOM element
     const chartContainer = document.getElementById(`chart-${questionId}`);
     if (!chartContainer) {
-      console.warn("no chart container found");
+      console.warn('no chart container found');
       return;
     }
 
@@ -1598,7 +1514,7 @@ const DataViewPage = () => {
               1. Select Projects
             </Typography>
 
-            <FormControl sx={{ minWidth: '100%', mb: 2 }}>
+            <FormControl sx={{ width: '100%', mb: 2 }}>
               <InputLabel id='project-select'>
                 {selectedProjects.length === 0 ? GetContext('select_project_msg', lang) : GetContext('select_project', lang)}{' '}
               </InputLabel>
@@ -1780,18 +1696,12 @@ const DataViewPage = () => {
 
           {/* Question Selection and Filtering - Only show when data is ready */}
           {isDataReady && masterProjectDetails && (
-<<<<<<< HEAD
             <Paper variant='outlined' sx={{ p: 2, mb: 2 }}>
               <Typography variant='subtitle1' fontWeight='bold' gutterBottom>
-                2. Select Questions and Filter Data
-=======
-            <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
-              <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
                 2. Select Questions
->>>>>>> ef707926e79fb11e33f43fb8f9c22511bb9a2e34
               </Typography>
 
-              <FormControl sx={{ minWidth: '100%', marginBottom: 2 }}>
+              <FormControl sx={{ width: '100%', marginBottom: 2 }}>
                 <InputLabel id='select-question'>
                   {selectedQuestions.length === 0 ? GetContext('select_question_msg', lang) : GetContext('select_question', lang)}{' '}
                 </InputLabel>
@@ -1829,15 +1739,7 @@ const DataViewPage = () => {
                 </Select>
               </FormControl>
 
-<<<<<<< HEAD
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                {selectedQuestions.length > 0 && (
-                  <Button variant='contained' color='primary' onClick={() => setOpenDrawer(true)}>
-                    {GetContext('filter', lang)}
-                  </Button>
-                )}
-=======
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
                 {/* {selectedQuestions.length > 0 && ( */}
                 {/*   <Button */}
                 {/*     variant="contained" */}
@@ -1847,7 +1749,6 @@ const DataViewPage = () => {
                 {/*     {GetContext("filter", lang)} */}
                 {/*   </Button> */}
                 {/* )} */}
->>>>>>> ef707926e79fb11e33f43fb8f9c22511bb9a2e34
 
                 {selectedQuestions.length > 0 && (
                   <Button variant='contained' color='secondary' onClick={() => downloadFile()}>
@@ -1855,13 +1756,6 @@ const DataViewPage = () => {
                   </Button>
                 )}
 
-<<<<<<< HEAD
-                {selectedQuestions.length > 0 && (
-                  <Button variant='contained' color='success' startIcon={<PictureAsPdfIcon />} onClick={handleExportAllCharts}>
-                    Export All Charts
-                  </Button>
-                )}
-=======
                 {/* {selectedQuestions.length > 0 && ( */}
                 {/*   <Button */}
                 {/*     variant="contained" */}
@@ -1872,7 +1766,6 @@ const DataViewPage = () => {
                 {/*     Export All Charts */}
                 {/*   </Button> */}
                 {/* )} */}
->>>>>>> ef707926e79fb11e33f43fb8f9c22511bb9a2e34
 
                 {masterProjectDetails && (
                   <Button variant='outlined' onClick={() => (isMapOpen ? setIsMapOpen(false) : setIsMapOpen(true))}>
@@ -1897,14 +1790,6 @@ const DataViewPage = () => {
                   <Typography variant='h6'>{selectedProjects.length}</Typography>
                 </Box>
 
-<<<<<<< HEAD
-                <Box sx={{ p: 1, border: '1px solid #e0e0e0', borderRadius: 1 }}>
-                  <Typography variant='body2' color='text.secondary'>
-                    Total Records
-                  </Typography>
-                  <Typography variant='h6'>{totalData}</Typography>
-                </Box>
-=======
                 {/* <Box */}
                 {/*   sx={{ p: 1, border: "1px solid #e0e0e0", borderRadius: 1 }} */}
                 {/* > */}
@@ -1913,7 +1798,6 @@ const DataViewPage = () => {
                 {/*   </Typography> */}
                 {/*   <Typography variant="h6">{totalData}</Typography> */}
                 {/* </Box> */}
->>>>>>> ef707926e79fb11e33f43fb8f9c22511bb9a2e34
 
                 <Box sx={{ p: 1, border: '1px solid #e0e0e0', borderRadius: 1 }}>
                   <Typography variant='body2' color='text.secondary'>
