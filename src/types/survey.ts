@@ -70,6 +70,7 @@ export interface ApiQuestion {
   type:
     | "text"
     | "decimal"
+    | "number"
     | "single"
     | "multiple"
     | "text_area"

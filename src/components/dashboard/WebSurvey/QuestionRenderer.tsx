@@ -107,6 +107,7 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
         );
 
       case "decimal":
+      case "number":
         return (
           <TextField
             fullWidth
