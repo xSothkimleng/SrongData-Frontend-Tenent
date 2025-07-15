@@ -53,10 +53,13 @@ export const editResponse = async (
   try {
     console.log("edit response body: ", data);
     // return;
+    const b = {
+      responses: data,
+    };
 
     const response = await axios.put("/api/configWeb", {
       endpoint: `responses/edit/${responseId}`,
-      body: data,
+      body: b,
     });
 
     console.log("Edit Response successful:", response.data);
