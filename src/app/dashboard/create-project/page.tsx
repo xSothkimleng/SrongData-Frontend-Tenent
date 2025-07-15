@@ -102,10 +102,37 @@ const CreateProjectPage = () => {
   const handleNext = () => {
     switch (activeStep) {
       case 0:
-        if (projectTitle.en.length < 3 || projectDescription.en.length < 3) {
-          showSnackbar('Project title and description must be at least 3 characters long', 'warning');
-          return;
+        if (isSurveyLanguageInEnglish && isSurveyLanguageInKhmer) {
+          if (projectTitle.en.length < 3 || projectDescription.en.length < 3) {
+            showSnackbar(
+              'English Language:Project title and description must be at least 3 characters long',
+              'info',
+              'top',
+              'right',
+            );
+            return;
+          }
+          if (projectTitle.km.length < 3 || projectDescription.km.length < 3) {
+            showSnackbar(
+              'Khmer Language: Project title and description must be at least 3 characters long',
+              'info',
+              'top',
+              'right',
+            );
+            return;
+          }
+        } else if (isSurveyLanguageInEnglish) {
+          if (projectTitle.en.length < 3 || projectDescription.en.length < 3) {
+            showSnackbar('Project title and description must be at least 3 characters long', 'info', 'top', 'right');
+            return;
+          }
+        } else if (isSurveyLanguageInKhmer) {
+          if (projectTitle.km.length < 3 || projectDescription.km.length < 3) {
+            showSnackbar('Project title and description must be at least 3 characters long', 'info', 'top', 'right');
+            return;
+          }
         }
+
         break;
       case 1:
         if (
@@ -114,21 +141,74 @@ const CreateProjectPage = () => {
           GetLocationIdsFromLocal('selectedCommunes').length === 0 ||
           GetLocationIdsFromLocal('selectedVillages').length === 0
         ) {
-          showSnackbar('Please select at least one location from each region', 'warning');
+          showSnackbar('Please select at least one location from each region', 'info');
           return;
         }
         break;
       case 2:
-        // console.log('data set design form', dataDesignForms);
         if (dataDesignForms.length === 0) {
-          showSnackbar('Please add at least one question', 'warning');
+          showSnackbar('Please add at least one question', 'info');
           return;
         }
 
-        if (dataDesignForms.some(form => form.label.en.length < 0 || dataDesignForms.some(form => form.type == ''))) {
-          showSnackbar('Please fill all question fields', 'warning');
-          return;
+        if (isSurveyLanguageInEnglish) {
+          if (dataDesignForms.some(form => form.label.en.length < 0 || dataDesignForms.some(form => form.type == ''))) {
+            showSnackbar('Please fill in all TYPE fields', 'info');
+            return;
+          }
+          if (dataDesignForms.some(form => form.label.en.length < 0 || dataDesignForms.some(form => form.label.en == ''))) {
+            showSnackbar('Please fill all QUESTION fields', 'info');
+            return;
+          }
+          if (
+            dataDesignForms.some(form => form.label.en.length < 0 || dataDesignForms.some(form => form.section.title.en == ''))
+          ) {
+            showSnackbar('Please fill all SECTION Title fields', 'info');
+            return;
+          }
+          if (
+            dataDesignForms.some(
+              form => form.label.en.length < 0 || dataDesignForms.some(form => form.section.description.en == ''),
+            )
+          ) {
+            showSnackbar('Please fill all SECTION Description fields', 'info');
+            return;
+          }
+          if (dataDesignForms.some(form => form.options.some(option => option.en === '' || option.en.trim() === ''))) {
+            showSnackbar('Please fill all option fields in English', 'info');
+            return;
+          }
         }
+
+        if (isSurveyLanguageInKhmer) {
+          if (dataDesignForms.some(form => form.label.km.length < 0 || dataDesignForms.some(form => form.type == ''))) {
+            showSnackbar('Please fill all question fields', 'info');
+            return;
+          }
+          if (dataDesignForms.some(form => form.label.km.length < 0 || dataDesignForms.some(form => form.label.km == ''))) {
+            showSnackbar('Please fill all question fields', 'info');
+            return;
+          }
+          if (
+            dataDesignForms.some(form => form.label.km.length < 0 || dataDesignForms.some(form => form.section.title.km == ''))
+          ) {
+            showSnackbar('Please fill all question fields', 'info');
+            return;
+          }
+          if (
+            dataDesignForms.some(
+              form => form.label.km.length < 0 || dataDesignForms.some(form => form.section.description.km == ''),
+            )
+          ) {
+            showSnackbar('Please fill all question fields', 'info');
+            return;
+          }
+          if (dataDesignForms.some(form => form.options.some(option => option.km === '' || option.km.trim() === ''))) {
+            showSnackbar('Please fill all option fields in Khmer', 'info');
+            return;
+          }
+        }
+
         break;
       case 3:
         console.log('indicator', indicators);

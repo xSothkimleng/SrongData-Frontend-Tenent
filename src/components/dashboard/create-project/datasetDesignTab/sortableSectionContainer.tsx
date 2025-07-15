@@ -207,7 +207,7 @@ const SortableSectionContainer = ({
                     rows={5}
                     size='small'
                     sx={{
-                      width: isSurveyLanguageInKhmer ? '50%' : '100%',
+                      width: isSurveyLanguageInEnglish ? '50%' : '100%',
                     }}
                     value={sectionDescription.km}
                     onChange={e => handleDescriptionChange(e.target.value, false)}
