@@ -622,8 +622,8 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
         <SortableContext items={sections.map(section => `section-${section.order}`)} strategy={verticalListSortingStrategy}>
           {formsBySection.map(({ section, forms }, index) => (
             <SortableSectionContainer
-              key={section.order} // Use section.order, not index
-              order={section.order} // Use section.order, not index + 1
+              key={section.order}
+              order={section.order}
               isSurveyLanguageInEnglish={isSurveyLanguageInEnglish}
               isSurveyLanguageInKhmer={isSurveyLanguageInKhmer}
               title={section.title}

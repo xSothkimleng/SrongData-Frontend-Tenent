@@ -1,7 +1,7 @@
 import useLang from '@/store/lang';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Accordion, AccordionSummary, AccordionDetails, Box, Button } from '@mui/material';
+import { Accordion, AccordionSummary, AccordionDetails, Box, Button, Typography } from '@mui/material';
 import { Delete as DeleteIcon, ExpandMore as ExpandMoreIcon, DragIndicator as DragIndicatorIcon } from '@mui/icons-material';
 import { GetContext } from '@/utils/language';
 
@@ -56,11 +56,7 @@ const SortableQuestionContainer = ({
             }}>
             <DragIndicatorIcon color='action' />
           </div>
-          {/* <QuestionIcon */}
-          {/*   fontSize="small" */}
-          {/*   sx={{ marginRight: 1, color: "text.secondary" }} */}
-          {/* /> */}
-          {/* <Typography>{title}</Typography> */}
+          <Typography>question {order}</Typography>
         </AccordionSummary>
         <AccordionDetails>
           {children}
