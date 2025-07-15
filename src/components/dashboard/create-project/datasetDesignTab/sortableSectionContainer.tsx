@@ -2,7 +2,7 @@ import useLang from '@/store/lang';
 import { useSortable } from '@dnd-kit/sortable';
 import { useEffect, useState } from 'react';
 import { CSS } from '@dnd-kit/utilities';
-import { Box, Button, Paper, TextField, Grid } from '@mui/material';
+import { Box, Button, Paper, TextField, Grid, Typography } from '@mui/material';
 import { Delete as DeleteIcon, DragIndicator as DragIndicatorIcon, FormatListBulleted as SectionIcon } from '@mui/icons-material';
 import { GetContext } from '@/utils/language';
 import { Locale } from '@/types/projectDetail';
@@ -117,7 +117,9 @@ const SortableSectionContainer = ({
               pointerEvents: isDragging ? 'none' : 'auto',
             }}>
             <DragIndicatorIcon color='action' />
+            <Typography>Section {order}</Typography>
           </div>
+
           <Box
             sx={{
               marginBottom: 1,
