@@ -993,9 +993,9 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
         <Button variant='contained' color='info' startIcon={<AddCircleOutlineIcon />} onClick={handleAddSection}>
           Add Section
         </Button>
-        <Button variant='contained' color='info' startIcon={<AddCircleOutlineIcon />} onClick={handleShowDataStructure}>
+        {/* <Button variant='contained' color='info' startIcon={<AddCircleOutlineIcon />} onClick={handleShowDataStructure}>
           Show Data Structure
-        </Button>
+        </Button> */}
       </Box>
 
       {/* Skip Logic Dialog */}

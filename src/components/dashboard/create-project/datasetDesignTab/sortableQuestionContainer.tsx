@@ -55,8 +55,8 @@ const SortableQuestionContainer = ({
               marginRight: '12px',
             }}>
             <DragIndicatorIcon color='action' />
+            <Typography sx={{ textAlign: 'left' }}>Question {order}</Typography>
           </div>
-          <Typography>question {order}</Typography>
         </AccordionSummary>
         <AccordionDetails>
           {children}
