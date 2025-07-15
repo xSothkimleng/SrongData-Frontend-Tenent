@@ -352,8 +352,9 @@ const DataView: React.FC<dataViewProps> = ({
           }
         }
       });
+      const flatProject = selectedProjects[0].id;
       const response = await axios.post("/api/config", {
-        endpoint: `responses/export/${selectedProjects}?lang=${lang}`,
+        endpoint: `responses/export/${flatProject}?lang=${lang}`,
         body,
       });
       const sheetData = [
@@ -363,6 +364,11 @@ const DataView: React.FC<dataViewProps> = ({
           content: response.data.data.con,
         },
       ];
+
+      console.log(
+        "📦 Exporting sheetData:",
+        JSON.stringify(sheetData, null, 2),
+      );
       xlsx(sheetData, settings);
     } catch (error) {
       console.error("Error exporting data:", error);
@@ -725,7 +731,7 @@ const DataView: React.FC<dataViewProps> = ({
       }
 
       const textLength = colLabel.length;
-      const estimatedWidth = Math.max(100, textLength * 10); // ~10px per character
+      const estimatedWidth = Math.max(100, textLength * 3); // ~10px per character
 
       headerColumns.push({
         field: item.id,
@@ -772,6 +778,7 @@ const DataView: React.FC<dataViewProps> = ({
               selectedQuestions={selectedQuestions}
               setSelectedQuestions={setSelectedQuestions}
               setOpenDrawer={setOpenDrawer}
+              downloadFile={downloadFile}
             />
           )}
 
