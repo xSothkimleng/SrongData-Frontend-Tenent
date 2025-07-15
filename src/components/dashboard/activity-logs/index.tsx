@@ -375,7 +375,7 @@ const ActivityLogs = () => {
                               height: 40,
                               bgcolor: theme.palette.primary.light,
                             }}
-                            src={log.metadata.profile || undefined}
+                            src={log.metadata?.profile ?? undefined}
                           >
                             {getUserDisplayName(log.created_by)
                               .charAt(0)
