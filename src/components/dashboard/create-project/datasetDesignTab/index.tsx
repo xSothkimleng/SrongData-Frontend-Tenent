@@ -932,7 +932,7 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                                         />
                                       )}
                                     </Grid>
-                                    <Grid item xs={3}>
+                                    {/* <Grid item xs={3}>
                                       <Button
                                         variant='outlined'
                                         color={hasSkipLogic ? 'success' : 'primary'}
@@ -949,7 +949,7 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                                       <IconButton onClick={() => handleRemoveOption(form.order, optionIndex)}>
                                         <CloseIcon />
                                       </IconButton>
-                                    </Grid>
+                                    </Grid> */}
                                   </Grid>
                                 );
                               })}
@@ -993,9 +993,9 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
         <Button variant='contained' color='info' startIcon={<AddCircleOutlineIcon />} onClick={handleAddSection}>
           Add Section
         </Button>
-        <Button variant='contained' color='info' startIcon={<AddCircleOutlineIcon />} onClick={handleShowDataStructure}>
+        {/* <Button variant='contained' color='info' startIcon={<AddCircleOutlineIcon />} onClick={handleShowDataStructure}>
           Show Data Structure
-        </Button>
+        </Button> */}
       </Box>
 
       {/* Skip Logic Dialog */}

@@ -337,12 +337,12 @@ const TableActionMenu: React.FC<{
           <ListItemText>View Project Details</ListItemText>
         </MenuItem>
 
-        <MenuItem onClick={() => handleMenuItemClick(() => handleViewProjectResponses())}>
+        {/* <MenuItem onClick={() => handleMenuItemClick(() => handleViewProjectResponses())}>
           <ListItemIcon>
             <VisibilityOutlinedIcon fontSize='small' />
           </ListItemIcon>
           <ListItemText>View Project Responses</ListItemText>
-        </MenuItem>
+        </MenuItem> */}
 
         {/* Update Project Status */}
         {canUpdateProjectStatus && row.status !== 'Completed' && (

@@ -1727,11 +1727,11 @@ const DataViewPage = () => {
                             marginLeft: '8px',
                             color: '#fff',
                             backgroundColor: item.color,
-                            padding: '2px 6px',
-                            borderRadius: '4px',
+                            padding: '0.5rem',
+                            borderRadius: '50%',
                             fontSize: '0.75rem',
                           }}>
-                          {lang === 'en' ? item.project_name?.en ?? 'N/A' : item.project_name?.km ?? 'N/A'}
+                          {/* {lang === 'en' ? item.project_name?.en ?? 'N/A' : item.project_name?.km ?? 'N/A'} */}
                         </span>
                       ) : null}
                     </MenuItem>
@@ -1750,11 +1750,11 @@ const DataViewPage = () => {
                 {/*   </Button> */}
                 {/* )} */}
 
-                {selectedQuestions.length > 0 && (
+                {/* {selectedQuestions.length > 0 && (
                   <Button variant='contained' color='secondary' onClick={() => downloadFile()}>
                     {GetContext('export', lang)}
                   </Button>
-                )}
+                )} */}
 
                 {/* {selectedQuestions.length > 0 && ( */}
                 {/*   <Button */}
