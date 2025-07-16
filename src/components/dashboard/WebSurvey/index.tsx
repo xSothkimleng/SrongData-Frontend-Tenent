@@ -178,7 +178,8 @@ const WebSurveyForm: React.FC<SurveyContainerProps> = ({
               typeof answer.value === "number" ||
               typeof answer.value === "string"
             ) {
-              if (Number(answer.value) + 1 === skipLogic.answer_index) {
+              if (Number(answer.value) === skipLogic.answer_index) {
+                // change to index base start from 0
                 // 1-based indexing
                 applicableSkipLogic = skipLogic;
               }
