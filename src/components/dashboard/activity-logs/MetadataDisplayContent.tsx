@@ -6,6 +6,9 @@ const MetadataDisplayContent = ({ selectedLog }: { selectedLog: any }) => {
   const formatValue = (value: any) => {
     if (value === null || value === undefined || value === "null") return "N/A";
     if (typeof value === "boolean") return value ? "Yes" : "No";
+    if (Array.isArray(value)) {
+      return value.length === 0 ? "[]" : JSON.stringify(value, null, 2);
+    }
     if (typeof value === "object") {
       try {
         return JSON.stringify(value, null, 2);
@@ -59,38 +62,52 @@ const MetadataDisplayContent = ({ selectedLog }: { selectedLog: any }) => {
   };
 
   const renderChangedQuestionList = (list: any[]) => {
-    console.log("change label list: ", list);
     return list.map((item, index) => {
-      let label = item.changes.label;
-      try {
-        label = typeof label === "string" ? JSON.parse(label) : label;
-      } catch {
-        label = { en: label, km: "" };
-      }
-
-      const questionLabel = [label?.en, label?.km].filter(Boolean).join(" / ");
+      const changes = item.changes || {};
+      const questionId = item.question_id || `question-${index}`;
+      const questionLabel = item.question_label ?? undefined;
 
       return (
-        <div key={index} className="mb-4 p-3 bg-gray-50 rounded-lg">
-          <h4 className="font-semibold mb-2 text-gray-700">{questionLabel}</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="p-2 bg-red-50 border border-red-200 rounded">
-              <span className="text-xs text-red-600 font-medium">
-                Old Value:
-              </span>
-              <pre className="mt-1 text-sm text-gray-700 whitespace-pre-wrap">
-                {formatValue(label.old)}
-              </pre>
-            </div>
-            <div className="p-2 bg-green-50 border border-green-200 rounded">
-              <span className="text-xs text-green-600 font-medium">
-                New Value:
-              </span>
-              <pre className="mt-1 text-sm text-gray-700 whitespace-pre-wrap">
-                {formatValue(label.new)}
-              </pre>
-            </div>
-          </div>
+        <div key={questionId} className="mb-6 p-3 bg-gray-50 rounded-lg border">
+          <h4 className="font-semibold mb-2 text-gray-700">
+            Question ID: {questionId}
+          </h4>
+          {questionLabel && (
+            <h4 className="font-semibold mb-2 text-gray-700">
+              Question Label: {JSON.stringify(questionLabel, null, 2) ?? ""}
+            </h4>
+          )}
+
+          {Object.entries(changes).map(([fieldName, change]: [string, any]) => {
+            const oldVal = change?.old;
+            const newVal = change?.new;
+
+            return (
+              <div key={fieldName} className="mb-4">
+                <h5 className="text-sm font-medium text-gray-600 mb-1 capitalize">
+                  {fieldName.replace(/_/g, " ")}
+                </h5>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="p-2 bg-red-50 border border-red-200 rounded">
+                    <span className="text-xs text-red-600 font-medium">
+                      Old Value:
+                    </span>
+                    <pre className="mt-1 text-sm text-gray-700 whitespace-pre-wrap">
+                      {formatValue(oldVal)}
+                    </pre>
+                  </div>
+                  <div className="p-2 bg-green-50 border border-green-200 rounded">
+                    <span className="text-xs text-green-600 font-medium">
+                      New Value:
+                    </span>
+                    <pre className="mt-1 text-sm text-gray-700 whitespace-pre-wrap">
+                      {formatValue(newVal)}
+                    </pre>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       );
     });

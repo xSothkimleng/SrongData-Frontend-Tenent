@@ -20,7 +20,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import QrCode from "qrcode";
 import Image from "next/image";
 import { enqueueSnackbar } from "notistack";
-import { GetContext } from "@/utils/language";
+import { GetContext, getLocaleValue } from "@/utils/language";
 import { Locale } from "@/types/projectDetail";
 
 type Project = {
@@ -62,13 +62,15 @@ const fetchAllProject = async () => {
   const response = await axios.get("/api/config", {
     params: { endpoint: "project/all?status=1" },
   });
-  const projects = response?.data?.data?.projects.map((project: any) => ({
-    id: project.id,
-    name: project.name,
-    status: project.status,
-    description: project.description,
-    project_location: project.project_location,
-  }));
+  const projects = response?.data?.data?.projects
+    .filter((proj: any) => (proj.method ?? 1) === 0 && (proj.status ?? 0) === 1) //filter for capi and active project
+    .map((project: any) => ({
+      id: project.id,
+      name: project.name,
+      status: project.status,
+      description: project.description,
+      project_location: project.project_location,
+    }));
   return projects;
 };
 
@@ -351,7 +353,7 @@ const Calibration = ({ lang }: { lang: string }) => {
                     {GetContext("project_name", lang)}
                   </Typography>
                   <Typography component="div" sx={{ padding: "0.5rem" }}>
-                    {selectedProject?.name.en ??
+                    {getLocaleValue(selectedProject?.name, lang) ??
                       GetContext("project_name", lang)}
                   </Typography>
                 </Box>
@@ -363,10 +365,8 @@ const Calibration = ({ lang }: { lang: string }) => {
                     {GetContext("project_description", lang)}
                   </Typography>
                   <Typography component="div" sx={{ padding: "0.5rem" }}>
-                    {lang === "en"
-                      ? (selectedProject?.description.en ??
-                        "Project Description")
-                      : (selectedProject.description.km ?? "N/A")}
+                    {getLocaleValue(selectedProject?.description, lang) ??
+                      "N/A"}
                   </Typography>
                 </Box>
                 <Box>

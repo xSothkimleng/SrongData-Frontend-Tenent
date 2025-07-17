@@ -1,5 +1,33 @@
 import { Locale } from "@/types/projectDetail";
 
+export const getStatusLabel = (status: number, lang: string) => {
+  switch (status) {
+    case -1:
+      GetContext("all_project", lang);
+    case 0:
+      return GetContext("inactive", lang);
+    case 1:
+      return GetContext("active", lang);
+    case 2:
+      return GetContext("completed_project", lang);
+    default:
+      return GetContext("not_set", lang);
+  }
+};
+
+export const getCollectionMethodLabel = (method: number, lang: string) => {
+  switch (method) {
+    case -1:
+      GetContext("all_project", lang);
+    case 0:
+      return GetContext("capi", lang);
+    case 1:
+      return GetContext("web_survey", lang);
+    default:
+      return GetContext("not_set", lang);
+  }
+};
+
 export function getLocaleValue(
   locale: Locale | undefined,
   lang: string,
@@ -850,6 +878,22 @@ const language: {
   location_about: {
     en: "Locations",
     km: "ទីតាំង",
+  },
+  capi: {
+    en: "CAPI",
+    km: "CAPI (ប្រមូលទិន្នន័យតាមកម្មវិធីទូរស័ព្ទ)",
+  },
+  web_survey: {
+    en: "Online Survey",
+    km: "សំណួរអនឡាញ",
+  },
+  respondent_id: {
+    en: "Respondent ID",
+    km: "អត្តសញ្ញាណអ្នកឆ្លើយ",
+  },
+  respondent_email: {
+    en: "Respondent Email",
+    km: "អ៊ីមែលអ្នកឆ្លើយ",
   },
 };
 

@@ -113,7 +113,7 @@ const ReportPage = () => {
           name: project.name,
           indicators: project.indicators,
         }));
-      console.log("All Projects:", projects);
+      // console.log("All Projects:", projects);
       return projects;
     },
   });

@@ -14,6 +14,7 @@ import FilterDrawer from "./filter/FilterDrawer";
 import DataSummary from "./DataSummary";
 import { SelectChangeEvent, Box, Typography } from "@mui/material";
 import { Locale } from "@/types/projectDetail";
+import { GetContext, getLocaleValue } from "@/utils/language";
 // import dynamic from 'next/dynamic';
 // const Map = dynamic(() => import('@/components/dashboard/map'), { ssr: false });
 
@@ -365,10 +366,10 @@ const DataView: React.FC<dataViewProps> = ({
         },
       ];
 
-      console.log(
-        "📦 Exporting sheetData:",
-        JSON.stringify(sheetData, null, 2),
-      );
+      // console.log(
+      //   "📦 Exporting sheetData:",
+      //   JSON.stringify(sheetData, null, 2),
+      // );
       xlsx(sheetData, settings);
     } catch (error) {
       console.error("Error exporting data:", error);
@@ -642,7 +643,7 @@ const DataView: React.FC<dataViewProps> = ({
 
     const getColumnLabel = (item: any): string => {
       if (typeof item.label === "object") {
-        return lang === "en" ? item.label.en : item.label.km;
+        return getLocaleValue(item.label, lang);
       }
       return item.label;
     };
@@ -711,6 +712,22 @@ const DataView: React.FC<dataViewProps> = ({
       const filter = createQuestionFilter(item, colLabel, item.options || []);
       addFilterToGroup(projectId, projectName, filter);
     };
+
+    headerColumns.push({
+      field: "respondent_id",
+      headerName: GetContext("respondent_id", lang),
+      cellClassName: "text-left no-wrap-text",
+      width: 100,
+      minWidth: 100,
+    });
+
+    headerColumns.push({
+      field: "respondent_email",
+      headerName: GetContext("respondent_email", lang),
+      cellClassName: "text-left no-wrap-text",
+      width: 100,
+      minWidth: 100,
+    });
 
     // Process each selected question
     selectedQuestions.forEach((item) => {

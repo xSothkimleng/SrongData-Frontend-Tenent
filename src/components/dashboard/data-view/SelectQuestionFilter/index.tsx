@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
-import useLang from '@/store/lang';
-import { GetContext } from '@/utils/language';
-import { ProjectDetail, Question } from '..';
+import React, { useEffect } from "react";
+import useLang from "@/store/lang";
+import { GetContext } from "@/utils/language";
+import { ProjectDetail, Question } from "..";
 import {
   FormControl,
   InputLabel,
@@ -13,61 +13,61 @@ import {
   Paper,
   SelectChangeEvent,
   ListSubheader,
-} from '@mui/material';
+} from "@mui/material";
 
 const AddQuestions: Question[] = [
   {
-    id: 'user',
+    id: "user",
     order: -1,
-    label: 'Submitted By',
-    label_km: 'អ្នកបញ្ខូលទិន្នន័យ',
-    type: 'user',
-    data_type: 'array',
+    label: "Submitted By",
+    label_km: "អ្នកបញ្ខូលទិន្នន័យ",
+    type: "user",
+    data_type: "array",
     options: [],
   },
   {
-    id: 'province',
+    id: "province",
     order: -1,
-    label: 'Provinces',
-    label_km: 'ខេត្ត',
-    type: 'province',
-    data_type: 'array',
+    label: "Provinces",
+    label_km: "ខេត្ត",
+    type: "province",
+    data_type: "array",
     options: [],
   },
   {
-    id: 'district',
+    id: "district",
     order: -1,
-    label: 'District',
-    label_km: 'ស្រុក',
-    type: 'district',
-    data_type: 'array',
+    label: "District",
+    label_km: "ស្រុក",
+    type: "district",
+    data_type: "array",
     options: [],
   },
   {
-    id: 'commune',
+    id: "commune",
     order: -1,
-    label: 'Commune',
-    label_km: 'ឃុំ',
-    type: 'commune',
-    data_type: 'array',
+    label: "Commune",
+    label_km: "ឃុំ",
+    type: "commune",
+    data_type: "array",
     options: [],
   },
   {
-    id: 'village',
+    id: "village",
     order: -1,
-    label: 'Village',
-    label_km: 'ភូមិ',
-    type: 'village',
-    data_type: 'array',
+    label: "Village",
+    label_km: "ភូមិ",
+    type: "village",
+    data_type: "array",
     options: [],
   },
   {
-    id: 'project',
+    id: "project",
     order: -1,
-    label: 'Project',
-    label_km: 'គម្រោង',
-    type: 'project',
-    data_type: 'array',
+    label: "Project",
+    label_km: "គម្រោង",
+    type: "project",
+    data_type: "array",
     options: [],
   },
 ];
@@ -87,25 +87,30 @@ const SelectQuestionFilter: React.FC<SelectQuestionFilterProps> = ({
   setOpenDrawer,
   downloadFile,
 }) => {
-  const lang = useLang(state => state.lang);
+  const lang = useLang((state) => state.lang);
   // Question on change function
   const handleQuestionChange = (event: SelectChangeEvent<Question[]>) => {
     const { value } = event.target;
 
     if (masterProjectDetails) {
       // @ts-ignore
-      if (value.includes('all')) {
-        console.log('is Include All Questions');
+      if (value.includes("all")) {
+        console.log("is Include All Questions");
         // @ts-ignore
-        if (selectedQuestions.length === masterProjectDetails.map(project => project.questions).flat().length) {
-          console.log('Unselect All Questions');
+        if (
+          selectedQuestions.length ===
+          masterProjectDetails.map((project) => project.questions).flat().length
+        ) {
+          console.log("Unselect All Questions");
           setSelectedQuestions([]);
         } else {
-          console.log('Select All Questions');
-          setSelectedQuestions(masterProjectDetails.map(project => project.questions).flat());
+          console.log("Select All Questions");
+          setSelectedQuestions(
+            masterProjectDetails.map((project) => project.questions).flat(),
+          );
         }
       } else {
-        console.log('Add Value');
+        console.log("Add Value");
         // @ts-ignore
         setSelectedQuestions(value);
       }
@@ -113,97 +118,114 @@ const SelectQuestionFilter: React.FC<SelectQuestionFilterProps> = ({
   };
 
   const selectOptions = [
-    <MenuItem key='all' value='all'>
-      {selectedQuestions.length === masterProjectDetails.flatMap(p => p.questions).length
-        ? GetContext('unselect_all', lang)
-        : GetContext('select_all', lang)}
+    <MenuItem key="all" value="all">
+      {selectedQuestions.length ===
+      masterProjectDetails.flatMap((p) => p.questions).length
+        ? GetContext("unselect_all", lang)
+        : GetContext("select_all", lang)}
     </MenuItem>,
-    ...masterProjectDetails.flatMap(project => [
+    ...masterProjectDetails.flatMap((project) => [
       <ListSubheader
         key={`subheader-${project.id}`}
         sx={{
-          background: 'rgba(0,0,0,0.05)',
-          fontSize: '16px',
-          color: 'inherit',
+          background: "rgba(0,0,0,0.05)",
+          fontSize: "16px",
+          color: "inherit",
         }}
-        disableSticky>
+        disableSticky
+      >
         {project.name}
       </ListSubheader>,
-      ...project.questions.map(item => (
+      ...project.questions.map((item) => (
         // @ts-ignore
         <MenuItem key={item.id} value={item}>
           {/* label logic */}
           {item.order !== -1
-            ? typeof item.label === 'object'
-              ? lang === 'en'
+            ? typeof item.label === "object"
+              ? lang === "en"
                 ? item.label.en
                 : item.label.km
               : item.label
-            : lang === 'en'
-            ? typeof item.label === 'object'
-              ? item.label.en
-              : item.label
-            : item.label_km || (typeof item.label === 'object' ? item.label.km : item.label)}
+            : lang === "en"
+              ? typeof item.label === "object"
+                ? item.label.en
+                : item.label
+              : item.label_km ||
+                (typeof item.label === "object" ? item.label.km : item.label)}
         </MenuItem>
       )),
     ]),
     <ListSubheader
-      key={`subheader-${'common-questions'}`}
+      key={`subheader-${"common-questions"}`}
       sx={{
-        background: 'rgba(0,0,0,0.05)',
-        fontSize: '16px',
-        color: 'inherit',
+        background: "rgba(0,0,0,0.05)",
+        fontSize: "16px",
+        color: "inherit",
       }}
-      disableSticky>
+      disableSticky
+    >
       Common Questions
     </ListSubheader>,
-    ...AddQuestions.map(item => (
+    ...AddQuestions.map((item) => (
       // @ts-ignore
       <MenuItem key={item.id} value={item}>
-        {typeof item.label === 'object'
-          ? lang === 'en'
+        {typeof item.label === "object"
+          ? lang === "en"
             ? item.label.en
             : item.label.km
-          : lang === 'en'
-          ? item.label
-          : item.label_km || item.label}
+          : lang === "en"
+            ? item.label
+            : item.label_km || item.label}
       </MenuItem>
     )),
   ];
 
   return (
     masterProjectDetails && (
-      <Paper variant='outlined' sx={{ p: 2, mb: 2 }}>
-        <Typography variant='subtitle1' fontWeight='bold' gutterBottom>
+      <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+        <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
           2. Select Questions and Filter Data
         </Typography>
 
-        <FormControl sx={{ width: '100%', marginBottom: 2 }}>
-          <InputLabel id='select-question'>
-            {selectedQuestions.length === 0 ? GetContext('select_question_msg', lang) : GetContext('select_question', lang)}{' '}
+        <FormControl sx={{ width: "100%", marginBottom: 2 }}>
+          <InputLabel id="select-question">
+            {selectedQuestions.length === 0
+              ? GetContext("select_question_msg", lang)
+              : GetContext("select_question", lang)}{" "}
           </InputLabel>
 
-          <Select variant='standard' id='select-question' value={selectedQuestions} multiple onChange={handleQuestionChange}>
+          <Select
+            variant="standard"
+            id="select-question"
+            value={selectedQuestions}
+            multiple
+            onChange={handleQuestionChange}
+          >
             {selectOptions}
           </Select>
         </FormControl>
 
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
           {selectedQuestions.length > 0 && (
-            <Button variant='contained' color='primary' onClick={() => setOpenDrawer(true)}>
-              {GetContext('filter', lang)}
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => setOpenDrawer(true)}
+            >
+              {GetContext("filter", lang)}
             </Button>
           )}
 
-          {selectedQuestions.length === 1 && (
+          {masterProjectDetails.length === 1 && (
             <Button
-              variant='contained'
-              color='secondary'
+              variant="contained"
+              color="secondary"
               onClick={() => {
-                console.log('downloadFile prop:', typeof downloadFile);
+                console.log("downloadFile prop:", typeof downloadFile);
                 downloadFile();
-              }}>
-              {GetContext('export', lang)}
+              }}
+            >
+              {GetContext("export", lang)}
             </Button>
           )}
 
