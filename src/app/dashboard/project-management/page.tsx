@@ -18,7 +18,12 @@ import AuthorizationCheck from "@/components/AuthorizationCheck";
 import { permissionCode } from "@/utils/permissionCode";
 import useCheckFeatureAuthorization from "@/hooks/useCheckFeatureAuthorization";
 import useLang from "@/store/lang";
-import { GetContext } from "@/utils/language";
+import {
+  GetContext,
+  getCollectionMethodLabel,
+  getLocaleValue,
+  getStatusLabel,
+} from "@/utils/language";
 import CustomToolbar from "@/components/DataGridToolbar";
 import HeaderTitle from "@/components/HeaderTitle";
 import TopicIcon from "@mui/icons-material/Topic";
@@ -49,7 +54,7 @@ export interface Project {
   users: string[];
   indicators: Indicator[];
   created_by: string;
-  status: string;
+  status: number;
   data_collected: number;
   created_at: string;
   updated_at: string;
@@ -152,7 +157,7 @@ const ProjectHistoryPage = () => {
         renderCell: (params: any) => {
           return (
             <Box>
-              <Box component="span">{params.value.en || params.value.km}</Box>
+              <Box component="span">{getLocaleValue(params.value, lang)}</Box>
             </Box>
           );
         },
@@ -166,23 +171,28 @@ const ProjectHistoryPage = () => {
         renderCell: (params: any) => {
           let backgroundColor;
           let textColor;
+          let textStatus;
 
           switch (params.value) {
-            case "Active":
-              backgroundColor = "rgba(0, 255, 0, 0.1)";
-              textColor = "green";
-              break;
-            case "Inactive":
+            case 0:
               backgroundColor = "rgba(255, 0, 0, 0.1)";
               textColor = "red";
+              textStatus = GetContext("inactive", lang);
               break;
-            case "Completed":
+            case 1:
+              backgroundColor = "rgba(0, 255, 0, 0.1)";
+              textColor = "green";
+              textStatus = GetContext("active", lang);
+              break;
+            case 2:
               backgroundColor = "rgba(77,171,245,0.1)";
               textColor = "rgb(77,171,245)";
+              textStatus = GetContext("completed_project", lang);
               break;
             default:
               backgroundColor = "rgba(0, 0, 0, 0.1)";
               textColor = "rgb(77,171,245)";
+              textStatus = GetContext("not_set", lang);
               break;
           }
 
@@ -197,7 +207,7 @@ const ProjectHistoryPage = () => {
                   padding: "0.3rem 0.8rem",
                 }}
               >
-                {params.value}
+                {getStatusLabel(params.value, lang)}
               </Box>
             </Box>
           );
@@ -210,7 +220,7 @@ const ProjectHistoryPage = () => {
         flex: 1,
         headerClassName: "super-app-theme--header",
         renderCell: (params: any) => {
-          return <Box>{params.value}</Box>;
+          return <Box>{getCollectionMethodLabel(params.value, lang)}</Box>;
         },
       },
       {
@@ -313,19 +323,9 @@ const ProjectHistoryPage = () => {
     ...project,
     id: paginationModel.page * paginationModel.pageSize + index + 1,
     projectId: project.id,
-    status:
-      project.status == "1"
-        ? "Active"
-        : project.status == "2"
-          ? "Completed"
-          : "Inactive",
+    status: project.status ?? 0,
     isStarted: project.data_collected > 0 ? true : false,
-    collectionMethod:
-      (project?.method ?? 0) === 1
-        ? "Web"
-        : (project?.method ?? 0) === 0
-          ? "CAPI"
-          : "CAPI",
+    collectionMethod: project?.method ?? 0,
     users: fetchedUserData.filter((user) => project.users.includes(user.id)),
   }));
 
