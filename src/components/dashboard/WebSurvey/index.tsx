@@ -1,19 +1,41 @@
-import React, { useState, useEffect } from 'react';
-import { Box, Container, CircularProgress, Alert, Typography, Avatar } from '@mui/material';
-import SurveyHeader from './SurveyHeader';
-import SectionContent from './SectionContent';
-import NavigationControls from './NavigationControls';
-import ProgressIndicator from './ProgressIndicator';
-import { editResponse, fetchSurveyQuestionnaire, submitSurveyResponse } from '@/services/surveyApi';
-import { extractValuesFromAnswers, transformSurveyData } from '@/utils/surveyTransform';
-import { TransformedSurvey, AnswerState, ApiSkipLogic, Answer, DataCollection, ApiSurveyData, ApiLocation } from '@/types/survey';
-import { deleteCookie, getCookie } from '@/utils/cookies';
-import { useRouter } from 'next/navigation';
-import MenuDropDown from '@/components/menuDropDown';
-import { getLocaleValue } from '@/utils/language';
-import { Data } from '@dnd-kit/core';
-import axios from 'axios';
-import showSnackbar from '@/utils/snackbarHelper';
+import React, { useState, useEffect } from "react";
+import {
+  Box,
+  Container,
+  CircularProgress,
+  Alert,
+  Typography,
+  Avatar,
+} from "@mui/material";
+import SurveyHeader from "./SurveyHeader";
+import SectionContent from "./SectionContent";
+import NavigationControls from "./NavigationControls";
+import ProgressIndicator from "./ProgressIndicator";
+import {
+  editResponse,
+  fetchSurveyQuestionnaire,
+  submitSurveyResponse,
+} from "@/services/surveyApi";
+import {
+  extractValuesFromAnswers,
+  transformSurveyData,
+} from "@/utils/surveyTransform";
+import {
+  TransformedSurvey,
+  AnswerState,
+  ApiSkipLogic,
+  Answer,
+  DataCollection,
+  ApiSurveyData,
+  ApiLocation,
+} from "@/types/survey";
+import { deleteCookie, getCookie } from "@/utils/cookies";
+import { useRouter } from "next/navigation";
+import MenuDropDown from "@/components/menuDropDown";
+import { getLocaleValue } from "@/utils/language";
+import { Data } from "@dnd-kit/core";
+import axios from "axios";
+import showSnackbar from "@/utils/snackbarHelper";
 
 interface SurveyContainerProps {
   surveyId?: string;
@@ -29,18 +51,22 @@ interface LanguageOption {
 
 const LANGUAGE_OPTIONS: Record<string, LanguageOption> = {
   en: {
-    label: 'english',
-    flagUrl: '/dist/images/Flag_of_the_United_States.svg',
-    displayName: 'English',
+    label: "english",
+    flagUrl: "/dist/images/Flag_of_the_United_States.svg",
+    displayName: "English",
   },
   km: {
-    label: 'khmer',
-    flagUrl: '/dist/images/Flag_of_Cambodia.svg',
-    displayName: 'ខ្មែរ',
+    label: "khmer",
+    flagUrl: "/dist/images/Flag_of_Cambodia.svg",
+    displayName: "ខ្មែរ",
   },
 };
 
-const WebSurveyForm: React.FC<SurveyContainerProps> = ({ surveyId, responseId, selectedLang }) => {
+const WebSurveyForm: React.FC<SurveyContainerProps> = ({
+  surveyId,
+  responseId,
+  selectedLang,
+}) => {
   const router = useRouter();
   const [survey, setSurvey] = useState<TransformedSurvey | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -60,7 +86,7 @@ const WebSurveyForm: React.FC<SurveyContainerProps> = ({ surveyId, responseId, s
         // console.log("fetching....");
         setLoading(true);
         if (!responseId && !surveyId) {
-          setError('Survey ID is required.');
+          setError("Survey ID is required.");
           return;
         }
         // console.log("continue fetching");
@@ -69,9 +95,12 @@ const WebSurveyForm: React.FC<SurveyContainerProps> = ({ surveyId, responseId, s
         // console.log("Fetched survey data:", apiData);
         // set locale from survey data if available
         if (apiData.locales) {
-          console.log('Setting locale from survey data:', apiData.locales);
-          localStorage.setItem('locales', JSON.stringify(apiData.locales ?? ['en', 'km']));
-          window.dispatchEvent(new Event('languagesUpdated'));
+          console.log("Setting locale from survey data:", apiData.locales);
+          localStorage.setItem(
+            "locales",
+            JSON.stringify(apiData.locales ?? ["en", "km"]),
+          );
+          window.dispatchEvent(new Event("languagesUpdated"));
         }
 
         const transformedData = transformSurveyData(apiData);
@@ -83,21 +112,21 @@ const WebSurveyForm: React.FC<SurveyContainerProps> = ({ surveyId, responseId, s
           const code = err.response?.data?.code;
           const message = err.response?.data?.message;
 
-          console.error('Survey loading error:', code, message);
+          console.error("Survey loading error:", code, message);
 
           if (code === 32) {
             // setError("You have already submitted this survey.");
             router.replace(`/survey/thankyou?lang=${selectedLang}`);
             return;
           } else {
-            setError(message || 'Failed to load survey. Please try again.');
+            setError(message || "Failed to load survey. Please try again.");
           }
         } else {
-          console.error('Unexpected error:', err);
-          setError('Failed to load survey. Please try again.');
+          console.error("Unexpected error:", err);
+          setError("Failed to load survey. Please try again.");
         }
         // setError("Failed to load survey. Please try again.");
-        console.error('Survey loading error:', err);
+        console.error("Survey loading error:", err);
       } finally {
         setLoading(false);
       }
@@ -107,8 +136,12 @@ const WebSurveyForm: React.FC<SurveyContainerProps> = ({ surveyId, responseId, s
   }, [surveyId]);
 
   // Handle answer changes
-  const handleAnswerChange = (questionId: string, value: Answer['value'], type: string): void => {
-    setAnswers(prev => ({
+  const handleAnswerChange = (
+    questionId: string,
+    value: Answer["value"],
+    type: string,
+  ): void => {
+    setAnswers((prev) => ({
       ...prev,
       [questionId]: { value, type },
     }));
@@ -188,11 +221,11 @@ const WebSurveyForm: React.FC<SurveyContainerProps> = ({ surveyId, responseId, s
       const answer = answers[question.id];
 
       // Check required fields
-      console.log('Checking Required Field');
+      console.log("Checking Required Field");
       if (question.is_required) {
         const value = answer?.value;
-        if (value === undefined || value === null || value === '') {
-          console.log('Required question not answered:', question.id);
+        if (value === undefined || value === null || value === "") {
+          console.log("Required question not answered:", question.id);
           return -1;
         }
       }
@@ -202,13 +235,13 @@ const WebSurveyForm: React.FC<SurveyContainerProps> = ({ surveyId, responseId, s
         let applicableSkipLogic: ApiSkipLogic | null = null;
 
         for (const skipLogic of question.skip_logics) {
-          if (question.type === 'single' || question.type === 'dropdown') {
+          if (question.type === "single" || question.type === "dropdown") {
             console.log(
-              'Selected answer: ',
-              Number(answer.value) + 1,
-              ' | Skiplogic: ',
+              "Selected answer: ",
+              Number(answer.value),
+              " | Skiplogic: ",
               skipLogic,
-              ' | Type of answer: ',
+              " | Type of answer: ",
               typeof answer.value,
             );
             if (
@@ -223,12 +256,17 @@ const WebSurveyForm: React.FC<SurveyContainerProps> = ({ surveyId, responseId, s
           }
         }
 
-        console.log('skip logic exist: ', applicableSkipLogic);
-        if (applicableSkipLogic?.action === 'go_to') {
-          const targetSectionIndex = survey.sections.findIndex(section => section.order === applicableSkipLogic?.target);
+        console.log("skip logic exist: ", applicableSkipLogic);
+        if (applicableSkipLogic?.action === "go_to") {
+          const targetSectionIndex = survey.sections.findIndex(
+            (section) => section.order === applicableSkipLogic?.target,
+          );
           if (targetSectionIndex !== -1) {
             nextPage = targetSectionIndex;
           }
+        } else if (applicableSkipLogic?.action === "submit_form") {
+          console.log("should submit form");
+          handleSubmit();
         }
       }
     }
@@ -241,16 +279,19 @@ const WebSurveyForm: React.FC<SurveyContainerProps> = ({ surveyId, responseId, s
 
     const nextPage = getNextPageWithSkipLogic(currentPage);
 
-    console.log('Next page after skip logic:', nextPage);
+    console.log("Next page after skip logic:", nextPage);
 
     if (nextPage === -1) {
-      showSnackbar('Please fill all required fields before proceeding.', 'info');
+      showSnackbar(
+        "Please fill all required fields before proceeding.",
+        "info",
+      );
       return;
     }
 
     if (nextPage < survey.sections.length) {
       setCurrentPage(nextPage);
-      setNavigationHistory(prev => [...prev, nextPage]);
+      setNavigationHistory((prev) => [...prev, nextPage]);
     }
   };
 
@@ -259,7 +300,7 @@ const WebSurveyForm: React.FC<SurveyContainerProps> = ({ surveyId, responseId, s
       const newHistory = [...navigationHistory];
       newHistory.pop(); // Remove current page
       const previousPage = newHistory[newHistory.length - 1];
-
+      console.log("previous page: ", previousPage);
       setCurrentPage(previousPage);
       setNavigationHistory(newHistory);
     }
@@ -269,15 +310,15 @@ const WebSurveyForm: React.FC<SurveyContainerProps> = ({ surveyId, responseId, s
     let isEdit = false;
 
     if (!survey || !proj) {
-      console.error('No Survey');
+      console.error("No Survey");
       alert(`Survey or Project Not Found!`);
       return;
     }
 
-    const responseId = getCookie('response_id');
+    const responseId = getCookie("response_id");
 
     if (responseId) {
-      console.log('Response ID: ', responseId);
+      console.log("Response ID: ", responseId);
       isEdit = true;
     }
 
@@ -287,39 +328,46 @@ const WebSurveyForm: React.FC<SurveyContainerProps> = ({ surveyId, responseId, s
     try {
       if (responseId) {
         const flatAnswers = extractValuesFromAnswers(answers);
-        const body: DataCollection['responses'] = flatAnswers;
+        const body: DataCollection["responses"] = flatAnswers;
         const res = await editResponse(responseId, body);
 
-        console.log('res edit: ', res);
-        deleteCookie('response_id');
-        deleteCookie('survey_code');
-        deleteCookie('survey_access_token');
+        console.log("res edit: ", res);
+        deleteCookie("response_id");
+        deleteCookie("survey_code");
+        deleteCookie("survey_access_token");
         setSubmitSuccess(true);
 
         router.replace(`/survey/thankyou?lang=${selectedLang}&edit=1`);
 
         return;
       } else {
-        const formattedDate = new Date().toISOString().split('.')[0];
-        const profile = getCookie('profile');
-        const decodeProfile = JSON.parse(profile ?? '');
-        const lat = getCookie('lat');
-        const long = getCookie('long');
+        const formattedDate = new Date().toISOString().split(".")[0];
+        const profile = getCookie("profile");
+        const decodeProfile = JSON.parse(profile ?? "");
+        const lat = getCookie("lat");
+        const long = getCookie("long");
 
-        const province = getCookie('province');
+        const province = getCookie("province");
         if (!province || !decodeProfile.email) {
-          console.error('no province');
+          console.error("no province");
           alert(`Email and Province Not Found!`);
           return;
         }
 
-        const matchedLocation = proj.location.find((loc: ApiLocation) => loc.name_en.toLowerCase() === province.toLowerCase());
+        const matchedLocation = proj.location.find(
+          (loc: ApiLocation) =>
+            loc.name_en.toLowerCase() === province.toLowerCase(),
+        );
 
-        const projLocations = proj.location.map((loc: ApiLocation) => loc.name_en).join(', ');
+        const projLocations = proj.location
+          .map((loc: ApiLocation) => loc.name_en)
+          .join(", ");
 
         if (!matchedLocation) {
-          console.log('no location');
-          alert(`You are in wrong location. Your Location is ${province}. Required Location is ${projLocations}`);
+          console.log("no location");
+          alert(
+            `You are in wrong location. Your Location is ${province}. Required Location is ${projLocations}`,
+          );
           return;
         }
 
@@ -327,9 +375,9 @@ const WebSurveyForm: React.FC<SurveyContainerProps> = ({ surveyId, responseId, s
         const dataCollection: DataCollection = {
           date: formattedDate,
           respondent: {
-            name: `${decodeProfile.last_name ?? ''}${decodeProfile.first_name ?? ''}`,
-            email: decodeProfile.email ?? '',
-            user_id: decodeProfile.id ?? '',
+            name: `${decodeProfile.last_name ?? ""}${decodeProfile.first_name ?? ""}`,
+            email: decodeProfile.email ?? "",
+            user_id: decodeProfile.id ?? "",
           },
           location: {
             lat: Number(lat) ?? 0,
@@ -337,20 +385,20 @@ const WebSurveyForm: React.FC<SurveyContainerProps> = ({ surveyId, responseId, s
             province: matchedLocation.id,
           },
           responses: flatAnswers,
-          survey_code: getCookie('survey_id') ?? '',
+          survey_code: getCookie("survey_id") ?? "",
         };
 
         const res = await submitSurveyResponse(dataCollection);
 
-        console.log('res: ', res);
+        console.log("res: ", res);
 
         setSubmitSuccess(true);
         router.replace(`/survey/thankyou?lang=${selectedLang}`);
         return;
       }
     } catch (err) {
-      console.error('Submit error:', err);
-      setError('Failed to submit the survey. Please try again.');
+      console.error("Submit error:", err);
+      setError("Failed to submit the survey. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -359,7 +407,10 @@ const WebSurveyForm: React.FC<SurveyContainerProps> = ({ surveyId, responseId, s
   // Loading state
   if (loading) {
     return (
-      <Container maxWidth='sm' sx={{ py: 4, display: 'flex', justifyContent: 'center' }}>
+      <Container
+        maxWidth="sm"
+        sx={{ py: 4, display: "flex", justifyContent: "center" }}
+      >
         <CircularProgress />
       </Container>
     );
@@ -368,8 +419,8 @@ const WebSurveyForm: React.FC<SurveyContainerProps> = ({ surveyId, responseId, s
   // Error state
   if (error) {
     return (
-      <Container maxWidth='sm' sx={{ py: 4 }}>
-        <Alert severity='error'>{error}</Alert>
+      <Container maxWidth="sm" sx={{ py: 4 }}>
+        <Alert severity="error">{error}</Alert>
       </Container>
     );
   }
@@ -377,8 +428,8 @@ const WebSurveyForm: React.FC<SurveyContainerProps> = ({ surveyId, responseId, s
   // No survey data
   if (!survey || !survey.sections || survey.sections.length === 0) {
     return (
-      <Container maxWidth='sm' sx={{ py: 4 }}>
-        <Alert severity='warning'>No survey data available.</Alert>
+      <Container maxWidth="sm" sx={{ py: 4 }}>
+        <Alert severity="warning">No survey data available.</Alert>
       </Container>
     );
   }
@@ -389,43 +440,51 @@ const WebSurveyForm: React.FC<SurveyContainerProps> = ({ surveyId, responseId, s
   const isFirstPage = navigationHistory.length === 1;
 
   return (
-    <Container maxWidth='sm' sx={{ py: 2 }}>
+    <Container maxWidth="sm" sx={{ py: 2 }}>
       <Box
         sx={{
-          overflow: 'hidden',
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-        }}>
+          overflow: "hidden",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
         <Box
           sx={{
             mb: 1,
-            borderBottom: '1px solid #eee',
-            backgroundColor: '#ffffff',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'flex-start',
-            justifyContent: 'center',
+            borderBottom: "1px solid #eee",
+            backgroundColor: "#ffffff",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            justifyContent: "center",
             borderRadius: 2,
-            overflow: 'hidden',
-          }}>
-          <Box sx={{ width: '100%' }}>
-            <SurveyHeader title={survey.title} page={`${isLastPage ? 'End of Survey' : `Page ${currentPage + 1}`}`} />
-            <ProgressIndicator currentStep={currentPage + 1} totalSteps={totalPages} />
+            overflow: "hidden",
+          }}
+        >
+          <Box sx={{ width: "100%" }}>
+            <SurveyHeader
+              title={survey.title}
+              page={`${isLastPage ? "End of Survey" : `Page ${currentPage + 1}`}`}
+            />
+            <ProgressIndicator
+              currentStep={currentPage + 1}
+              totalSteps={totalPages}
+            />
           </Box>
           <Box sx={{ p: 2 }}>
-            <Typography variant='h6' fontWeight='bold'>
+            <Typography variant="h6" fontWeight="bold">
               {getLocaleValue(currentSection?.title, selectedLang)}
             </Typography>
             {currentSection?.description && (
-              <Typography variant='body2' color='text.secondary'>
+              <Typography variant="body2" color="text.secondary">
                 {getLocaleValue(currentSection.description, selectedLang)}
               </Typography>
             )}
           </Box>
         </Box>
 
-        <Box sx={{ flex: 1, overflowY: 'auto' }}>
+        <Box sx={{ flex: 1, overflowY: "auto" }}>
           <SectionContent
             section={currentSection}
             answers={answers}

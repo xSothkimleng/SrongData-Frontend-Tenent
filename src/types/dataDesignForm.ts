@@ -11,7 +11,7 @@ export interface OptionLocalizationType {
 export interface skipLogic {
   answer_index: number;
   action: string;
-  target: string;
+  target: number | null; //null in case action === 'submit_form'
 }
 export interface SectionType {
   order: number;
