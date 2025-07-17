@@ -21,9 +21,10 @@ const MetadataDisplayContent = ({ selectedLog }: { selectedLog: any }) => {
     return isNaN(date.getTime()) ? dateString : date.toLocaleString();
   };
 
-  const renderChangedAnswerList = (list: any[]) =>
-    list.map((item, index) => {
-      let label = item.question_label;
+  const renderChangedAnswerList = (list: any[]) => {
+    console.log("change label list: ", list);
+    return list.map((item, index) => {
+      let label = item.question;
       try {
         label = typeof label === "string" ? JSON.parse(label) : label;
       } catch {
@@ -31,7 +32,6 @@ const MetadataDisplayContent = ({ selectedLog }: { selectedLog: any }) => {
       }
 
       const questionLabel = [label?.en, label?.km].filter(Boolean).join(" / ");
-
       return (
         <div key={index} className="mb-4 p-3 bg-gray-50 rounded-lg">
           <h4 className="font-semibold mb-2 text-gray-700">{questionLabel}</h4>
@@ -56,6 +56,45 @@ const MetadataDisplayContent = ({ selectedLog }: { selectedLog: any }) => {
         </div>
       );
     });
+  };
+
+  const renderChangedQuestionList = (list: any[]) => {
+    console.log("change label list: ", list);
+    return list.map((item, index) => {
+      let label = item.changes.label;
+      try {
+        label = typeof label === "string" ? JSON.parse(label) : label;
+      } catch {
+        label = { en: label, km: "" };
+      }
+
+      const questionLabel = [label?.en, label?.km].filter(Boolean).join(" / ");
+
+      return (
+        <div key={index} className="mb-4 p-3 bg-gray-50 rounded-lg">
+          <h4 className="font-semibold mb-2 text-gray-700">{questionLabel}</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="p-2 bg-red-50 border border-red-200 rounded">
+              <span className="text-xs text-red-600 font-medium">
+                Old Value:
+              </span>
+              <pre className="mt-1 text-sm text-gray-700 whitespace-pre-wrap">
+                {formatValue(label.old)}
+              </pre>
+            </div>
+            <div className="p-2 bg-green-50 border border-green-200 rounded">
+              <span className="text-xs text-green-600 font-medium">
+                New Value:
+              </span>
+              <pre className="mt-1 text-sm text-gray-700 whitespace-pre-wrap">
+                {formatValue(label.new)}
+              </pre>
+            </div>
+          </div>
+        </div>
+      );
+    });
+  };
 
   const renderMetadata = (metadata: any) =>
     Object.entries(metadata).map(([key, value]) => {
@@ -84,12 +123,25 @@ const MetadataDisplayContent = ({ selectedLog }: { selectedLog: any }) => {
             </div>
           );
         } else if (typeof value === "object" && value !== null) {
+          console.log("change field value: ", value);
           return (
             <div key={key}>
               <h4 className="text-md font-semibold mb-3 text-gray-800 capitalize">
                 {key.replace(/_/g, " ")}
               </h4>
-              <div className="overflow-x-auto">
+
+              {/* Render questions separately if present */}
+              {"questions" in value && Array.isArray(value.questions) && (
+                <>
+                  <p className="text-sm font-semibold mt-2 mb-1 text-gray-700">
+                    Questions
+                  </p>
+                  {renderChangedQuestionList(value.questions)}
+                </>
+              )}
+
+              {/* Render other fields */}
+              <div className="overflow-x-auto mt-4">
                 <table className="table-auto w-full text-sm border border-gray-300">
                   <thead>
                     <tr className="bg-gray-100">
@@ -99,15 +151,19 @@ const MetadataDisplayContent = ({ selectedLog }: { selectedLog: any }) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {Object.entries(value).map(
-                      ([field, { old, new: newVal }]) => (
+                    {Object.entries(value)
+                      .filter(([field]) => field !== "questions")
+                      .map(([field, change]) => (
                         <tr key={field}>
                           <td className="border p-2">{field}</td>
-                          <td className="border p-2">{formatValue(old)}</td>
-                          <td className="border p-2">{formatValue(newVal)}</td>
+                          <td className="border p-2">
+                            {formatValue(change.old)}
+                          </td>
+                          <td className="border p-2">
+                            {formatValue(change.new)}
+                          </td>
                         </tr>
-                      ),
-                    )}
+                      ))}
                   </tbody>
                 </table>
               </div>
