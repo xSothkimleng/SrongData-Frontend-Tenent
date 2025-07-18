@@ -880,11 +880,11 @@ const language: {
     km: "ទីតាំង",
   },
   capi: {
-    en: "CAPI",
+    en: "CAPI (Online & Offline via Mobile App)",
     km: "CAPI (ប្រមូលទិន្នន័យតាមកម្មវិធីទូរស័ព្ទ)",
   },
   web_survey: {
-    en: "Online Survey",
+    en: "Online Survey (Web-based Survey)",
     km: "សំណួរអនឡាញ",
   },
   respondent_id: {
@@ -894,6 +894,18 @@ const language: {
   respondent_email: {
     en: "Respondent Email",
     km: "អ៊ីមែលអ្នកឆ្លើយ",
+  },
+  survey_language: {
+    en: "Survey Languages",
+    km: "ភាសាស្ទង់មតិ",
+  },
+  survey_method: {
+    en: "Survey Method",
+    km: "វិធីសាស្រ្តស្ទង់មតិ",
+  },
+  view_project_detail: {
+    en: "View Detail",
+    km: "មើលព័ត៌មានលម្អិត",
   },
 };
 

@@ -39,6 +39,7 @@ export interface SelectedLocations {
 
 export interface IsUpdateProps {
   isUpdate?: boolean;
+  isEdit?: boolean; // use for edit project purpose, cuz if data collected we dun wanna let them edit location
 }
 
 export interface ProjectLocation extends SelectedLocations {}

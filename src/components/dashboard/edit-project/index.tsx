@@ -31,6 +31,7 @@ import {
 interface EditProjectPageProps {
   projectId: string;
   setOpenEditProjectDialog: React.Dispatch<React.SetStateAction<boolean>>;
+  isDataCollected?: boolean;
 }
 
 const fetchUsersWithStatus = async (): Promise<UserProfile[]> => {
@@ -78,6 +79,7 @@ const fetchFilterFunctions = async () => {
 const EditProjectPage: React.FC<EditProjectPageProps> = ({
   projectId,
   setOpenEditProjectDialog,
+  isDataCollected,
 }) => {
   const lang = useLang((state) => state.lang);
 
@@ -399,10 +401,16 @@ const EditProjectPage: React.FC<EditProjectPageProps> = ({
             setIsSurveyLanguageInKhmer={setIsSurveyLanguageInKhmer}
             dataCollectionMethod={dataCollectionMethod}
             setDataCollectionMethod={setDataCollectionMethod}
+            isEdit={isDataCollected && isDataCollected === true}
           />
         )}
 
-        {activeStep === 1 && <LocationSelectionTabs isUpdate={true} />}
+        {activeStep === 1 && (
+          <LocationSelectionTabs
+            isUpdate={true}
+            isEdit={isDataCollected && isDataCollected === true}
+          />
+        )}
 
         {activeStep === 2 && (
           <DatasetDesignTabs
@@ -411,6 +419,7 @@ const EditProjectPage: React.FC<EditProjectPageProps> = ({
             setDataDesignForms={setDataDesignForms}
             isSurveyLanguageInEnglish={isSurveyLanguageInEnglish}
             isSurveyLanguageInKhmer={isSurveyLanguageInKhmer}
+            isEdit={isDataCollected && isDataCollected === true}
           />
         )}
 

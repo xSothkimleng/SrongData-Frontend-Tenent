@@ -55,6 +55,7 @@ interface DatasetDesignTabProps {
   setDataDesignForms: React.Dispatch<React.SetStateAction<DataDesignForm[]>>;
   isSurveyLanguageInEnglish: boolean;
   isSurveyLanguageInKhmer: boolean;
+  isEdit?: boolean;
 }
 
 const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
@@ -63,6 +64,7 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
   setDataDesignForms,
   isSurveyLanguageInEnglish,
   isSurveyLanguageInKhmer,
+  isEdit,
 }) => {
   const lang = useLang((state) => state.lang);
   const [isSurveyInBothLanguages, setIsSurveyInBothLanguages] = useState(
@@ -808,6 +810,7 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                                   event.target.value,
                                 )
                               }
+                              disabled={isEdit && isEdit === true}
                               required
                             >
                               {questionTypes.map((option) => (
@@ -966,6 +969,7 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                                           : "Add Skip Logic"}
                                       </Button>
                                       <IconButton
+                                        disabled={isEdit && isEdit === true}
                                         onClick={() =>
                                           handleRemoveOption(
                                             form.order,
@@ -1249,9 +1253,14 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
         >
           Add Section
         </Button>
-        {/* <Button variant='contained' color='info' startIcon={<AddCircleOutlineIcon />} onClick={handleShowDataStructure}>
+        <Button
+          variant="contained"
+          color="info"
+          startIcon={<AddCircleOutlineIcon />}
+          onClick={handleShowDataStructure}
+        >
           Show Data Structure
-        </Button> */}
+        </Button>
       </Box>
 
       {/* Skip Logic Dialog */}
