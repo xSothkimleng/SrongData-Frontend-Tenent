@@ -147,7 +147,7 @@ const ReportPage = () => {
 
       return response.data.data;
     },
-    enabled: !!selectedProject?.indicators.length,
+    enabled: !!selectedProject?.indicators,
   });
 
   const columns: GridColDef[] = React.useMemo(

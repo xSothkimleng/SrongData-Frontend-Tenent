@@ -1,23 +1,23 @@
-'use client';
-import useLang from '@/store/lang';
-import { UserProfile } from '@/types/user';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { GetContext } from '@/utils/language';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import SystemUpdateAltIcon from '@mui/icons-material/SystemUpdateAlt';
-import StopCircleIcon from '@mui/icons-material/StopCircle';
-import FileCopyIcon from '@mui/icons-material/FileCopy';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { enqueueSnackbar } from 'notistack';
-import CloseIcon from '@mui/icons-material/Close';
-import EditProjectPage from '@/components/dashboard/edit-project';
-import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
-import ConfirmationDialog from '@/components/dashboard/confirmation-dialog';
-import LinkIcon from '@mui/icons-material/Link';
+"use client";
+import useLang from "@/store/lang";
+import { UserProfile } from "@/types/user";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { GetContext } from "@/utils/language";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import SystemUpdateAltIcon from "@mui/icons-material/SystemUpdateAlt";
+import StopCircleIcon from "@mui/icons-material/StopCircle";
+import FileCopyIcon from "@mui/icons-material/FileCopy";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import { enqueueSnackbar } from "notistack";
+import CloseIcon from "@mui/icons-material/Close";
+import EditProjectPage from "@/components/dashboard/edit-project";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import ConfirmationDialog from "@/components/dashboard/confirmation-dialog";
+import LinkIcon from "@mui/icons-material/Link";
 import {
   Button,
   Box,
@@ -36,8 +36,8 @@ import {
   MenuItem,
   ListItemIcon,
   ListItemText,
-} from '@mui/material';
-import useUserStore from '@/store/useUserStore';
+} from "@mui/material";
+import useUserStore from "@/store/useUserStore";
 
 export interface Filter {
   index: number;
@@ -64,7 +64,7 @@ export interface Project {
   users: string[];
   indicators: Indicator[];
   created_by: string;
-  status: string;
+  status: number;
   data_collected: number;
   created_at: string;
   updated_at: string;
@@ -79,21 +79,31 @@ const TableActionMenu: React.FC<{
   canAssignUser: boolean;
   canDeleteProject: boolean;
   canUpdateProjectStatus: boolean;
-}> = ({ row, users, canAssignUser, canCloneProject, canDeleteProject, canEditProject, canUpdateProjectStatus }) => {
+}> = ({
+  row,
+  users,
+  canAssignUser,
+  canCloneProject,
+  canDeleteProject,
+  canEditProject,
+  canUpdateProjectStatus,
+}) => {
   const router = useRouter();
-  const lang = useLang(state => state.lang);
+  const lang = useLang((state) => state.lang);
   const queryClient = useQueryClient();
   const [selectedUsers, setSelectedUsers] = useState<UserProfile[]>([]);
-  const [password, setPassword] = useState('');
+  const [password, setPassword] = useState("");
   const [openAssignUserDialog, setOpenAssignUserDialog] = useState(false);
   const [openProjectStatusDialog, setOpenProjectStatusDialog] = useState(false);
   const [openDeleteProjectDialog, setOpenDeleteProjectDialog] = useState(false);
   const [openCloneProjectDialog, setOpenCloneProjectDialog] = useState(false);
   const [openEditProjectDialog, setOpenEditProjectDialog] = useState(false);
   const [openShareLinkDialog, setOpenShareLinkDialog] = useState(false);
-  const tenant = useUserStore(state => state.userData);
+  const tenant = useUserStore((state) => state.userData);
 
-  const [webLink] = useState<string>(`${process.env.NEXT_PUBLIC_FRONTEND_URL}/survey?s=${row.code}&t=${tenant?.tenant?.id}`);
+  const [webLink] = useState<string>(
+    `${process.env.NEXT_PUBLIC_FRONTEND_URL}/survey?s=${row.code}&t=${tenant?.tenant?.id}`,
+  );
 
   // Menu state
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -107,29 +117,29 @@ const TableActionMenu: React.FC<{
       return res.data;
     },
     // @ts-ignore
-    onSuccess: async data => {
+    onSuccess: async (data) => {
       // console.log('invite successful:', data);
       // @ts-ignore
-      queryClient.invalidateQueries('AllProjects');
+      queryClient.invalidateQueries("AllProjects");
       // @ts-ignore
-      enqueueSnackbar(data.message, { variant: 'success' });
+      enqueueSnackbar(data.message, { variant: "success" });
       setOpenEditProjectDialog(false);
     },
     onError: (error: any) => {
-      enqueueSnackbar(error?.message || 'Error Updating project.', {
-        variant: 'error',
+      enqueueSnackbar(error?.message || "Error Updating project.", {
+        variant: "error",
         anchorOrigin: {
-          vertical: 'top',
-          horizontal: 'center',
+          vertical: "top",
+          horizontal: "center",
         },
       });
-      console.error('Error Updating User:', error);
+      console.error("Error Updating User:", error);
     },
   });
 
   const updateProjectUsersMutation = useMutation<unknown, Error, any>({
     mutationFn: async (data: any) => {
-      const userIds = selectedUsers.map(user => user.id);
+      const userIds = selectedUsers.map((user) => user.id);
       // console.log('Updating project users...:', data);
       // console.log('Selected users:', userIds);
       const encodedIds = encodeURIComponent(`${data.projectId}`);
@@ -140,27 +150,27 @@ const TableActionMenu: React.FC<{
       return res.data;
     },
     // @ts-ignore
-    onSuccess: async data => {
+    onSuccess: async (data) => {
       // @ts-ignore
-      queryClient.invalidateQueries('AllProjects');
+      queryClient.invalidateQueries("AllProjects");
       // @ts-ignore
       enqueueSnackbar(data.message, {
-        variant: 'success',
+        variant: "success",
         anchorOrigin: {
-          vertical: 'top',
-          horizontal: 'center',
+          vertical: "top",
+          horizontal: "center",
         },
       });
     },
     onError: (error: any) => {
-      enqueueSnackbar(error?.message || 'Error Updating project.', {
-        variant: 'error',
+      enqueueSnackbar(error?.message || "Error Updating project.", {
+        variant: "error",
         anchorOrigin: {
-          vertical: 'top',
-          horizontal: 'center',
+          vertical: "top",
+          horizontal: "center",
         },
       });
-      console.error('Error Updating project:', error);
+      console.error("Error Updating project:", error);
     },
   });
 
@@ -176,29 +186,29 @@ const TableActionMenu: React.FC<{
       return res.data;
     },
     // @ts-ignore
-    onSuccess: async data => {
+    onSuccess: async (data) => {
       // @ts-ignore
-      queryClient.invalidateQueries('AllProjects');
+      queryClient.invalidateQueries("AllProjects");
       // @ts-ignore
       enqueueSnackbar(data.message, {
-        variant: 'success',
+        variant: "success",
         anchorOrigin: {
-          vertical: 'top',
-          horizontal: 'center',
+          vertical: "top",
+          horizontal: "center",
         },
       });
-      setPassword('');
+      setPassword("");
       setOpenDeleteProjectDialog(false);
     },
     onError: (error: any) => {
-      enqueueSnackbar(error?.message || 'Error Updating project.', {
-        variant: 'error',
+      enqueueSnackbar(error?.message || "Error Updating project.", {
+        variant: "error",
         anchorOrigin: {
-          vertical: 'top',
-          horizontal: 'center',
+          vertical: "top",
+          horizontal: "center",
         },
       });
-      console.error('Error Updating project:', error);
+      console.error("Error Updating project:", error);
     },
   });
 
@@ -211,28 +221,28 @@ const TableActionMenu: React.FC<{
       return res.data;
     },
     // @ts-ignore
-    onSuccess: async data => {
+    onSuccess: async (data) => {
       // @ts-ignore
-      queryClient.invalidateQueries('AllProjects');
+      queryClient.invalidateQueries("AllProjects");
       // @ts-ignore
       enqueueSnackbar(data.message, {
-        variant: 'success',
+        variant: "success",
         anchorOrigin: {
-          vertical: 'top',
-          horizontal: 'center',
+          vertical: "top",
+          horizontal: "center",
         },
       });
       setOpenCloneProjectDialog(false);
     },
     onError: (error: any) => {
-      enqueueSnackbar('Project has reach limit', {
-        variant: 'warning',
+      enqueueSnackbar("Project has reach limit", {
+        variant: "warning",
         anchorOrigin: {
-          vertical: 'top',
-          horizontal: 'center',
+          vertical: "top",
+          horizontal: "center",
         },
       });
-      console.error('Error Updating project:', error);
+      console.error("Error Updating project:", error);
     },
   });
 
@@ -256,15 +266,15 @@ const TableActionMenu: React.FC<{
       const allUser = users;
 
       const preselectedUsers = row.users
-        .map(user => {
+        .map((user) => {
           // @ts-ignore
-          return allUser.find(u => u.id === user.id);
+          return allUser.find((u) => u.id === user.id);
         })
         .filter(Boolean) as UserProfile[];
 
       setSelectedUsers(preselectedUsers);
     } catch (e) {
-      console.log('Error:', e);
+      console.log("Error:", e);
     } finally {
       setOpenAssignUserDialog(true);
     }
@@ -296,45 +306,54 @@ const TableActionMenu: React.FC<{
     action();
   };
 
+  console.log("row status; ", row.status);
+
   return (
     <Box
       sx={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'flex-left',
-        height: '100%',
-      }}>
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "flex-left",
+        height: "100%",
+      }}
+    >
       <IconButton
-        aria-label='more'
-        id='long-button'
-        aria-controls={open ? 'long-menu' : undefined}
-        aria-expanded={open ? 'true' : undefined}
-        aria-haspopup='true'
-        onClick={handleClick}>
+        aria-label="more"
+        id="long-button"
+        aria-controls={open ? "long-menu" : undefined}
+        aria-expanded={open ? "true" : undefined}
+        aria-haspopup="true"
+        onClick={handleClick}
+      >
         <MoreVertIcon />
       </IconButton>
       <Menu
-        id='long-menu'
+        id="long-menu"
         MenuListProps={{
-          'aria-labelledby': 'long-button',
+          "aria-labelledby": "long-button",
         }}
         anchorEl={anchorEl}
         open={open}
         onClose={handleClose}
         anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right',
+          vertical: "bottom",
+          horizontal: "right",
         }}
         transformOrigin={{
-          vertical: 'top',
-          horizontal: 'right',
-        }}>
+          vertical: "top",
+          horizontal: "right",
+        }}
+      >
         {/* View Project Details - Always shown */}
-        <MenuItem onClick={() => handleMenuItemClick(() => handleViewProject(row.projectId))}>
+        <MenuItem
+          onClick={() =>
+            handleMenuItemClick(() => handleViewProject(row.projectId))
+          }
+        >
           <ListItemIcon>
-            <VisibilityOutlinedIcon fontSize='small' />
+            <VisibilityOutlinedIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>View Project Details</ListItemText>
+          <ListItemText>{GetContext("view_project_detail", lang)}</ListItemText>
         </MenuItem>
 
         {/* <MenuItem onClick={() => handleMenuItemClick(() => handleViewProjectResponses())}>
@@ -345,50 +364,68 @@ const TableActionMenu: React.FC<{
         </MenuItem> */}
 
         {/* Update Project Status */}
-        {canUpdateProjectStatus && row.status !== 'Completed' && (
-          <MenuItem onClick={() => handleMenuItemClick(() => setOpenProjectStatusDialog(true))}>
+        {canUpdateProjectStatus && row.status !== 2 && (
+          <MenuItem
+            onClick={() =>
+              handleMenuItemClick(() => setOpenProjectStatusDialog(true))
+            }
+          >
             <ListItemIcon>
-              <SystemUpdateAltIcon fontSize='small' />
+              <SystemUpdateAltIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText>{GetContext('update_project_status', lang)}</ListItemText>
+            <ListItemText>
+              {GetContext("update_project_status", lang)}
+            </ListItemText>
           </MenuItem>
         )}
 
         {/* Edit Project */}
-        {canEditProject && (
-          <MenuItem onClick={() => handleMenuItemClick(() => setOpenEditProjectDialog(true))}>
+        {canEditProject && row.status !== 2 && (
+          <MenuItem
+            onClick={() =>
+              handleMenuItemClick(() => setOpenEditProjectDialog(true))
+            }
+          >
             <ListItemIcon>
-              <EditIcon fontSize='small' />
+              <EditIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText>{GetContext('edit_project', lang)}</ListItemText>
+            <ListItemText>{GetContext("edit_project", lang)}</ListItemText>
           </MenuItem>
         )}
 
         {/* Assign User */}
-        {canAssignUser && row.status !== 'Completed' && (
+        {canAssignUser && row.status !== 2 && (
           <MenuItem onClick={() => handleMenuItemClick(handleAssignUser)}>
             <ListItemIcon>
-              <StopCircleIcon fontSize='small' />
+              <StopCircleIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText>{GetContext('assign_user', lang)}</ListItemText>
+            <ListItemText>{GetContext("assign_user", lang)}</ListItemText>
           </MenuItem>
         )}
 
         {/* Clone Project */}
         {canCloneProject && (
-          <MenuItem onClick={() => handleMenuItemClick(() => setOpenCloneProjectDialog(true))}>
+          <MenuItem
+            onClick={() =>
+              handleMenuItemClick(() => setOpenCloneProjectDialog(true))
+            }
+          >
             <ListItemIcon>
-              <FileCopyIcon fontSize='small' />
+              <FileCopyIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText>{GetContext('clone_project', lang)}</ListItemText>
+            <ListItemText>{GetContext("clone_project", lang)}</ListItemText>
           </MenuItem>
         )}
 
         {/* Share Link */}
         {row.code != null && (
-          <MenuItem onClick={() => handleMenuItemClick(() => setOpenShareLinkDialog(true))}>
+          <MenuItem
+            onClick={() =>
+              handleMenuItemClick(() => setOpenShareLinkDialog(true))
+            }
+          >
             <ListItemIcon>
-              <LinkIcon fontSize='small' />
+              <LinkIcon fontSize="small" />
             </ListItemIcon>
             <ListItemText>Share Link</ListItemText>
           </MenuItem>
@@ -396,67 +433,98 @@ const TableActionMenu: React.FC<{
 
         {/* Delete Project */}
         {canDeleteProject && (
-          <MenuItem onClick={() => handleMenuItemClick(() => setOpenDeleteProjectDialog(true))}>
+          <MenuItem
+            onClick={() =>
+              handleMenuItemClick(() => setOpenDeleteProjectDialog(true))
+            }
+          >
             <ListItemIcon>
-              <DeleteIcon fontSize='small' />
+              <DeleteIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText>{GetContext('delete_project', lang)}</ListItemText>
+            <ListItemText>{GetContext("delete_project", lang)}</ListItemText>
           </MenuItem>
         )}
       </Menu>
 
       {/* All the existing dialogs remain the same */}
       {/* Assign User Dialog */}
-      <Dialog fullWidth maxWidth='md' open={openAssignUserDialog} onClose={() => setOpenAssignUserDialog(false)}>
-        <DialogTitle>{GetContext('assign_user', lang)}</DialogTitle>
+      <Dialog
+        fullWidth
+        maxWidth="md"
+        open={openAssignUserDialog}
+        onClose={() => setOpenAssignUserDialog(false)}
+      >
+        <DialogTitle>{GetContext("assign_user", lang)}</DialogTitle>
         <DialogContent dividers>
           <Autocomplete
             multiple
-            id='checkboxes-tags-demo'
+            id="checkboxes-tags-demo"
             fullWidth
             options={users}
             disableCloseOnSelect
-            getOptionLabel={option => option.first_name + ' ' + option.last_name}
+            getOptionLabel={(option) =>
+              option.first_name + " " + option.last_name
+            }
             value={selectedUsers}
             onChange={(event, newValue) => {
               setSelectedUsers(newValue);
             }}
             renderOption={(props, option) => (
               <li {...props} key={option.id}>
-                {option.first_name + ' ' + option.last_name}
+                {option.first_name + " " + option.last_name}
               </li>
             )}
-            renderInput={params => <TextField {...params} label={GetContext('user', lang)} placeholder='Select users' />}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label={GetContext("user", lang)}
+                placeholder="Select users"
+              />
+            )}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenAssignUserDialog(false)}>{GetContext('close', lang)}</Button>
-          <Button variant='contained' onClick={() => updateProjectUsersMutation.mutate(row)}>
-            {GetContext('edit', lang)}
+          <Button onClick={() => setOpenAssignUserDialog(false)}>
+            {GetContext("close", lang)}
+          </Button>
+          <Button
+            variant="contained"
+            onClick={() => updateProjectUsersMutation.mutate(row)}
+          >
+            {GetContext("edit", lang)}
           </Button>
         </DialogActions>
       </Dialog>
       {/* update Project Status Dialog */}
       <Dialog
         fullWidth
-        maxWidth='xs'
+        maxWidth="xs"
         open={openProjectStatusDialog}
-        onClose={() => setOpenProjectStatusDialog(!openProjectStatusDialog)}>
+        onClose={() => setOpenProjectStatusDialog(!openProjectStatusDialog)}
+      >
         <DialogTitle>
-          <p>{GetContext('update_project_status', lang)}</p>
+          <p>{GetContext("update_project_status", lang)}</p>
         </DialogTitle>
-        <DialogContent>{GetContext('update_project_status_msg', lang)}</DialogContent>
+        <DialogContent>
+          {GetContext("update_project_status_msg", lang)}
+        </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenProjectStatusDialog(false)}>{GetContext('cancel', lang)}</Button>
-          <Button variant='contained' color='info' onClick={() => handleUpdateProjectStatus(row)}>
-            {GetContext('edit', lang)}
+          <Button onClick={() => setOpenProjectStatusDialog(false)}>
+            {GetContext("cancel", lang)}
+          </Button>
+          <Button
+            variant="contained"
+            color="info"
+            onClick={() => handleUpdateProjectStatus(row)}
+          >
+            {GetContext("edit", lang)}
           </Button>
         </DialogActions>
       </Dialog>
       {/* delete Project Dialog */}
       <ConfirmationDialog
-        title={GetContext('delete_project', lang)}
-        message={GetContext('confirm_password_msg', lang)}
+        title={GetContext("delete_project", lang)}
+        message={GetContext("confirm_password_msg", lang)}
         open={openDeleteProjectDialog}
         onClose={() => setOpenDeleteProjectDialog(!openDeleteProjectDialog)}
         onConfirm={handleDeleteProject}
@@ -467,78 +535,108 @@ const TableActionMenu: React.FC<{
       {/* Clone Project Dialog */}
       <Dialog
         fullWidth
-        maxWidth='xs'
+        maxWidth="xs"
         open={openCloneProjectDialog}
-        onClose={() => setOpenCloneProjectDialog(!openCloneProjectDialog)}>
+        onClose={() => setOpenCloneProjectDialog(!openCloneProjectDialog)}
+      >
         <DialogTitle>
-          <p>{GetContext('clone_project', lang)}</p>
+          <p>{GetContext("clone_project", lang)}</p>
         </DialogTitle>
-        <DialogContent>{GetContext('clone_msg', lang)}</DialogContent>
+        <DialogContent>{GetContext("clone_msg", lang)}</DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenCloneProjectDialog(false)}>{GetContext('cancel', lang)}</Button>
-          <Button variant='contained' color='info' onClick={() => handleCloneProject()}>
-            {GetContext('clone_project', lang)}
+          <Button onClick={() => setOpenCloneProjectDialog(false)}>
+            {GetContext("cancel", lang)}
+          </Button>
+          <Button
+            variant="contained"
+            color="info"
+            onClick={() => handleCloneProject()}
+          >
+            {GetContext("clone_project", lang)}
           </Button>
         </DialogActions>
       </Dialog>
       {/* Edit Project Dialog */}
-      <Dialog fullScreen open={openEditProjectDialog} onClose={() => setOpenEditProjectDialog(false)}>
-        <AppBar sx={{ position: 'relative' }}>
+      <Dialog
+        fullScreen
+        open={openEditProjectDialog}
+        onClose={() => setOpenEditProjectDialog(false)}
+      >
+        <AppBar sx={{ position: "relative" }}>
           <Toolbar>
-            <IconButton edge='start' color='inherit' onClick={() => setOpenEditProjectDialog(false)} aria-label='close'>
+            <IconButton
+              edge="start"
+              color="inherit"
+              onClick={() => setOpenEditProjectDialog(false)}
+              aria-label="close"
+            >
               <CloseIcon />
             </IconButton>
-            <Typography sx={{ ml: 2, flex: 1 }} variant='h6' component='div'>
-              {/* {GetContext('edit_project_title', lang)} {row.name} */}
-              Edit Project
+            <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
+              {GetContext("edit_project", lang)}
             </Typography>
           </Toolbar>
         </AppBar>
-        <Box sx={{ padding: '2%' }}>
-          <div>Edit Project</div>
-          <EditProjectPage projectId={row.projectId} setOpenEditProjectDialog={setOpenEditProjectDialog} />
+        <Box sx={{ padding: "2%" }}>
+          <div>{GetContext("edit_project", lang)}</div>
+          <EditProjectPage
+            projectId={row.projectId}
+            setOpenEditProjectDialog={setOpenEditProjectDialog}
+            isDataCollected={(row.data_collected ?? 0) > 0}
+          />
         </Box>
       </Dialog>
       {/* share link dialog */}
 
-      <Dialog fullWidth maxWidth='md' open={openShareLinkDialog} onClose={() => setOpenShareLinkDialog(!openShareLinkDialog)}>
+      <Dialog
+        fullWidth
+        maxWidth="md"
+        open={openShareLinkDialog}
+        onClose={() => setOpenShareLinkDialog(!openShareLinkDialog)}
+      >
         <DialogTitle>
           <p>Share Link</p>
         </DialogTitle>
         <DialogContent>
           <Box
-            display='flex'
-            alignItems='center'
-            justifyContent='space-between'
-            sx={{ background: '#f5f5f5', p: 1, borderRadius: 1, mt: 1 }}>
+            display="flex"
+            alignItems="center"
+            justifyContent="space-between"
+            sx={{ background: "#f5f5f5", p: 1, borderRadius: 1, mt: 1 }}
+          >
             <Typography
-              component='a'
+              component="a"
               href={webLink}
-              target='_blank'
-              rel='noopener noreferrer'
+              target="_blank"
+              rel="noopener noreferrer"
               sx={{
-                fontSize: '14px',
-                color: '#1976d2',
-                textDecoration: 'underline',
-                wordBreak: 'break-all',
+                fontSize: "14px",
+                color: "#1976d2",
+                textDecoration: "underline",
+                wordBreak: "break-all",
                 flexGrow: 1,
-              }}>
+              }}
+            >
               {webLink}
             </Typography>
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button variant='outlined' onClick={() => setOpenShareLinkDialog(false)}>
-            {GetContext('cancel', lang)}
+          <Button
+            variant="outlined"
+            onClick={() => setOpenShareLinkDialog(false)}
+          >
+            {GetContext("cancel", lang)}
           </Button>
           <Button
-            variant='contained'
-            size='small'
+            variant="contained"
+            size="small"
             onClick={() => {
               navigator.clipboard.writeText(webLink);
               setOpenShareLinkDialog(false);
-            }}>
-            {GetContext('copy_link', lang)}
+            }}
+          >
+            {GetContext("copy_link", lang)}
           </Button>
         </DialogActions>
       </Dialog>
