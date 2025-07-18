@@ -67,6 +67,10 @@ const language: {
     en: "Data View",
     km: "ទិន្នន័យ",
   },
+  chart_view: {
+    en: "Chart View",
+    km: "ទិដ្ឋភាពគំនូសតាង",
+  },
   user: {
     en: "Users",
     km: "អ្នកប្រើប្រាស់",
@@ -906,6 +910,34 @@ const language: {
   view_project_detail: {
     en: "View Detail",
     km: "មើលព័ត៌មានលម្អិត",
+  },
+  collection_method: {
+    en: "Collection Method",
+    km: "វិធីសាស្រ្តប្រមូល",
+  },
+  started_collection: {
+    en: "Started Collection",
+    km: "បានចាប់ផ្តើមប្រមូល",
+  },
+  multi_project_view: {
+    en: "Multi-Project Data Visualization",
+    km: "ការមើលឃើញទិន្នន័យច្រើនគម្រោង",
+  },
+  skip_logic: {
+    en: "Skip Logic",
+    km: "រំលងតក្កវិជ្ជា",
+  },
+  project_location: {
+    en: "Project Location",
+    km: "ទីតាំងគម្រោង",
+  },
+  project_questions: {
+    en: "Project Questions",
+    km: "សំណួរគម្រោង",
+  },
+  project_indicator: {
+    en: "Project Indicator",
+    km: "សូចនាករគម្រោង",
   },
 };
 
