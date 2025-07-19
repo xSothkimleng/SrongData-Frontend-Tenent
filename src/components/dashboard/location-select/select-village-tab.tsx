@@ -1,24 +1,43 @@
-'use client';
-import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
-import { Location, Village, IsUpdateProps } from '@/types/locations';
-import usePersistentState from '@/hooks/usePersistentState';
-import { Button, Checkbox, FormControlLabel, List, ListItemButton, Collapse, Box, CircularProgress, Alert } from '@mui/material';
-import { ExpandLess, ExpandMore } from '@mui/icons-material';
-import { VariableSizeList as VirtualList } from 'react-window';
-import TabPanel from '@/components/dashboard/location-select/tab-panel-location';
-import { GetContext } from '@/utils/language';
-import useLang from '@/store/lang';
+"use client";
+import React, { useState, useEffect, useRef } from "react";
+import axios from "axios";
+import { Location, Village, IsUpdateProps } from "@/types/locations";
+import usePersistentState from "@/hooks/usePersistentState";
+import {
+  Button,
+  Checkbox,
+  FormControlLabel,
+  List,
+  ListItemButton,
+  Collapse,
+  Box,
+  CircularProgress,
+  Alert,
+} from "@mui/material";
+import { ExpandLess, ExpandMore } from "@mui/icons-material";
+import { VariableSizeList as VirtualList } from "react-window";
+import TabPanel from "@/components/dashboard/location-select/tab-panel-location";
+import { GetContext } from "@/utils/language";
+import useLang from "@/store/lang";
 
-const fetchVillages = async (selectedCommunes: string[]): Promise<Village[]> => {
-  const response = await axios.post('/api/location', { endpoint: 'villages', filter: selectedCommunes });
+const fetchVillages = async (
+  selectedCommunes: string[],
+): Promise<Village[]> => {
+  const response = await axios.post("/api/location", {
+    endpoint: "villages",
+    filter: selectedCommunes,
+  });
   return response.data.data;
 };
 
-const VillageSelectionTab = ({isUpdate}: IsUpdateProps) => {
-  const lang = useLang(state => state.lang);
-  const selectedCommuneLocal = isUpdate ? 'selectedCommunes-edit' : 'selectedCommunes';
-  const selectedVillageLocal = isUpdate ? 'selectedVillages-edit' : 'selectedVillages';
+const VillageSelectionTab = ({ isUpdate, isEdit }: IsUpdateProps) => {
+  const lang = useLang((state) => state.lang);
+  const selectedCommuneLocal = isUpdate
+    ? "selectedCommunes-edit"
+    : "selectedCommunes";
+  const selectedVillageLocal = isUpdate
+    ? "selectedVillages-edit"
+    : "selectedVillages";
   const [villages, setVillages] = useState<Village[]>([]);
   const [selectedVillages, setSelectedVillages] = usePersistentState<{
     [key: string]: {
@@ -27,9 +46,11 @@ const VillageSelectionTab = ({isUpdate}: IsUpdateProps) => {
     };
   }>(selectedVillageLocal, {});
   const listRef = useRef<any>(null);
-  const allVillageIds = villages.map(commune => commune.villages?.map(village => village.id)).flat();
+  const allVillageIds = villages
+    .map((commune) => commune.villages?.map((village) => village.id))
+    .flat();
   const selectedVillageIds = Object.keys(selectedVillages)
-    .map(key => selectedVillages[key].selected?.flat())
+    .map((key) => selectedVillages[key].selected?.flat())
     .flat();
   const isSelectAll = allVillageIds.length == selectedVillageIds.length;
   const [isReady, setIsReady] = useState<boolean>(false);
@@ -39,7 +60,7 @@ const VillageSelectionTab = ({isUpdate}: IsUpdateProps) => {
       ? JSON.parse(localStorage.getItem(selectedCommuneLocal) as string)
       : {};
     const selectedCommuneIds = Object.keys(selectedCommunes)
-      .map(key => selectedCommunes[key].selected)
+      .map((key) => selectedCommunes[key].selected)
       .flat();
     const fetchAndSetVillages = async () => {
       const villagesData = await fetchVillages(selectedCommuneIds);
@@ -49,8 +70,8 @@ const VillageSelectionTab = ({isUpdate}: IsUpdateProps) => {
     fetchAndSetVillages();
   }, []);
 
-  const handleAccordionToggle =(communeId: string) => {
-    setSelectedVillages(prev => ({
+  const handleAccordionToggle = (communeId: string) => {
+    setSelectedVillages((prev) => ({
       ...prev,
       [communeId]: {
         ...prev[communeId],
@@ -63,9 +84,13 @@ const VillageSelectionTab = ({isUpdate}: IsUpdateProps) => {
     }
   };
 
-  const handleSelectVillageGroup = (villages: Location[], communeId: string, allSelected: boolean) => {
+  const handleSelectVillageGroup = (
+    villages: Location[],
+    communeId: string,
+    allSelected: boolean,
+  ) => {
     if (allSelected) {
-      setSelectedVillages(prev => ({
+      setSelectedVillages((prev) => ({
         ...prev,
         [communeId]: {
           ...prev[communeId],
@@ -73,8 +98,8 @@ const VillageSelectionTab = ({isUpdate}: IsUpdateProps) => {
         },
       }));
     } else {
-      const villagesIds = villages.map(village => village.id);
-      setSelectedVillages(prev => ({
+      const villagesIds = villages.map((village) => village.id);
+      setSelectedVillages((prev) => ({
         ...prev,
         [communeId]: {
           ...prev[communeId],
@@ -85,15 +110,15 @@ const VillageSelectionTab = ({isUpdate}: IsUpdateProps) => {
   };
 
   const handleSelectVillage = (villageId: string, communeId: string) => {
-    setSelectedVillages(prev => ({
+    setSelectedVillages((prev) => ({
       ...prev,
       [communeId]: {
         ...prev[communeId],
         selected: prev[communeId].selected?.includes(villageId)
-          ? prev[communeId].selected.filter(id => id !== villageId)
+          ? prev[communeId].selected.filter((id) => id !== villageId)
           : prev[communeId]?.selected
-          ? [...prev[communeId]?.selected, villageId]
-          : [villageId],
+            ? [...prev[communeId]?.selected, villageId]
+            : [villageId],
       },
     }));
   };
@@ -108,10 +133,10 @@ const VillageSelectionTab = ({isUpdate}: IsUpdateProps) => {
           selected: string[];
         };
       };
-      villages.map(commune => {
+      villages.map((commune) => {
         selectedVillagesTemp[commune.id] = {
           isOpen: false,
-          selected: commune.villages?.map(village => village.id),
+          selected: commune.villages?.map((village) => village.id),
         };
       });
       setSelectedVillages(selectedVillagesTemp);
@@ -122,21 +147,42 @@ const VillageSelectionTab = ({isUpdate}: IsUpdateProps) => {
   };
 
   const VillageList = React.memo(
-    ({ commune, selectedVillage }: { commune: Village; selectedVillage?: { isOpen: boolean; selected: string[] } }) => {
+    ({
+      commune,
+      selectedVillage,
+    }: {
+      commune: Village;
+      selectedVillage?: { isOpen: boolean; selected: string[] };
+    }) => {
       const communeId = commune.id;
-      const allChecked = selectedVillage ? commune.villages?.length === selectedVillage.selected?.length : false;
-      const someChecked = selectedVillage ? selectedVillage.selected?.length > 0 : false;
+      const allChecked = selectedVillage
+        ? commune.villages?.length === selectedVillage.selected?.length
+        : false;
+      const someChecked = selectedVillage
+        ? selectedVillage.selected?.length > 0
+        : false;
 
       return (
-        <List key={communeId} sx={{ width: '100%', bgcolor: 'background.paper' }} component='div'>
+        <List
+          key={communeId}
+          sx={{ width: "100%", bgcolor: "background.paper" }}
+          component="div"
+        >
           <ListItemButton>
             <FormControlLabel
-              label={lang == 'en' ? commune.name_en : commune.name_km}
+              label={lang == "en" ? commune.name_en : commune.name_km}
               control={
                 <Checkbox
                   checked={allChecked}
+                  disabled={isEdit && isEdit === true}
                   indeterminate={!allChecked && someChecked}
-                  onChange={() => handleSelectVillageGroup(commune.villages, communeId, allChecked)}
+                  onChange={() =>
+                    handleSelectVillageGroup(
+                      commune.villages,
+                      communeId,
+                      allChecked,
+                    )
+                  }
                 />
               }
             />
@@ -146,16 +192,24 @@ const VillageSelectionTab = ({isUpdate}: IsUpdateProps) => {
               <ExpandMore onClick={() => handleAccordionToggle(communeId)} />
             )}
           </ListItemButton>
-          <Collapse in={selectedVillage?.isOpen} timeout='auto' unmountOnExit>
-            <List component='div'>
-              {commune.villages?.map(village => (
-                <ListItemButton sx={{ pl: 4 }} key={communeId + '-' + village.id}>
+          <Collapse in={selectedVillage?.isOpen} timeout="auto" unmountOnExit>
+            <List component="div">
+              {commune.villages?.map((village) => (
+                <ListItemButton
+                  sx={{ pl: 4 }}
+                  key={communeId + "-" + village.id}
+                >
                   <FormControlLabel
-                    label={lang == 'en' ? village.name_en : village.name_km}
+                    label={lang == "en" ? village.name_en : village.name_km}
                     control={
                       <Checkbox
-                        checked={selectedVillage?.selected?.includes(village.id)}
-                        onChange={() => handleSelectVillage(village.id, communeId)}
+                        disabled={isEdit && isEdit === true}
+                        checked={selectedVillage?.selected?.includes(
+                          village.id,
+                        )}
+                        onChange={() =>
+                          handleSelectVillage(village.id, communeId)
+                        }
                       />
                     }
                   />
@@ -169,11 +223,12 @@ const VillageSelectionTab = ({isUpdate}: IsUpdateProps) => {
     (prev, next) => {
       return (
         JSON.stringify(prev.commune) === JSON.stringify(next.commune) &&
-        JSON.stringify(prev.selectedVillage) === JSON.stringify(next.selectedVillage)
+        JSON.stringify(prev.selectedVillage) ===
+          JSON.stringify(next.selectedVillage)
       );
     },
   );
-  VillageList.displayName = 'VillageList';
+  VillageList.displayName = "VillageList";
 
   const getItemSize = (index: number) => {
     const commune = villages[index];
@@ -190,7 +245,10 @@ const VillageSelectionTab = ({isUpdate}: IsUpdateProps) => {
     const commune = villages[index];
     return (
       <div style={{ ...style }}>
-        <VillageList commune={commune} selectedVillage={selectedVillages[commune.id]} />
+        <VillageList
+          commune={commune}
+          selectedVillage={selectedVillages[commune.id]}
+        />
       </div>
     );
   };
@@ -201,29 +259,44 @@ const VillageSelectionTab = ({isUpdate}: IsUpdateProps) => {
         <div>
           {villages.length > 0 ? (
             <Button
-              variant='contained'
+              disabled={isEdit && isEdit === true}
+              variant="contained"
               sx={{
-                width: '12%',
-                marginLeft: '1%',
-                marginBottom: '0.5%',
-                backgroundColor: isSelectAll ? 'white' : '',
-                color: isSelectAll ? 'black' : '',
-                ':hover': {
-                  color: isSelectAll ? 'white' : '',
+                width: "12%",
+                marginLeft: "1%",
+                marginBottom: "0.5%",
+                backgroundColor: isSelectAll ? "white" : "",
+                color: isSelectAll ? "black" : "",
+                ":hover": {
+                  color: isSelectAll ? "white" : "",
                 },
               }}
-              onClick={() => handleSelectAllVillages(isSelectAll)}>
-              {isSelectAll ? GetContext('unselect_all', lang) : GetContext('select_all', lang)}
+              onClick={() => handleSelectAllVillages(isSelectAll)}
+            >
+              {isSelectAll
+                ? GetContext("unselect_all", lang)
+                : GetContext("select_all", lang)}
             </Button>
           ) : (
-            <Alert severity='warning'>{GetContext('village_404', lang)}</Alert>
+            <Alert severity="warning">{GetContext("village_404", lang)}</Alert>
           )}
-          <VirtualList height={500} itemCount={villages.length} itemSize={getItemSize} width='100%' ref={listRef}>
+          <VirtualList
+            height={500}
+            itemCount={villages.length}
+            itemSize={getItemSize}
+            width="100%"
+            ref={listRef}
+          >
             {Row}
           </VirtualList>
         </div>
       ) : (
-        <Box display='flex' justifyContent='center' alignItems='center' height='500px'>
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          height="500px"
+        >
           <CircularProgress />
         </Box>
       )}

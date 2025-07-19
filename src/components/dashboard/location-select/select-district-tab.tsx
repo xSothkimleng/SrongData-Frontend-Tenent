@@ -1,28 +1,51 @@
-'use client';
-import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
-import { Location, District, IsUpdateProps } from '@/types/locations';
-import usePersistentState from '@/hooks/usePersistentState';
-import { Box, CircularProgress, Button, Checkbox, FormControlLabel, List, ListItemButton, Collapse, Alert } from '@mui/material';
-import { ExpandLess, ExpandMore } from '@mui/icons-material';
-import { VariableSizeList as VirtualList } from 'react-window';
-import TabPanel from '@/components/dashboard/location-select/tab-panel-location';
-import { GetItemFromLocal, SetItemToLocal } from '@/utils/localItem';
-import { GetContext } from '@/utils/language';
-import useLang from '@/store/lang';
+"use client";
+import React, { useState, useEffect, useRef } from "react";
+import axios from "axios";
+import { Location, District, IsUpdateProps } from "@/types/locations";
+import usePersistentState from "@/hooks/usePersistentState";
+import {
+  Box,
+  CircularProgress,
+  Button,
+  Checkbox,
+  FormControlLabel,
+  List,
+  ListItemButton,
+  Collapse,
+  Alert,
+} from "@mui/material";
+import { ExpandLess, ExpandMore } from "@mui/icons-material";
+import { VariableSizeList as VirtualList } from "react-window";
+import TabPanel from "@/components/dashboard/location-select/tab-panel-location";
+import { GetItemFromLocal, SetItemToLocal } from "@/utils/localItem";
+import { GetContext } from "@/utils/language";
+import useLang from "@/store/lang";
 
-const fetchDistricts = async (selectedProvinces: string[]): Promise<District[]> => {
-  const response = await axios.post('/api/location', { endpoint: 'districts', filter: selectedProvinces });
+const fetchDistricts = async (
+  selectedProvinces: string[],
+): Promise<District[]> => {
+  const response = await axios.post("/api/location", {
+    endpoint: "districts",
+    filter: selectedProvinces,
+  });
   return response.data.data;
 };
 
-const DistrictSelectionTab = ({isUpdate}: IsUpdateProps) => {
-  const lang = useLang(state => state.lang);
+const DistrictSelectionTab = ({ isUpdate, isEdit }: IsUpdateProps) => {
+  const lang = useLang((state) => state.lang);
   const [districts, setDistricts] = useState<District[]>([]);
-  const selectedDistrictLocal = isUpdate ? 'selectedDistricts-edit' : 'selectedDistricts';
-  const selectedCommuneLocal = isUpdate ? 'selectedCommunes-edit' : 'selectedCommunes';
-  const selectedVillageLocal = isUpdate ? 'selectedVillages-edit' : 'selectedVillages';
-  const selectedProvinceLocal = isUpdate ? 'selectedProvinces-edit' : 'selectedProvinces';
+  const selectedDistrictLocal = isUpdate
+    ? "selectedDistricts-edit"
+    : "selectedDistricts";
+  const selectedCommuneLocal = isUpdate
+    ? "selectedCommunes-edit"
+    : "selectedCommunes";
+  const selectedVillageLocal = isUpdate
+    ? "selectedVillages-edit"
+    : "selectedVillages";
+  const selectedProvinceLocal = isUpdate
+    ? "selectedProvinces-edit"
+    : "selectedProvinces";
   const [selectedDistricts, setSelectedDistricts] = usePersistentState<{
     [key: string]: {
       isOpen: boolean;
@@ -33,9 +56,11 @@ const DistrictSelectionTab = ({isUpdate}: IsUpdateProps) => {
 
   const listRef = useRef<any>(null);
   const selectedDistrictIds = Object.keys(selectedDistricts)
-    .map(key => selectedDistricts[key].selected?.flat())
+    .map((key) => selectedDistricts[key].selected?.flat())
     .flat();
-  const allDistrictIds = districts.map(province => province.districts.map(district => district.id)).flat();
+  const allDistrictIds = districts
+    .map((province) => province.districts.map((district) => district.id))
+    .flat();
   const isSelectAll = allDistrictIds.length == selectedDistrictIds.length;
 
   useEffect(() => {
@@ -51,7 +76,7 @@ const DistrictSelectionTab = ({isUpdate}: IsUpdateProps) => {
   }, []);
 
   const handleAccordionToggle = (provinceId: string) => {
-    setSelectedDistricts(prev => ({
+    setSelectedDistricts((prev) => ({
       ...prev,
       [provinceId]: {
         ...prev[provinceId],
@@ -78,7 +103,7 @@ const DistrictSelectionTab = ({isUpdate}: IsUpdateProps) => {
         const selectedCommuneIds = selectedCommune[districtId]?.selected;
         delete selectedCommune[districtId];
         if (selectedCommuneIds) {
-          selectedCommuneIds.map(communeId => {
+          selectedCommuneIds.map((communeId) => {
             delete selectedVillage[communeId];
           });
         }
@@ -86,22 +111,26 @@ const DistrictSelectionTab = ({isUpdate}: IsUpdateProps) => {
       SetItemToLocal(selectedCommuneLocal, selectedCommune);
       SetItemToLocal(selectedVillageLocal, selectedVillage);
     }
-    setSelectedDistricts(prev => ({
+    setSelectedDistricts((prev) => ({
       ...prev,
       [provinceId]: {
         ...prev[provinceId],
         selected: prev[provinceId]?.selected?.includes(districtId)
-          ? prev[provinceId].selected.filter(id => id !== districtId)
+          ? prev[provinceId].selected.filter((id) => id !== districtId)
           : prev[provinceId]?.selected
-          ? [...prev[provinceId].selected, districtId]
-          : [districtId],
+            ? [...prev[provinceId].selected, districtId]
+            : [districtId],
       },
     }));
   };
 
-  const handleSelectDistrictGroup = (districts: Location[], provinceId: string, allSelected: boolean) => {
+  const handleSelectDistrictGroup = (
+    districts: Location[],
+    provinceId: string,
+    allSelected: boolean,
+  ) => {
     if (allSelected) {
-      setSelectedDistricts(prev => ({
+      setSelectedDistricts((prev) => ({
         ...prev,
         [provinceId]: {
           ...prev[provinceId],
@@ -116,12 +145,12 @@ const DistrictSelectionTab = ({isUpdate}: IsUpdateProps) => {
       }>(selectedCommuneLocal);
       const selectedVillage = GetItemFromLocal(selectedVillageLocal);
 
-      districts.map(district => {
+      districts.map((district) => {
         if (selectedCommune[district.id]) {
           const selectedCommuneIds = selectedCommune[district.id]?.selected;
           delete selectedCommune[district.id];
           if (selectedCommuneIds) {
-            selectedCommuneIds.map(communeId => {
+            selectedCommuneIds.map((communeId) => {
               delete selectedVillage[communeId];
             });
           }
@@ -131,8 +160,8 @@ const DistrictSelectionTab = ({isUpdate}: IsUpdateProps) => {
       SetItemToLocal(selectedCommuneLocal, selectedCommune);
       SetItemToLocal(selectedVillageLocal, selectedVillage);
     } else {
-      const districtIds = districts.map(district => district.id);
-      setSelectedDistricts(prev => ({
+      const districtIds = districts.map((district) => district.id);
+      setSelectedDistricts((prev) => ({
         ...prev,
         [provinceId]: {
           ...prev[provinceId],
@@ -154,10 +183,10 @@ const DistrictSelectionTab = ({isUpdate}: IsUpdateProps) => {
           selected: string[];
         };
       };
-      districts.map(province => {
+      districts.map((province) => {
         selectedDistrictsTemp[province.id] = {
           isOpen: false,
-          selected: province.districts.map(district => district.id),
+          selected: province.districts.map((district) => district.id),
         };
       });
       setSelectedDistricts(selectedDistrictsTemp);
@@ -179,19 +208,34 @@ const DistrictSelectionTab = ({isUpdate}: IsUpdateProps) => {
       };
     }) => {
       const provinceId = province.id;
-      const allDistrictsChecked = selectedDistrict ? province.districts.length === selectedDistrict.selected?.length : false;
-      const someDistrictsChecked = selectedDistrict ? selectedDistrict.selected?.length > 0 : false;
+      const allDistrictsChecked = selectedDistrict
+        ? province.districts.length === selectedDistrict.selected?.length
+        : false;
+      const someDistrictsChecked = selectedDistrict
+        ? selectedDistrict.selected?.length > 0
+        : false;
 
       return (
-        <List key={provinceId} sx={{ width: '100%', bgcolor: 'background.paper' }} component='div'>
+        <List
+          key={provinceId}
+          sx={{ width: "100%", bgcolor: "background.paper" }}
+          component="div"
+        >
           <ListItemButton>
             <FormControlLabel
-              label={lang == 'en' ? province.name_en : province.name_km}
+              label={lang == "en" ? province.name_en : province.name_km}
               control={
                 <Checkbox
+                  disabled={isEdit && isEdit === true}
                   checked={allDistrictsChecked}
                   indeterminate={!allDistrictsChecked && someDistrictsChecked}
-                  onChange={() => handleSelectDistrictGroup(province.districts, provinceId, allDistrictsChecked)}
+                  onChange={() =>
+                    handleSelectDistrictGroup(
+                      province.districts,
+                      provinceId,
+                      allDistrictsChecked,
+                    )
+                  }
                 />
               }
             />
@@ -202,16 +246,25 @@ const DistrictSelectionTab = ({isUpdate}: IsUpdateProps) => {
             )}
           </ListItemButton>
           {selectedDistrict?.isOpen && (
-            <Collapse in={selectedDistrict?.isOpen} timeout='auto' unmountOnExit>
-              <List component='div' disablePadding>
-                {province.districts.map(district => (
+            <Collapse
+              in={selectedDistrict?.isOpen}
+              timeout="auto"
+              unmountOnExit
+            >
+              <List component="div" disablePadding>
+                {province.districts.map((district) => (
                   <ListItemButton sx={{ pl: 4 }} key={district.id}>
                     <FormControlLabel
-                      label={lang == 'en' ? district.name_en : district.name_km}
+                      label={lang == "en" ? district.name_en : district.name_km}
                       control={
                         <Checkbox
-                          checked={selectedDistrict?.selected?.includes(district.id)}
-                          onChange={() => handleSelectDistrict(district.id, provinceId)}
+                          disabled={isEdit && isEdit === true}
+                          checked={selectedDistrict?.selected?.includes(
+                            district.id,
+                          )}
+                          onChange={() =>
+                            handleSelectDistrict(district.id, provinceId)
+                          }
                         />
                       }
                     />
@@ -225,12 +278,14 @@ const DistrictSelectionTab = ({isUpdate}: IsUpdateProps) => {
     },
     (prev, next) => {
       return (
-        prev.province.id == next.province.id && prev.selectedDistrict?.selected?.length == next.selectedDistrict?.selected?.length
+        prev.province.id == next.province.id &&
+        prev.selectedDistrict?.selected?.length ==
+          next.selectedDistrict?.selected?.length
       );
     },
   );
 
-  DistrictList.displayName = 'DistrictList';
+  DistrictList.displayName = "DistrictList";
 
   const getItemSize = (index: number) => {
     const province = districts[index];
@@ -247,7 +302,10 @@ const DistrictSelectionTab = ({isUpdate}: IsUpdateProps) => {
     const province = districts[index];
     return (
       <div style={{ ...style }}>
-        <DistrictList province={province} selectedDistrict={selectedDistricts[province.id]} />
+        <DistrictList
+          province={province}
+          selectedDistrict={selectedDistricts[province.id]}
+        />
       </div>
     );
   };
@@ -258,29 +316,44 @@ const DistrictSelectionTab = ({isUpdate}: IsUpdateProps) => {
         <div>
           {districts.length > 0 ? (
             <Button
-              variant='contained'
+              disabled={isEdit && isEdit === true}
+              variant="contained"
               sx={{
-                width: '12%',
-                marginLeft: '1%',
-                marginBottom: '0.5%',
-                backgroundColor: isSelectAll ? 'white' : '',
-                color: isSelectAll ? 'black' : '',
-                ':hover': {
-                  color: isSelectAll ? 'white' : '',
+                width: "12%",
+                marginLeft: "1%",
+                marginBottom: "0.5%",
+                backgroundColor: isSelectAll ? "white" : "",
+                color: isSelectAll ? "black" : "",
+                ":hover": {
+                  color: isSelectAll ? "white" : "",
                 },
               }}
-              onClick={() => handleSelectAllDistricts(isSelectAll)}>
-              {isSelectAll ? GetContext('unselect_all', lang) : GetContext('select_all', lang)}
+              onClick={() => handleSelectAllDistricts(isSelectAll)}
+            >
+              {isSelectAll
+                ? GetContext("unselect_all", lang)
+                : GetContext("select_all", lang)}
             </Button>
           ) : (
-            <Alert severity='warning'>{ GetContext('district_404', lang)}</Alert>
+            <Alert severity="warning">{GetContext("district_404", lang)}</Alert>
           )}
-          <VirtualList height={500} itemCount={districts.length} itemSize={getItemSize} width='100%' ref={listRef}>
+          <VirtualList
+            height={500}
+            itemCount={districts.length}
+            itemSize={getItemSize}
+            width="100%"
+            ref={listRef}
+          >
             {Row}
           </VirtualList>
         </div>
       ) : (
-        <Box display='flex' justifyContent='center' alignItems='center' height='500px'>
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          height="500px"
+        >
           <CircularProgress />
         </Box>
       )}
