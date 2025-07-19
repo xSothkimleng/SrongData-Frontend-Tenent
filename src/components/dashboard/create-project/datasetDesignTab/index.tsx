@@ -1,5 +1,5 @@
-'use client';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+"use client";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Grid,
   Box,
@@ -14,7 +14,7 @@ import {
   DialogContent,
   DialogTitle,
   DialogActions,
-} from '@mui/material';
+} from "@mui/material";
 import {
   AddCircleOutline as AddCircleOutlineIcon,
   Delete as DeleteIcon,
@@ -40,14 +40,19 @@ import {
   sortableKeyboardCoordinates,
   useSortable,
   verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import { DataDesignForm, QuestionType, SectionType, skipLogic } from '@/types/dataDesignForm';
-import { GetContext } from '@/utils/language';
-import useLang from '@/store/lang';
-import SkipLogicDialog from './skipLogicDialog';
-import SortableSectionContainer from './sortableSectionContainer';
-import SortableQuestionContainer from './sortableQuestionContainer';
-import { Locale } from '@/types/projectDetail';
+} from "@dnd-kit/sortable";
+import {
+  DataDesignForm,
+  QuestionType,
+  SectionType,
+  skipLogic,
+} from "@/types/dataDesignForm";
+import { GetContext } from "@/utils/language";
+import useLang from "@/store/lang";
+import SkipLogicDialog from "./skipLogicDialog";
+import SortableSectionContainer from "./sortableSectionContainer";
+import SortableQuestionContainer from "./sortableQuestionContainer";
+import { Locale } from "@/types/projectDetail";
 
 interface DatasetDesignTabProps {
   questionTypes: QuestionType[];
@@ -99,14 +104,22 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
   const initialized = useRef(false);
 
   const getSectionSkipLogicStatus = (sectionOrder: number) => {
-    return dataDesignForms.some(form => form.section?.order === sectionOrder && form.skip_logics && form.skip_logics.length > 0);
+    return dataDesignForms.some(
+      (form) =>
+        form.section?.order === sectionOrder &&
+        form.skip_logics &&
+        form.skip_logics.length > 0,
+    );
   };
 
   const checkSkipLogicConflicts = useCallback(
     (movingSectionOrder: number, newPosition: number) => {
       // Find all forms in the moving section that have skip logic
       const formsInMovingSection = dataDesignForms.filter(
-        form => form.section?.order === movingSectionOrder && form.skip_logics && form.skip_logics.length > 0,
+        (form) =>
+          form.section?.order === movingSectionOrder &&
+          form.skip_logics &&
+          form.skip_logics.length > 0,
       );
 
       const conflicts = [];
@@ -114,7 +127,8 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
         for (const skipLogic of form.skip_logics || []) {
           if (skipLogic.target && skipLogic.target <= newPosition) {
             conflicts.push({
-              questionLabel: form.label.en || form.label.km || 'Unknown Question',
+              questionLabel:
+                form.label.en || form.label.km || "Unknown Question",
               targetSection: skipLogic.target,
             });
           }
@@ -128,13 +142,15 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
 
   const handleSkipLogicRemove = useCallback(
     (formIndex: number, optionValue: number) => {
-      setDataDesignForms(prevForms => {
+      setDataDesignForms((prevForms) => {
         const newForms = [...prevForms];
         const form = newForms[formIndex];
 
         if (form.skip_logics) {
           // Remove the specific skip logic for this option
-          form.skip_logics = form.skip_logics.filter(logic => logic.answer_index !== optionValue);
+          form.skip_logics = form.skip_logics.filter(
+            (logic) => logic.answer_index !== optionValue,
+          );
 
           // If no skip logics remain, set to null
           if (form.skip_logics.length === 0) {
@@ -208,9 +224,9 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
 
   const performSectionMove = useCallback(
     (activeOrder: number, overOrder: number) => {
-      setSections(items => {
-        const oldIndex = items.findIndex(item => item.order === activeOrder);
-        const newIndex = items.findIndex(item => item.order === overOrder);
+      setSections((items) => {
+        const oldIndex = items.findIndex((item) => item.order === activeOrder);
+        const newIndex = items.findIndex((item) => item.order === overOrder);
 
         const newArray = arrayMove(items, oldIndex, newIndex);
 
@@ -220,9 +236,11 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
         }));
 
         // Update dataDesignForms and clean up broken skip logic
-        setDataDesignForms(prevForms => {
-          const formsWithUpdatedSections = prevForms.map(form => {
-            const updatedSection = updatedSections.find(section => section.title.en === form.section?.title.en);
+        setDataDesignForms((prevForms) => {
+          const formsWithUpdatedSections = prevForms.map((form) => {
+            const updatedSection = updatedSections.find(
+              (section) => section.title.en === form.section?.title.en,
+            );
 
             if (updatedSection) {
               let updatedForm = {
@@ -233,7 +251,8 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
               // Remove broken skip logic
               if (updatedForm.skip_logics) {
                 updatedForm.skip_logics = updatedForm.skip_logics.filter(
-                  logic => !logic.target || logic.target > updatedSection.order,
+                  (logic) =>
+                    !logic.target || logic.target > updatedSection.order,
                 );
 
                 if (updatedForm.skip_logics.length === 0) {
@@ -294,32 +313,39 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
         const overOrder = overData.order;
 
         const sections_copy = [...sections];
-        const oldIndex = sections_copy.findIndex(item => item.order === activeOrder);
-        const newIndex = sections_copy.findIndex(item => item.order === overOrder);
+        const oldIndex = sections_copy.findIndex(
+          (item) => item.order === activeOrder,
+        );
+        const newIndex = sections_copy.findIndex(
+          (item) => item.order === overOrder,
+        );
         const newPosition = newIndex + 1;
 
         const conflicts = checkSkipLogicConflicts(activeOrder, newPosition);
 
         if (conflicts.length > 0) {
-          console.log('Conflicts detected:', conflicts);
+          console.log("Conflicts detected:", conflicts);
           // Show confirmation dialog
           setConfirmDialog({
             isOpen: true,
             conflicts: conflicts,
             onConfirm: () => {
               performSectionMove(activeOrder, overOrder);
-              setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+              setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
             },
             onCancel: () => {
-              setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+              setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
             },
           });
         } else {
           // No conflicts, proceed directly
           performSectionMove(activeOrder, overOrder);
         }
-      } else if (activeData?.type === 'question' && overData?.type === 'question') {
-        console.log('Question drag detected');
+      } else if (
+        activeData?.type === "question" &&
+        overData?.type === "question"
+      ) {
+        console.log("Question drag detected");
         const activeOrder = activeData.order;
         const overOrder = overData.order;
 
@@ -1087,19 +1113,30 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                                       )}
                                     </Grid>
                                     <Grid item xs={3}>
-                                      {(hasSkipLogic || !getSectionSkipLogicStatus(form.section?.order || 0)) && (
+                                      {(hasSkipLogic ||
+                                        !getSectionSkipLogicStatus(
+                                          form.section?.order || 0,
+                                        )) && (
                                         <Button
-                                          variant='outlined'
-                                          color={hasSkipLogic ? 'success' : 'primary'}
+                                          variant="outlined"
+                                          color={
+                                            hasSkipLogic ? "success" : "primary"
+                                          }
                                           onClick={() => {
-                                            const formIndex = dataDesignForms.findIndex(f => f.order === form.order);
+                                            const formIndex =
+                                              dataDesignForms.findIndex(
+                                                (f) => f.order === form.order,
+                                              );
                                             setActiveDialog({
                                               isOpen: true,
                                               formIndex: formIndex,
                                               optionValue: optionIndex,
                                             });
-                                          }}>
-                                          {hasSkipLogic ? 'Edit Skip Logic' : 'Add Skip Logic'}
+                                          }}
+                                        >
+                                          {hasSkipLogic
+                                            ? "Edit Skip Logic"
+                                            : "Add Skip Logic"}
                                         </Button>
                                       )}
                                       <IconButton
@@ -1108,7 +1145,13 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                                           isEdit &&
                                           isEdit === true
                                         }
-                                        onClick={() => handleRemoveOption(form.order, optionIndex)}>
+                                        onClick={() =>
+                                          handleRemoveOption(
+                                            form.order,
+                                            optionIndex,
+                                          )
+                                        }
+                                      >
                                         <CloseIcon />
                                       </IconButton>
                                     </Grid>
@@ -1192,22 +1235,40 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                                       )}
                                     </Grid>
                                     <Grid item xs={3}>
-                                      {(hasSkipLogic || !getSectionSkipLogicStatus(form.section?.order || 0)) && (
+                                      {(hasSkipLogic ||
+                                        !getSectionSkipLogicStatus(
+                                          form.section?.order || 0,
+                                        )) && (
                                         <Button
-                                          variant='outlined'
-                                          color={hasSkipLogic ? 'success' : 'primary'}
+                                          variant="outlined"
+                                          color={
+                                            hasSkipLogic ? "success" : "primary"
+                                          }
                                           onClick={() => {
-                                            const formIndex = dataDesignForms.findIndex(f => f.order === form.order);
+                                            const formIndex =
+                                              dataDesignForms.findIndex(
+                                                (f) => f.order === form.order,
+                                              );
                                             setActiveDialog({
                                               isOpen: true,
                                               formIndex: formIndex,
                                               optionValue: optionIndex,
                                             });
-                                          }}>
-                                          {hasSkipLogic ? 'Edit Skip Logic' : 'Add Skip Logic'}
+                                          }}
+                                        >
+                                          {hasSkipLogic
+                                            ? "Edit Skip Logic"
+                                            : "Add Skip Logic"}
                                         </Button>
                                       )}
-                                      <IconButton onClick={() => handleRemoveOption(form.order, optionIndex)}>
+                                      <IconButton
+                                        onClick={() =>
+                                          handleRemoveOption(
+                                            form.order,
+                                            optionIndex,
+                                          )
+                                        }
+                                      >
                                         <CloseIcon />
                                       </IconButton>
                                     </Grid>
@@ -1301,6 +1362,21 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                                         />
                                       )}
                                     </Grid>
+                                    <IconButton
+                                      disabled={
+                                        form.id !== undefined &&
+                                        isEdit &&
+                                        isEdit === true
+                                      }
+                                      onClick={() =>
+                                        handleRemoveOption(
+                                          form.order,
+                                          optionIndex,
+                                        )
+                                      }
+                                    >
+                                      <CloseIcon />
+                                    </IconButton>
                                   </Grid>
                                 );
                               })}
@@ -1354,58 +1430,81 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
         >
           Add Section
         </Button>
-        <Button variant='contained' color='info' startIcon={<AddCircleOutlineIcon />} onClick={handleShowDataStructure}>
+        <Button
+          variant="contained"
+          color="info"
+          startIcon={<AddCircleOutlineIcon />}
+          onClick={handleShowDataStructure}
+        >
           Show Data Structure
         </Button>
       </Box>
 
       {/* Skip Logic Confirmation Dialog */}
-      <Dialog open={confirmDialog.isOpen} onClose={confirmDialog.onCancel} maxWidth='md'>
+      <Dialog
+        open={confirmDialog.isOpen}
+        onClose={confirmDialog.onCancel}
+        maxWidth="md"
+      >
         <DialogTitle>Skip Logic Conflict Warning</DialogTitle>
         <DialogContent>
-          <Typography variant='body1' sx={{ marginBottom: 2 }}>
+          <Typography variant="body1" sx={{ marginBottom: 2 }}>
             Moving this section will break the following skip logic rules:
           </Typography>
           {confirmDialog.conflicts.map((conflict, index) => (
-            <Typography key={index} variant='body2' sx={{ marginLeft: 2, marginBottom: 1 }}>
-              • Question {conflict.questionLabel} skips to section {conflict.targetSection}
+            <Typography
+              key={index}
+              variant="body2"
+              sx={{ marginLeft: 2, marginBottom: 1 }}
+            >
+              • Question {conflict.questionLabel} skips to section{" "}
+              {conflict.targetSection}
             </Typography>
           ))}
-          <Typography variant='body1' sx={{ marginTop: 2, fontWeight: 'bold' }}>
+          <Typography variant="body1" sx={{ marginTop: 2, fontWeight: "bold" }}>
             The skip logic will be removed. Do you want to continue?
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={confirmDialog.onCancel} color='inherit'>
+          <Button onClick={confirmDialog.onCancel} color="inherit">
             Cancel
           </Button>
-          <Button onClick={confirmDialog.onConfirm} color='error' variant='contained'>
+          <Button
+            onClick={confirmDialog.onConfirm}
+            color="error"
+            variant="contained"
+          >
             Continue & Remove Skip Logic
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* Skip Logic Dialog */}
-      {activeDialog.isOpen && activeDialog.formIndex !== null && activeDialog.optionValue !== null && (
-        <SkipLogicDialog
-          lang={lang}
-          open={activeDialog.isOpen}
-          onClose={() =>
-            setActiveDialog({
-              isOpen: false,
-              formIndex: null,
-              optionValue: null,
-            })
-          }
-          formList={dataDesignForms}
-          sectionList={sections}
-          optionValue={activeDialog.optionValue}
-          formIndex={activeDialog.formIndex}
-          handleSkipLogicSave={handleSkipLogicSave}
-          handleSkipLogicRemove={handleSkipLogicRemove}
-          currentSkipLogic={getSkipLogicForOption(activeDialog.formIndex, activeDialog.optionValue)}
-        />
-      )}
+      {activeDialog.isOpen &&
+        activeDialog.formIndex !== null &&
+        activeDialog.optionValue !== null && (
+          <SkipLogicDialog
+            lang={lang}
+            open={activeDialog.isOpen}
+            onClose={() =>
+              setActiveDialog({
+                isOpen: false,
+                formIndex: null,
+                optionValue: null,
+              })
+            }
+            formList={dataDesignForms}
+            sectionList={sections}
+            optionValue={activeDialog.optionValue}
+            formIndex={activeDialog.formIndex}
+            handleSkipLogicSave={handleSkipLogicSave}
+            handleSkipLogicRemove={handleSkipLogicRemove}
+            currentSkipLogic={getSkipLogicForOption(
+              activeDialog.formIndex,
+              activeDialog.optionValue,
+            )}
+          />
+        )}
     </Box>
   );
 };
