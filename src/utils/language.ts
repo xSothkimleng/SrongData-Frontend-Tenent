@@ -884,7 +884,7 @@ const language: {
     km: "ទីតាំង",
   },
   capi: {
-    en: "CAPI (Online & Offline via Mobile App)",
+    en: "CAPI (Mobile App)",
     km: "CAPI (ប្រមូលទិន្នន័យតាមកម្មវិធីទូរស័ព្ទ)",
   },
   web_survey: {
