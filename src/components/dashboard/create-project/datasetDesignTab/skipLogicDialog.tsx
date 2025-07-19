@@ -20,18 +20,20 @@ import { DataDesignForm, SectionType, skipLogic } from '@/types/dataDesignForm';
 
 interface LogicDialogProps {
   open: boolean;
+  lang: string;
   onClose: () => void;
-  formList: DataDesignForm[];
-  sectionList: SectionType[];
   formIndex: number;
   optionValue: number;
+  formList: DataDesignForm[];
+  sectionList: SectionType[];
   currentSkipLogic: skipLogic | null;
   handleSkipLogicSave: (formIndex: number, optionValue: number, action: string, targetSectionId: number | null) => void;
-  lang: string;
+  handleSkipLogicRemove: (formIndex: number, optionValue: number) => void;
 }
 
 const SkipLogicDialog: React.FC<LogicDialogProps> = ({
   open,
+  lang,
   onClose,
   formList,
   sectionList,
@@ -39,12 +41,18 @@ const SkipLogicDialog: React.FC<LogicDialogProps> = ({
   optionValue,
   currentSkipLogic,
   handleSkipLogicSave,
-  lang,
+  handleSkipLogicRemove,
 }) => {
   console.log('Options Value', optionValue);
   // Initialize state with existing values or defaults
   const [action, setAction] = useState<string>(currentSkipLogic?.action || 'go_to');
   const [targetSectionId, setTargetSectionId] = useState<number | null>(currentSkipLogic?.target || null);
+
+  // remove skip logic
+  const handleRemove = () => {
+    handleSkipLogicRemove(formIndex, optionValue);
+    onClose();
+  };
 
   // Update state when dialog opens with current values
   useEffect(() => {
@@ -72,11 +80,30 @@ const SkipLogicDialog: React.FC<LogicDialogProps> = ({
   console.log('Section List', sectionList);
   const availableSections = sectionList.filter(section => section.order > currentForm.section.order);
 
+  const sectionHasSkipLogic = () => {
+    const currentSectionOrder = currentForm.section.order;
+    // Check if any other question in this section already has skip logic
+    return formList.some(
+      form =>
+        form.section?.order === currentSectionOrder &&
+        form.skip_logics &&
+        form.skip_logics.length > 0 &&
+        !(form.order === currentForm.order && form.skip_logics.some(logic => logic.answer_index === optionValue)),
+    );
+  };
+
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth='md'>
       <DialogTitle>Skip Logic Configuration</DialogTitle>
       <DialogContent>
         <Grid container spacing={2} sx={{ marginTop: 1 }}>
+          {sectionHasSkipLogic() && (
+            <Grid item xs={12}>
+              <Typography variant='body2' color='error' sx={{ marginBottom: 2 }}>
+                ⚠️ This section already has skip logic assigned to another question. Only one skip logic is allowed per section.
+              </Typography>
+            </Grid>
+          )}
           <Grid item xs={12}>
             <Typography variant='subtitle1' gutterBottom>
               For question: <strong>{currentForm?.label.en || 'Unknown Question'}</strong>
@@ -131,11 +158,16 @@ const SkipLogicDialog: React.FC<LogicDialogProps> = ({
         <Button variant='outlined' onClick={onClose} color='inherit'>
           Cancel
         </Button>
+        {currentSkipLogic && (
+          <Button variant='outlined' onClick={handleRemove} color='error'>
+            Remove Logic
+          </Button>
+        )}
         <Button
           variant='contained'
           onClick={handleSave}
           color='primary'
-          disabled={action === 'submit_form' ? false : !targetSectionId}>
+          disabled={sectionHasSkipLogic() || (action === 'submit_form' ? false : !targetSectionId)}>
           Save
         </Button>
       </DialogActions>
