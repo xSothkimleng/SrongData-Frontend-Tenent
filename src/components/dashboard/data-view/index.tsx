@@ -419,7 +419,7 @@ const DataView: React.FC<dataViewProps> = ({
 
   // filter only the question and that has values
   function transformGroupFilters(groupFilters: any) {
-    return {
+    const transformed = {
       // @ts-ignore
       projects: groupFilters.map((project) => ({
         id: project.project_id,
@@ -434,6 +434,7 @@ const DataView: React.FC<dataViewProps> = ({
           })),
       })),
     };
+    return transformed;
   }
 
   // Filter function
