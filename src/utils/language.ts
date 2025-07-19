@@ -67,6 +67,10 @@ const language: {
     en: "Data View",
     km: "ទិន្នន័យ",
   },
+  chart_view: {
+    en: "Chart View",
+    km: "ទិដ្ឋភាពគំនូសតាង",
+  },
   user: {
     en: "Users",
     km: "អ្នកប្រើប្រាស់",
@@ -880,11 +884,11 @@ const language: {
     km: "ទីតាំង",
   },
   capi: {
-    en: "CAPI",
+    en: "CAPI (Online & Offline via Mobile App)",
     km: "CAPI (ប្រមូលទិន្នន័យតាមកម្មវិធីទូរស័ព្ទ)",
   },
   web_survey: {
-    en: "Online Survey",
+    en: "Online Survey (Web-based Survey)",
     km: "សំណួរអនឡាញ",
   },
   respondent_id: {
@@ -894,6 +898,46 @@ const language: {
   respondent_email: {
     en: "Respondent Email",
     km: "អ៊ីមែលអ្នកឆ្លើយ",
+  },
+  survey_language: {
+    en: "Survey Languages",
+    km: "ភាសាស្ទង់មតិ",
+  },
+  survey_method: {
+    en: "Survey Method",
+    km: "វិធីសាស្រ្តស្ទង់មតិ",
+  },
+  view_project_detail: {
+    en: "View Detail",
+    km: "មើលព័ត៌មានលម្អិត",
+  },
+  collection_method: {
+    en: "Collection Method",
+    km: "វិធីសាស្រ្តប្រមូល",
+  },
+  started_collection: {
+    en: "Started Collection",
+    km: "បានចាប់ផ្តើមប្រមូល",
+  },
+  multi_project_view: {
+    en: "Multi-Project Data Visualization",
+    km: "ការមើលឃើញទិន្នន័យច្រើនគម្រោង",
+  },
+  skip_logic: {
+    en: "Skip Logic",
+    km: "រំលងតក្កវិជ្ជា",
+  },
+  project_location: {
+    en: "Project Location",
+    km: "ទីតាំងគម្រោង",
+  },
+  project_questions: {
+    en: "Project Questions",
+    km: "សំណួរគម្រោង",
+  },
+  project_indicator: {
+    en: "Project Indicator",
+    km: "សូចនាករគម្រោង",
   },
 };
 

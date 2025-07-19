@@ -1,28 +1,47 @@
-'use client';
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { Location, IsUpdateProps } from '@/types/locations';
-import usePersistentState from '@/hooks/usePersistentState';
-import { Box, Checkbox, FormControlLabel, FormGroup, ListItemButton, List, Button, CircularProgress } from '@mui/material';
-import TabPanel from '@/components/dashboard/location-select/tab-panel-location';
-import { FixedSizeList as VirtualList } from 'react-window';
-import { GetItemFromLocal, SetItemToLocal } from '@/utils/localItem';
-import { GetContext } from '@/utils/language';
-import useLang from '@/store/lang';
+"use client";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { Location, IsUpdateProps } from "@/types/locations";
+import usePersistentState from "@/hooks/usePersistentState";
+import {
+  Box,
+  Checkbox,
+  FormControlLabel,
+  FormGroup,
+  ListItemButton,
+  List,
+  Button,
+  CircularProgress,
+} from "@mui/material";
+import TabPanel from "@/components/dashboard/location-select/tab-panel-location";
+import { FixedSizeList as VirtualList } from "react-window";
+import { GetItemFromLocal, SetItemToLocal } from "@/utils/localItem";
+import { GetContext } from "@/utils/language";
+import useLang from "@/store/lang";
 
 const fetchProvinces = async (): Promise<Location[]> => {
-  const response = await axios.get('/api/location?endpoint=provinces');
+  const response = await axios.get("/api/location?endpoint=provinces");
   return response.data.data.provinces;
 };
 
-const ProvinceSelectionTab = ({ isUpdate }: IsUpdateProps) => {
-  const lang = useLang(state => state.lang);
-  const selectedProvinceLocal = isUpdate ? 'selectedProvinces-edit' : 'selectedProvinces';
-  const selectedDistrictLocal = isUpdate ? 'selectedDistricts-edit' : 'selectedDistricts';
-  const selectedCommuneLocal = isUpdate ? 'selectedCommunes-edit' : 'selectedCommunes';
-  const selectedVillageLocal = isUpdate ? 'selectedVillages-edit' : 'selectedVillages';
+const ProvinceSelectionTab = ({ isUpdate, isEdit }: IsUpdateProps) => {
+  const lang = useLang((state) => state.lang);
+  const selectedProvinceLocal = isUpdate
+    ? "selectedProvinces-edit"
+    : "selectedProvinces";
+  const selectedDistrictLocal = isUpdate
+    ? "selectedDistricts-edit"
+    : "selectedDistricts";
+  const selectedCommuneLocal = isUpdate
+    ? "selectedCommunes-edit"
+    : "selectedCommunes";
+  const selectedVillageLocal = isUpdate
+    ? "selectedVillages-edit"
+    : "selectedVillages";
   const [provinces, setProvinces] = useState<Location[]>([]);
-  const [selectedProvinces, setSelectedProvinces] = usePersistentState<string[]>(selectedProvinceLocal, []);
+  const [selectedProvinces, setSelectedProvinces] = usePersistentState<
+    string[]
+  >(selectedProvinceLocal, []);
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [ready, setReady] = useState<boolean>(false);
 
@@ -39,7 +58,7 @@ const ProvinceSelectionTab = ({ isUpdate }: IsUpdateProps) => {
 
     let checkedTemp = {} as Record<string, boolean>;
 
-    selectedProvinces.map(id => {
+    selectedProvinces.map((id) => {
       checkedTemp[id] = true;
     });
     setChecked(checkedTemp);
@@ -47,8 +66,8 @@ const ProvinceSelectionTab = ({ isUpdate }: IsUpdateProps) => {
 
   const handleSelectProvince = (provinceId: string) => {
     if (selectedProvinces.includes(provinceId)) {
-      setSelectedProvinces(selectedProvinces.filter(id => id !== provinceId));
-      setChecked(prev => ({
+      setSelectedProvinces(selectedProvinces.filter((id) => id !== provinceId));
+      setChecked((prev) => ({
         ...prev,
         [provinceId]: false,
       }));
@@ -71,11 +90,11 @@ const ProvinceSelectionTab = ({ isUpdate }: IsUpdateProps) => {
         delete selectedDistricts[provinceId];
 
         if (selectedDistrictIds) {
-          selectedDistrictIds.map(districtId => {
+          selectedDistrictIds.map((districtId) => {
             const selectedCommuneIds = selectedCommunes[districtId]?.selected;
             delete selectedCommunes[districtId];
             if (selectedCommuneIds) {
-              selectedCommuneIds.map(id => {
+              selectedCommuneIds.map((id) => {
                 delete selectedVillages[id];
               });
             }
@@ -87,8 +106,8 @@ const ProvinceSelectionTab = ({ isUpdate }: IsUpdateProps) => {
       SetItemToLocal(selectedCommuneLocal, selectedCommunes);
       SetItemToLocal(selectedVillageLocal, selectedVillages);
     } else {
-      setSelectedProvinces(prev => [...prev, provinceId]);
-      setChecked(prev => ({
+      setSelectedProvinces((prev) => [...prev, provinceId]);
+      setChecked((prev) => ({
         ...prev,
         [provinceId]: true,
       }));
@@ -104,27 +123,39 @@ const ProvinceSelectionTab = ({ isUpdate }: IsUpdateProps) => {
       SetItemToLocal(selectedVillageLocal, {});
     } else {
       let checkedTemp = {} as Record<string, boolean>;
-      provinces.map(province => {
+      provinces.map((province) => {
         checkedTemp[province.id] = true;
       });
-      setSelectedProvinces(provinces.map(province => province.id));
+      setSelectedProvinces(provinces.map((province) => province.id));
       setChecked(checkedTemp);
     }
   };
 
-  const ProvinceList = React.memo(({ province, checked }: { province: Location; checked: boolean }) => (
-    <List key={province.id} sx={{ width: '100%', bgcolor: 'background.paper' }} component='div'>
-      <ListItemButton>
-        <FormControlLabel
-          key={province.id}
-          control={<Checkbox checked={checked} onChange={() => handleSelectProvince(province.id)} />}
-          label={lang == 'en' ? province.name_en : province.name_km}
-        />
-      </ListItemButton>
-    </List>
-  ));
+  const ProvinceList = React.memo(
+    ({ province, checked }: { province: Location; checked: boolean }) => (
+      <List
+        key={province.id}
+        sx={{ width: "100%", bgcolor: "background.paper" }}
+        component="div"
+      >
+        <ListItemButton>
+          <FormControlLabel
+            key={province.id}
+            control={
+              <Checkbox
+                disabled={isEdit && isEdit === true}
+                checked={checked}
+                onChange={() => handleSelectProvince(province.id)}
+              />
+            }
+            label={lang == "en" ? province.name_en : province.name_km}
+          />
+        </ListItemButton>
+      </List>
+    ),
+  );
 
-  ProvinceList.displayName = 'ProvinceList';
+  ProvinceList.displayName = "ProvinceList";
 
   const Row = ({ index, style }: { index: number; style: object }) => {
     const province = provinces[index];
@@ -140,26 +171,40 @@ const ProvinceSelectionTab = ({ isUpdate }: IsUpdateProps) => {
       {ready ? (
         <FormGroup>
           <Button
-            variant='contained'
+            variant="contained"
             sx={{
-              width: '12%',
-              marginLeft: '1%',
-              marginBottom: '0.5%',
-              backgroundColor: isSelectAll ? 'white' : '',
-              color: isSelectAll ? 'black' : '',
-              ':hover': {
-                color: isSelectAll ? 'white' : '',
+              width: "12%",
+              marginLeft: "1%",
+              marginBottom: "0.5%",
+              backgroundColor: isSelectAll ? "white" : "",
+              color: isSelectAll ? "black" : "",
+              ":hover": {
+                color: isSelectAll ? "white" : "",
               },
             }}
-            onClick={() => handleSelectAllProvince(isSelectAll)}>
-            {isSelectAll ? GetContext('unselect_all', lang) : GetContext('select_all', lang)}
+            disabled={isEdit && isEdit === true}
+            onClick={() => handleSelectAllProvince(isSelectAll)}
+          >
+            {isSelectAll
+              ? GetContext("unselect_all", lang)
+              : GetContext("select_all", lang)}
           </Button>
-          <VirtualList height={500} itemCount={provinces.length} itemSize={60} width='100%'>
+          <VirtualList
+            height={500}
+            itemCount={provinces.length}
+            itemSize={60}
+            width="100%"
+          >
             {Row}
           </VirtualList>
         </FormGroup>
       ) : (
-        <Box display='flex' justifyContent='center' alignItems='center' height='500px'>
+        <Box
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          height="500px"
+        >
           <CircularProgress />
         </Box>
       )}

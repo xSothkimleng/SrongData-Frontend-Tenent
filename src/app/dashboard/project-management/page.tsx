@@ -215,7 +215,7 @@ const ProjectHistoryPage = () => {
       },
       {
         field: "collectionMethod",
-        headerName: "Collection Method",
+        headerName: GetContext("collection_method", lang),
         cellClassName: "text-left",
         flex: 1,
         headerClassName: "super-app-theme--header",
@@ -236,7 +236,7 @@ const ProjectHistoryPage = () => {
       },
       {
         field: "isStarted",
-        headerName: "Started Collection",
+        headerName: GetContext("started_collection", lang),
         cellClassName: "text-left",
         flex: 1,
         headerClassName: "super-app-theme--header",
