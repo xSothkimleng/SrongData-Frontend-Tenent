@@ -306,7 +306,7 @@ const TableActionMenu: React.FC<{
     action();
   };
 
-  console.log("row status; ", row.status);
+  // console.log("row status; ", row.status);
 
   return (
     <Box
