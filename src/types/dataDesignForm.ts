@@ -1,4 +1,4 @@
-import { Locale } from "./projectDetail";
+import { Locale } from './projectDetail';
 
 export interface OptionType {
   value: string;
@@ -11,7 +11,7 @@ export interface OptionLocalizationType {
 export interface skipLogic {
   answer_index: number;
   action: string;
-  target: number | null; //null in case action === 'submit_form'
+  target: number | null;
 }
 export interface SectionType {
   order: number;
@@ -31,18 +31,9 @@ export interface DataDesignForm {
   skip_logics: skipLogic[] | null;
 }
 
-type QuestionDataType = "string" | "number" | "array" | "date" | "time";
+type QuestionDataType = 'string' | 'number' | 'array' | 'date' | 'time';
 export interface QuestionType {
-  type:
-    | "text"
-    | "number"
-    | "decimal"
-    | "text_area"
-    | "multiple"
-    | "single"
-    | "dropdown"
-    | "date"
-    | "time";
+  type: 'text' | 'number' | 'decimal' | 'text_area' | 'multiple' | 'single' | 'dropdown' | 'date' | 'time';
   label: string;
   data_type: QuestionDataType;
 }
