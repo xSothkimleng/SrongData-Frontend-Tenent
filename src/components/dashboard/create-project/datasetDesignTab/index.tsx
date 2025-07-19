@@ -1141,9 +1141,8 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                                       )}
                                       <IconButton
                                         disabled={
-                                          form.id !== undefined &&
-                                          isEdit &&
-                                          isEdit === true
+                                          // form.id !== undefined &&
+                                          isEdit && isEdit === true
                                         }
                                         onClick={() =>
                                           handleRemoveOption(
@@ -1364,9 +1363,8 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                                     </Grid>
                                     <IconButton
                                       disabled={
-                                        form.id !== undefined &&
-                                        isEdit &&
-                                        isEdit === true
+                                        // form.id !== undefined &&
+                                        isEdit && isEdit === true
                                       }
                                       onClick={() =>
                                         handleRemoveOption(
