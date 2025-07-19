@@ -41,6 +41,7 @@ interface DatasetDesignTabProps {
   setDataDesignForms: React.Dispatch<React.SetStateAction<DataDesignForm[]>>;
   isSurveyLanguageInEnglish: boolean;
   isSurveyLanguageInKhmer: boolean;
+  isEdit?: boolean;
 }
 
 const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
@@ -49,6 +50,7 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
   setDataDesignForms,
   isSurveyLanguageInEnglish,
   isSurveyLanguageInKhmer,
+  isEdit,
 }) => {
   const lang = useLang(state => state.lang);
   const [isSurveyInBothLanguages, setIsSurveyInBothLanguages] = useState(isSurveyLanguageInEnglish && isSurveyLanguageInKhmer);
@@ -721,6 +723,7 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                               label={GetContext('question_type', lang)}
                               value={form.type}
                               onChange={event => handleQuestionTypeChange(form.order, event.target.value)}
+                              disabled={isEdit && isEdit === true}
                               required>
                               {questionTypes.map(option => (
                                 <MenuItem key={option.type} value={option.type}>
@@ -828,7 +831,9 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                                         }}>
                                         {hasSkipLogic ? 'Edit Skip Logic' : 'Add Skip Logic'}
                                       </Button>
-                                      <IconButton onClick={() => handleRemoveOption(form.order, optionIndex)}>
+                                      <IconButton
+                                        disabled={isEdit && isEdit === true}
+                                        onClick={() => handleRemoveOption(form.order, optionIndex)}>
                                         <CloseIcon />
                                       </IconButton>
                                     </Grid>
