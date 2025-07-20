@@ -20,6 +20,7 @@ export interface SectionType {
 }
 
 export interface DataDesignForm {
+  id?: string;
   order: number;
   label: { en: string; km: string };
   is_required: boolean;

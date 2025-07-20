@@ -1,5 +1,5 @@
-'use client';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+"use client";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Grid,
   Box,
@@ -14,7 +14,7 @@ import {
   DialogContent,
   DialogTitle,
   DialogActions,
-} from '@mui/material';
+} from "@mui/material";
 import {
   AddCircleOutline as AddCircleOutlineIcon,
   Delete as DeleteIcon,
@@ -23,7 +23,7 @@ import {
   DragIndicator as DragIndicatorIcon,
   FormatListBulleted as SectionIcon,
   QuestionAnswer as QuestionIcon,
-} from '@mui/icons-material';
+} from "@mui/icons-material";
 import {
   DndContext,
   closestCenter,
@@ -33,21 +33,26 @@ import {
   useSensors,
   DragEndEvent,
   closestCorners,
-} from '@dnd-kit/core';
+} from "@dnd-kit/core";
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
   verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import { DataDesignForm, QuestionType, SectionType, skipLogic } from '@/types/dataDesignForm';
-import { GetContext } from '@/utils/language';
-import useLang from '@/store/lang';
-import SkipLogicDialog from './skipLogicDialog';
-import SortableSectionContainer from './sortableSectionContainer';
-import SortableQuestionContainer from './sortableQuestionContainer';
-import { Locale } from '@/types/projectDetail';
+} from "@dnd-kit/sortable";
+import {
+  DataDesignForm,
+  QuestionType,
+  SectionType,
+  skipLogic,
+} from "@/types/dataDesignForm";
+import { GetContext } from "@/utils/language";
+import useLang from "@/store/lang";
+import SkipLogicDialog from "./skipLogicDialog";
+import SortableSectionContainer from "./sortableSectionContainer";
+import SortableQuestionContainer from "./sortableQuestionContainer";
+import { Locale } from "@/types/projectDetail";
 
 interface DatasetDesignTabProps {
   questionTypes: QuestionType[];
@@ -66,8 +71,10 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
   isSurveyLanguageInKhmer,
   isEdit,
 }) => {
-  const lang = useLang(state => state.lang);
-  const [isSurveyInBothLanguages, setIsSurveyInBothLanguages] = useState(isSurveyLanguageInEnglish && isSurveyLanguageInKhmer);
+  const lang = useLang((state) => state.lang);
+  const [isSurveyInBothLanguages, setIsSurveyInBothLanguages] = useState(
+    isSurveyLanguageInEnglish && isSurveyLanguageInKhmer,
+  );
 
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
@@ -97,14 +104,22 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
   const initialized = useRef(false);
 
   const getSectionSkipLogicStatus = (sectionOrder: number) => {
-    return dataDesignForms.some(form => form.section?.order === sectionOrder && form.skip_logics && form.skip_logics.length > 0);
+    return dataDesignForms.some(
+      (form) =>
+        form.section?.order === sectionOrder &&
+        form.skip_logics &&
+        form.skip_logics.length > 0,
+    );
   };
 
   const checkSkipLogicConflicts = useCallback(
     (movingSectionOrder: number, newPosition: number) => {
       // Find all forms in the moving section that have skip logic
       const formsInMovingSection = dataDesignForms.filter(
-        form => form.section?.order === movingSectionOrder && form.skip_logics && form.skip_logics.length > 0,
+        (form) =>
+          form.section?.order === movingSectionOrder &&
+          form.skip_logics &&
+          form.skip_logics.length > 0,
       );
 
       const conflicts = [];
@@ -112,7 +127,8 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
         for (const skipLogic of form.skip_logics || []) {
           if (skipLogic.target && skipLogic.target <= newPosition) {
             conflicts.push({
-              questionLabel: form.label.en || form.label.km || 'Unknown Question',
+              questionLabel:
+                form.label.en || form.label.km || "Unknown Question",
               targetSection: skipLogic.target,
             });
           }
@@ -126,13 +142,15 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
 
   const handleSkipLogicRemove = useCallback(
     (formIndex: number, optionValue: number) => {
-      setDataDesignForms(prevForms => {
+      setDataDesignForms((prevForms) => {
         const newForms = [...prevForms];
         const form = newForms[formIndex];
 
         if (form.skip_logics) {
           // Remove the specific skip logic for this option
-          form.skip_logics = form.skip_logics.filter(logic => logic.answer_index !== optionValue);
+          form.skip_logics = form.skip_logics.filter(
+            (logic) => logic.answer_index !== optionValue,
+          );
 
           // If no skip logics remain, set to null
           if (form.skip_logics.length === 0) {
@@ -153,25 +171,25 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
         setSections([
           {
             order: 1,
-            title: { en: 'Section 1', km: 'វគ្គ ១' },
-            description: { en: '', km: '' },
+            title: { en: "Section 1", km: "វគ្គ ១" },
+            description: { en: "", km: "" },
           },
         ]);
         setDataDesignForms([
           {
             order: 1,
             label: {
-              en: '',
-              km: '',
+              en: "",
+              km: "",
             },
-            type: '',
-            data_type: '',
+            type: "",
+            data_type: "",
             is_required: true,
             options: [],
             section: {
               order: 1,
-              title: { en: 'Section 1', km: 'វគ្គ ១' },
-              description: { en: '', km: '' },
+              title: { en: "Section 1", km: "វគ្គ ១" },
+              description: { en: "", km: "" },
             },
             skip_logics: null,
           },
@@ -179,7 +197,11 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
       } else if (sections.length === 0) {
         // Extract sections from existing forms
         const uniqueSections = [
-          ...new Map(dataDesignForms.filter(form => form.section).map(form => [form.section.order, form.section])).values(),
+          ...new Map(
+            dataDesignForms
+              .filter((form) => form.section)
+              .map((form) => [form.section.order, form.section]),
+          ).values(),
         ].sort((a, b) => a.order - b.order);
 
         setSections(uniqueSections);
@@ -202,9 +224,9 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
 
   const performSectionMove = useCallback(
     (activeOrder: number, overOrder: number) => {
-      setSections(items => {
-        const oldIndex = items.findIndex(item => item.order === activeOrder);
-        const newIndex = items.findIndex(item => item.order === overOrder);
+      setSections((items) => {
+        const oldIndex = items.findIndex((item) => item.order === activeOrder);
+        const newIndex = items.findIndex((item) => item.order === overOrder);
 
         const newArray = arrayMove(items, oldIndex, newIndex);
 
@@ -214,9 +236,11 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
         }));
 
         // Update dataDesignForms and clean up broken skip logic
-        setDataDesignForms(prevForms => {
-          const formsWithUpdatedSections = prevForms.map(form => {
-            const updatedSection = updatedSections.find(section => section.title.en === form.section?.title.en);
+        setDataDesignForms((prevForms) => {
+          const formsWithUpdatedSections = prevForms.map((form) => {
+            const updatedSection = updatedSections.find(
+              (section) => section.title.en === form.section?.title.en,
+            );
 
             if (updatedSection) {
               let updatedForm = {
@@ -227,7 +251,8 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
               // Remove broken skip logic
               if (updatedForm.skip_logics) {
                 updatedForm.skip_logics = updatedForm.skip_logics.filter(
-                  logic => !logic.target || logic.target > updatedSection.order,
+                  (logic) =>
+                    !logic.target || logic.target > updatedSection.order,
                 );
 
                 if (updatedForm.skip_logics.length === 0) {
@@ -269,7 +294,7 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
     (event: DragEndEvent) => {
       const { active, over } = event;
 
-      console.log('Drag event:', { activeId: active.id, overId: over?.id });
+      console.log("Drag event:", { activeId: active.id, overId: over?.id });
 
       if (!over || active.id === over.id) return;
 
@@ -278,48 +303,57 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
 
       // Only allow same-type drops
       if (activeData?.type !== overData?.type) {
-        console.log('Different types - ignoring drag');
+        console.log("Different types - ignoring drag");
         return;
       }
 
-      if (activeData?.type === 'section' && overData?.type === 'section') {
-        console.log('Section drag detected');
+      if (activeData?.type === "section" && overData?.type === "section") {
+        console.log("Section drag detected");
         const activeOrder = activeData.order;
         const overOrder = overData.order;
 
         const sections_copy = [...sections];
-        const oldIndex = sections_copy.findIndex(item => item.order === activeOrder);
-        const newIndex = sections_copy.findIndex(item => item.order === overOrder);
+        const oldIndex = sections_copy.findIndex(
+          (item) => item.order === activeOrder,
+        );
+        const newIndex = sections_copy.findIndex(
+          (item) => item.order === overOrder,
+        );
         const newPosition = newIndex + 1;
 
         const conflicts = checkSkipLogicConflicts(activeOrder, newPosition);
 
         if (conflicts.length > 0) {
-          console.log('Conflicts detected:', conflicts);
+          console.log("Conflicts detected:", conflicts);
           // Show confirmation dialog
           setConfirmDialog({
             isOpen: true,
             conflicts: conflicts,
             onConfirm: () => {
               performSectionMove(activeOrder, overOrder);
-              setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+              setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
             },
             onCancel: () => {
-              setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+              setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
             },
           });
         } else {
           // No conflicts, proceed directly
           performSectionMove(activeOrder, overOrder);
         }
-      } else if (activeData?.type === 'question' && overData?.type === 'question') {
-        console.log('Question drag detected');
+      } else if (
+        activeData?.type === "question" &&
+        overData?.type === "question"
+      ) {
+        console.log("Question drag detected");
         const activeOrder = activeData.order;
         const overOrder = overData.order;
 
-        setDataDesignForms(items => {
-          const oldIndex = items.findIndex(item => item.order === activeOrder);
-          const newIndex = items.findIndex(item => item.order === overOrder);
+        setDataDesignForms((items) => {
+          const oldIndex = items.findIndex(
+            (item) => item.order === activeOrder,
+          );
+          const newIndex = items.findIndex((item) => item.order === overOrder);
 
           const newArray = arrayMove(items, oldIndex, newIndex);
 
@@ -335,14 +369,18 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
 
   const handleQuestionTypeChange = useCallback(
     (formOrder: number, value: string) => {
-      setDataDesignForms(prevForms => {
-        const formIndex = prevForms.findIndex(form => form.order === formOrder);
+      setDataDesignForms((prevForms) => {
+        const formIndex = prevForms.findIndex(
+          (form) => form.order === formOrder,
+        );
         if (formIndex === -1) return prevForms;
 
         const newForms = [...prevForms];
-        const selectedType = questionTypes.find(option => option.type === value);
-        newForms[formIndex].type = selectedType?.type || '';
-        newForms[formIndex].data_type = selectedType?.data_type || '';
+        const selectedType = questionTypes.find(
+          (option) => option.type === value,
+        );
+        newForms[formIndex].type = selectedType?.type || "";
+        newForms[formIndex].data_type = selectedType?.data_type || "";
         return newForms;
       });
     },
@@ -351,8 +389,10 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
 
   const handleDataTypeChange = useCallback(
     (formOrder: number, value: string) => {
-      setDataDesignForms(prevForms => {
-        const formIndex = prevForms.findIndex(form => form.order === formOrder);
+      setDataDesignForms((prevForms) => {
+        const formIndex = prevForms.findIndex(
+          (form) => form.order === formOrder,
+        );
         if (formIndex === -1) return prevForms;
 
         const newForms = [...prevForms];
@@ -365,8 +405,10 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
 
   const handleIsRequiredChange = useCallback(
     (formOrder: number, value: boolean) => {
-      setDataDesignForms(prevForms => {
-        const formIndex = prevForms.findIndex(form => form.order === formOrder);
+      setDataDesignForms((prevForms) => {
+        const formIndex = prevForms.findIndex(
+          (form) => form.order === formOrder,
+        );
         if (formIndex === -1) return prevForms;
 
         const newForms = [...prevForms];
@@ -379,17 +421,17 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
 
   const handleAddQuestion = useCallback(
     (sectionOrder: number) => {
-      console.log('section order', sectionOrder);
-      setDataDesignForms(prevQuestion => [
+      console.log("section order", sectionOrder);
+      setDataDesignForms((prevQuestion) => [
         ...prevQuestion,
         {
           order: prevQuestion.length + 1,
           label: {
-            en: '',
-            km: '',
+            en: "",
+            km: "",
           },
-          type: '',
-          data_type: '',
+          type: "",
+          data_type: "",
           is_required: true,
           options: [],
           section: sections[sectionOrder - 1],
@@ -401,145 +443,162 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
   );
 
   const handleAddSection = useCallback(() => {
-    setSections(prevSections => [
+    setSections((prevSections) => [
       ...prevSections,
       {
         order: prevSections.length + 1,
-        title: { en: `section ${prevSections.length + 1}`, km: '' },
-        description: { en: '', km: '' },
+        title: { en: `section ${prevSections.length + 1}`, km: "" },
+        description: { en: "", km: "" },
       },
     ]);
   }, []);
 
   const handleShowDataStructure = () => {
-    console.log('Data', dataDesignForms);
+    console.log("Data", dataDesignForms);
   };
 
-  const handleUpdateSectionTitle = useCallback((sectionOrder: number, newTitle: string, isEnglish: boolean) => {
-    console.log('title section: ', newTitle, ' is english: ', isEnglish);
-    // Update sections state
-    if (isEnglish) {
-      setSections(prevSections =>
-        prevSections.map(section =>
-          section.order === sectionOrder ? { ...section, title: { ...section.title, en: newTitle } } : section,
-        ),
-      );
-
-      // Also update the section reference in all forms that belong to this section
-      setDataDesignForms(prevForms =>
-        prevForms.map(form =>
-          form.section?.order === sectionOrder
-            ? {
-                ...form,
-                section: {
-                  ...form.section,
-                  title: { ...form.section.title, en: newTitle },
-                },
-              }
-            : form,
-        ),
-      );
-    } else {
-      setSections(prevSections =>
-        prevSections.map(section =>
-          section.order === sectionOrder ? { ...section, title: { ...section.title, km: newTitle } } : section,
-        ),
-      );
-
-      // Also update the section reference in all forms that belong to this section
-      setDataDesignForms(prevForms =>
-        prevForms.map(form =>
-          form.section?.order === sectionOrder
-            ? {
-                ...form,
-                section: {
-                  ...form.section,
-                  title: { ...form.section.title, km: newTitle },
-                },
-              }
-            : form,
-        ),
-      );
-    }
-  }, []);
-
-  const handleUpdateSectionDescription = useCallback((sectionOrder: number, newDescription: string, isEnglish: boolean) => {
-    console.log('desc: ', newDescription, ' Desc lang is english: ', isEnglish);
-    if (isEnglish) {
-      // for english section desc
+  const handleUpdateSectionTitle = useCallback(
+    (sectionOrder: number, newTitle: string, isEnglish: boolean) => {
+      console.log("title section: ", newTitle, " is english: ", isEnglish);
       // Update sections state
-      setSections(prevSections =>
-        prevSections.map(section =>
-          section.order === sectionOrder
-            ? {
-                ...section,
-                description: { ...section.description, en: newDescription },
-              }
-            : section,
-        ),
-      );
+      if (isEnglish) {
+        setSections((prevSections) =>
+          prevSections.map((section) =>
+            section.order === sectionOrder
+              ? { ...section, title: { ...section.title, en: newTitle } }
+              : section,
+          ),
+        );
 
-      // Also update the section reference in all forms that belong to this section
-      setDataDesignForms(prevForms =>
-        prevForms.map(form =>
-          form.section?.order === sectionOrder
-            ? {
-                ...form,
-                section: {
-                  ...form.section,
-                  description: {
-                    ...form.section.description,
-                    en: newDescription,
+        // Also update the section reference in all forms that belong to this section
+        setDataDesignForms((prevForms) =>
+          prevForms.map((form) =>
+            form.section?.order === sectionOrder
+              ? {
+                  ...form,
+                  section: {
+                    ...form.section,
+                    title: { ...form.section.title, en: newTitle },
                   },
-                },
-              }
-            : form,
-        ),
-      );
-    } else {
-      // for khmer desc
-      // Update sections state
-      setSections(prevSections =>
-        prevSections.map(section =>
-          section.order === sectionOrder
-            ? {
-                ...section,
-                description: { ...section.description, km: newDescription },
-              }
-            : section,
-        ),
-      );
+                }
+              : form,
+          ),
+        );
+      } else {
+        setSections((prevSections) =>
+          prevSections.map((section) =>
+            section.order === sectionOrder
+              ? { ...section, title: { ...section.title, km: newTitle } }
+              : section,
+          ),
+        );
 
-      // Also update the section reference in all forms that belong to this section
-      setDataDesignForms(prevForms =>
-        prevForms.map(form =>
-          form.section?.order === sectionOrder
-            ? {
-                ...form,
-                section: {
-                  ...form.section,
-                  description: {
-                    ...form.section.description,
-                    km: newDescription,
+        // Also update the section reference in all forms that belong to this section
+        setDataDesignForms((prevForms) =>
+          prevForms.map((form) =>
+            form.section?.order === sectionOrder
+              ? {
+                  ...form,
+                  section: {
+                    ...form.section,
+                    title: { ...form.section.title, km: newTitle },
                   },
-                },
-              }
-            : form,
-        ),
+                }
+              : form,
+          ),
+        );
+      }
+    },
+    [],
+  );
+
+  const handleUpdateSectionDescription = useCallback(
+    (sectionOrder: number, newDescription: string, isEnglish: boolean) => {
+      console.log(
+        "desc: ",
+        newDescription,
+        " Desc lang is english: ",
+        isEnglish,
       );
-    }
-  }, []);
+      if (isEnglish) {
+        // for english section desc
+        // Update sections state
+        setSections((prevSections) =>
+          prevSections.map((section) =>
+            section.order === sectionOrder
+              ? {
+                  ...section,
+                  description: { ...section.description, en: newDescription },
+                }
+              : section,
+          ),
+        );
+
+        // Also update the section reference in all forms that belong to this section
+        setDataDesignForms((prevForms) =>
+          prevForms.map((form) =>
+            form.section?.order === sectionOrder
+              ? {
+                  ...form,
+                  section: {
+                    ...form.section,
+                    description: {
+                      ...form.section.description,
+                      en: newDescription,
+                    },
+                  },
+                }
+              : form,
+          ),
+        );
+      } else {
+        // for khmer desc
+        // Update sections state
+        setSections((prevSections) =>
+          prevSections.map((section) =>
+            section.order === sectionOrder
+              ? {
+                  ...section,
+                  description: { ...section.description, km: newDescription },
+                }
+              : section,
+          ),
+        );
+
+        // Also update the section reference in all forms that belong to this section
+        setDataDesignForms((prevForms) =>
+          prevForms.map((form) =>
+            form.section?.order === sectionOrder
+              ? {
+                  ...form,
+                  section: {
+                    ...form.section,
+                    description: {
+                      ...form.section.description,
+                      km: newDescription,
+                    },
+                  },
+                }
+              : form,
+          ),
+        );
+      }
+    },
+    [],
+  );
 
   const handleRemoveSection = useCallback(
     (sectionOrder: number) => {
       // Check if this is the last section
       if (sections.length <= 1) {
-        alert(GetContext('at_least_one_section', lang));
+        alert(GetContext("at_least_one_section", lang));
         return;
       }
 
-      setSections(prevSections => {
-        const newSections = prevSections.filter(section => section.order !== sectionOrder);
+      setSections((prevSections) => {
+        const newSections = prevSections.filter(
+          (section) => section.order !== sectionOrder,
+        );
         // Update order for remaining sections
         return newSections.map((section, index) => ({
           ...section,
@@ -548,8 +607,10 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
       });
 
       // Also remove all questions that belong to this section
-      setDataDesignForms(prevForms => {
-        const formsToKeep = prevForms.filter(form => form.section?.order !== sectionOrder);
+      setDataDesignForms((prevForms) => {
+        const formsToKeep = prevForms.filter(
+          (form) => form.section?.order !== sectionOrder,
+        );
         // Update order for remaining forms
         return formsToKeep.map((form, index) => ({
           ...form,
@@ -562,8 +623,8 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
 
   const handleRemoveForm = useCallback(
     (formOrder: number) => {
-      setDataDesignForms(prevForms => {
-        const newForms = prevForms.filter(form => form.order !== formOrder);
+      setDataDesignForms((prevForms) => {
+        const newForms = prevForms.filter((form) => form.order !== formOrder);
         // Update order for remaining forms
         return newForms.map((form, index) => ({
           ...form,
@@ -576,13 +637,18 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
 
   const handleAddOption = useCallback(
     (formOrder: number) => {
-      setDataDesignForms(prevForms => {
-        const formIndex = prevForms.findIndex(form => form.order === formOrder);
+      setDataDesignForms((prevForms) => {
+        const formIndex = prevForms.findIndex(
+          (form) => form.order === formOrder,
+        );
         if (formIndex === -1) return prevForms;
 
         const newForms = [...prevForms];
 
-        newForms[formIndex].options = [...newForms[formIndex].options, { en: '', km: ' ' }];
+        newForms[formIndex].options = [
+          ...newForms[formIndex].options,
+          { en: "", km: " " },
+        ];
         return newForms;
       });
     },
@@ -591,8 +657,10 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
 
   const handleOptionValueChangeEn = useCallback(
     (formOrder: number, optionIndex: number, value: string) => {
-      setDataDesignForms(prevForms => {
-        const formIndex = prevForms.findIndex(form => form.order === formOrder);
+      setDataDesignForms((prevForms) => {
+        const formIndex = prevForms.findIndex(
+          (form) => form.order === formOrder,
+        );
         if (formIndex === -1) return prevForms;
 
         const newForms = [...prevForms];
@@ -607,8 +675,10 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
 
   const handleOptionValueChangeKm = useCallback(
     (formOrder: number, optionIndex: number, value: string) => {
-      setDataDesignForms(prevForms => {
-        const formIndex = prevForms.findIndex(form => form.order === formOrder);
+      setDataDesignForms((prevForms) => {
+        const formIndex = prevForms.findIndex(
+          (form) => form.order === formOrder,
+        );
         if (formIndex === -1) return prevForms;
 
         const newForms = [...prevForms];
@@ -622,8 +692,13 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
   );
 
   const handleSkipLogicSave = useCallback(
-    (formIndex: number, optionValue: number, action: string, targetSectionId: number | null) => {
-      setDataDesignForms(prevForms => {
+    (
+      formIndex: number,
+      optionValue: number,
+      action: string,
+      targetSectionId: number | null,
+    ) => {
+      setDataDesignForms((prevForms) => {
         const newForms = [...prevForms];
         const form = newForms[formIndex];
 
@@ -633,7 +708,9 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
         }
 
         // Check if we already have a skip logic entry for this option
-        const existingLogicIndex = form.skip_logics.findIndex(logic => logic.answer_index === optionValue);
+        const existingLogicIndex = form.skip_logics.findIndex(
+          (logic) => logic.answer_index === optionValue,
+        );
 
         if (existingLogicIndex >= 0) {
           // Update existing skip logic
@@ -659,19 +736,25 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
 
   const handleRemoveOption = useCallback(
     (formOrder: number, optionIndex: number) => {
-      setDataDesignForms(prevForms => {
-        const formIndex = prevForms.findIndex(form => form.order === formOrder);
+      setDataDesignForms((prevForms) => {
+        const formIndex = prevForms.findIndex(
+          (form) => form.order === formOrder,
+        );
         if (formIndex === -1) return prevForms;
 
         const newForms = [...prevForms];
         // const optionValue = prevForms[formIndex].options[optionIndex];
 
         // Remove the option
-        newForms[formIndex].options = newForms[formIndex].options.filter((_, index) => index !== optionIndex);
+        newForms[formIndex].options = newForms[formIndex].options.filter(
+          (_, index) => index !== optionIndex,
+        );
 
         // Remove any skip logic associated with this option
         if (newForms[formIndex].skip_logics) {
-          newForms[formIndex].skip_logics = newForms[formIndex].skip_logics!.filter(logic => logic.answer_index !== optionIndex);
+          newForms[formIndex].skip_logics = newForms[
+            formIndex
+          ].skip_logics!.filter((logic) => logic.answer_index !== optionIndex);
 
           // If skip_logic is now empty, set it to null
           if (newForms[formIndex].skip_logics?.length === 0) {
@@ -686,16 +769,23 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
   );
 
   const handleInputChangeEn = useCallback(
-    (formOrder: number, event: React.ChangeEvent<HTMLInputElement | { name?: string | undefined; value: unknown }>) => {
+    (
+      formOrder: number,
+      event: React.ChangeEvent<
+        HTMLInputElement | { name?: string | undefined; value: unknown }
+      >,
+    ) => {
       const { name, value } = event.target;
-      setDataDesignForms(prevForms => {
-        const formIndex = prevForms.findIndex(form => form.order === formOrder);
+      setDataDesignForms((prevForms) => {
+        const formIndex = prevForms.findIndex(
+          (form) => form.order === formOrder,
+        );
         if (formIndex === -1) return prevForms;
 
         const newForms = [...prevForms];
-        if (name === 'label') {
+        if (name === "label") {
           newForms[formIndex].label.en = value as string;
-        } else if (name === 'data_type') {
+        } else if (name === "data_type") {
           handleDataTypeChange(formOrder, value as string);
         }
         return newForms;
@@ -705,16 +795,23 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
   );
 
   const handleInputChangeKm = useCallback(
-    (formOrder: number, event: React.ChangeEvent<HTMLInputElement | { name?: string | undefined; value: unknown }>) => {
+    (
+      formOrder: number,
+      event: React.ChangeEvent<
+        HTMLInputElement | { name?: string | undefined; value: unknown }
+      >,
+    ) => {
       const { name, value } = event.target;
-      setDataDesignForms(prevForms => {
-        const formIndex = prevForms.findIndex(form => form.order === formOrder);
+      setDataDesignForms((prevForms) => {
+        const formIndex = prevForms.findIndex(
+          (form) => form.order === formOrder,
+        );
         if (formIndex === -1) return prevForms;
 
         const newForms = [...prevForms];
-        if (name === 'label') {
+        if (name === "label") {
           newForms[formIndex].label.km = value as string;
-        } else if (name === 'data_type') {
+        } else if (name === "data_type") {
           handleDataTypeChange(formOrder, value as string);
         }
         return newForms;
@@ -729,7 +826,10 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
       const form = dataDesignForms[formIndex];
       if (!form.skip_logics) return null;
 
-      return form.skip_logics.find(logic => logic.answer_index === optionValue) || null;
+      return (
+        form.skip_logics.find((logic) => logic.answer_index === optionValue) ||
+        null
+      );
     },
     [dataDesignForms],
   );
@@ -744,18 +844,18 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
 
   const formsBySection = sections
     .sort((a, b) => a.order - b.order)
-    .map(section => {
+    .map((section) => {
       return {
         section,
-        forms: dataDesignForms.filter(form => {
+        forms: dataDesignForms.filter((form) => {
           return form.section?.title.en === section.title.en;
         }),
       };
     });
 
   console.log(
-    'FormsBySection after sort:',
-    formsBySection.map(item => ({
+    "FormsBySection after sort:",
+    formsBySection.map((item) => ({
       sectionOrder: item.section.order,
       sectionTitle: item.section.title.en,
       questionCount: item.forms.length,
@@ -763,20 +863,27 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
   );
 
   console.log(
-    'Sections for dragging:',
-    sections.map(section => `section-${section.order}`),
+    "Sections for dragging:",
+    sections.map((section) => `section-${section.order}`),
   );
-  console.log('Sections data:', sections);
+  console.log("Sections data:", sections);
 
   return (
     <Box sx={{ padding: 2 }}>
-      <Typography variant='h6' sx={{ marginBottom: 2 }}>
-        {GetContext('dataset_design', lang)}
+      <Typography variant="h6" sx={{ marginBottom: 2 }}>
+        {GetContext("dataset_design", lang)}
       </Typography>
 
       {/* Sections with their questions */}
-      <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={handleUnifiedDragEnd}>
-        <SortableContext items={sections.map(section => `section-${section.order}`)} strategy={verticalListSortingStrategy}>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCorners}
+        onDragEnd={handleUnifiedDragEnd}
+      >
+        <SortableContext
+          items={sections.map((section) => `section-${section.order}`)}
+          strategy={verticalListSortingStrategy}
+        >
           {formsBySection.map(({ section, forms }, index) => (
             <SortableSectionContainer
               key={section.order}
@@ -786,49 +893,69 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
               title={section.title}
               description={section.description}
               onRemove={() => handleRemoveSection(section.order)}
-              onTitleChange={(newTitle, isEnglish) => handleUpdateSectionTitle(section.order, newTitle, isEnglish)}
+              onTitleChange={(newTitle, isEnglish) =>
+                handleUpdateSectionTitle(section.order, newTitle, isEnglish)
+              }
               onDescriptionChange={(newDescription, isEnglish) =>
-                handleUpdateSectionDescription(section.order, newDescription, isEnglish)
-              }>
+                handleUpdateSectionDescription(
+                  section.order,
+                  newDescription,
+                  isEnglish,
+                )
+              }
+            >
               {/* Questions within the section */}
-              <SortableContext items={forms.map(form => `question-${form.order}`)} strategy={verticalListSortingStrategy}>
+              <SortableContext
+                items={forms.map((form) => `question-${form.order}`)}
+                strategy={verticalListSortingStrategy}
+              >
                 <Grid container spacing={1}>
-                  {forms.map(form => (
+                  {forms.map((form) => (
                     <Grid item xs={12} key={form.order}>
                       <SortableQuestionContainer
                         order={form.order}
                         // title={form.label.en ? form.label.en : 'Question Not Set'}
-                        onRemove={() => handleRemoveForm(form.order)}>
+                        onRemove={() => handleRemoveForm(form.order)}
+                      >
                         <Grid container spacing={2}>
                           <Grid
                             item
                             xs={isSurveyInBothLanguages ? 8 : 6}
                             sx={{
-                              display: 'flex',
-                              alignItems: 'center',
+                              display: "flex",
+                              alignItems: "center",
                               gap: 2,
-                            }}>
+                            }}
+                          >
                             {isSurveyLanguageInEnglish && (
                               <TextField
                                 sx={{
-                                  width: isSurveyLanguageInKhmer ? '50%' : '100%',
+                                  width: isSurveyLanguageInKhmer
+                                    ? "50%"
+                                    : "100%",
                                 }}
-                                label={GetContext('question', lang)}
-                                name='label'
+                                label={GetContext("question", lang)}
+                                name="label"
                                 value={form.label.en}
-                                onChange={event => handleInputChangeEn(form.order, event)}
+                                onChange={(event) =>
+                                  handleInputChangeEn(form.order, event)
+                                }
                                 required
                               />
                             )}
                             {isSurveyLanguageInKhmer && (
                               <TextField
                                 sx={{
-                                  width: isSurveyLanguageInEnglish ? '50%' : '100%',
+                                  width: isSurveyLanguageInEnglish
+                                    ? "50%"
+                                    : "100%",
                                 }}
-                                label='សំណួរ'
-                                name='label'
+                                label="សំណួរ"
+                                name="label"
                                 value={form.label.km}
-                                onChange={event => handleInputChangeKm(form.order, event)}
+                                onChange={(event) =>
+                                  handleInputChangeKm(form.order, event)
+                                }
                                 required
                               />
                             )}
@@ -837,12 +964,22 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                             <TextField
                               fullWidth
                               select
-                              label={GetContext('question_type', lang)}
+                              label={GetContext("question_type", lang)}
                               value={form.type}
-                              onChange={event => handleQuestionTypeChange(form.order, event.target.value)}
-                              disabled={isEdit && isEdit === true}
-                              required>
-                              {questionTypes.map(option => (
+                              onChange={(event) => {
+                                handleQuestionTypeChange(
+                                  form.order,
+                                  event.target.value,
+                                );
+                              }}
+                              disabled={
+                                form.id !== undefined &&
+                                isEdit &&
+                                isEdit === true
+                              }
+                              required
+                            >
+                              {questionTypes.map((option) => (
                                 <MenuItem key={option.type} value={option.type}>
                                   {option.label}
                                 </MenuItem>
@@ -853,69 +990,104 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                             <TextField
                               fullWidth
                               select
-                              label={GetContext('is_required', lang)}
-                              value={form.is_required ? 'true' : 'false'}
-                              onChange={event => handleIsRequiredChange(form.order, event.target.value === 'true')}
-                              required>
+                              label={GetContext("is_required", lang)}
+                              value={form.is_required ? "true" : "false"}
+                              onChange={(event) =>
+                                handleIsRequiredChange(
+                                  form.order,
+                                  event.target.value === "true",
+                                )
+                              }
+                              required
+                            >
                               {[true, false].map((option, index) => (
                                 <MenuItem key={index} value={option.toString()}>
-                                  {option ? GetContext('yes', lang) : GetContext('noo', lang)}
+                                  {option
+                                    ? GetContext("yes", lang)
+                                    : GetContext("noo", lang)}
                                 </MenuItem>
                               ))}
                             </TextField>
                           </Grid>
 
-                          {(form.type === 'text' || form.type === 'decimal' || form.type === 'number') && (
+                          {(form.type === "text" ||
+                            form.type === "decimal" ||
+                            form.type === "number") && (
                             <Grid item xs={12}>
-                              <TextField fullWidth label='Short Answer' disabled />
+                              <TextField
+                                fullWidth
+                                label="Short Answer"
+                                disabled
+                              />
                             </Grid>
                           )}
-                          {form.type === 'text_area' && (
+                          {form.type === "text_area" && (
                             <Grid item xs={12}>
-                              <TextField fullWidth label='Paragraph' multiline rows={4} disabled />
+                              <TextField
+                                fullWidth
+                                label="Paragraph"
+                                multiline
+                                rows={4}
+                                disabled
+                              />
                             </Grid>
                           )}
-                          {form.type === 'single' && (
+                          {form.type === "single" && (
                             <Grid item xs={12}>
                               {form.options.map((optionValue, optionIndex) => {
-                                const formIndex = dataDesignForms.findIndex(f => f.order === form.order);
+                                const formIndex = dataDesignForms.findIndex(
+                                  (f) => f.order === form.order,
+                                );
                                 const hasSkipLogic =
-                                  formIndex >= 0 && form.skip_logics?.some(logic => logic.answer_index === optionIndex);
+                                  formIndex >= 0 &&
+                                  form.skip_logics?.some(
+                                    (logic) =>
+                                      logic.answer_index === optionIndex,
+                                  );
 
                                 return (
                                   <Grid
                                     container
                                     spacing={2}
-                                    alignItems='center'
+                                    alignItems="center"
                                     key={optionIndex}
-                                    sx={{ marginBottom: '0.5rem' }}>
+                                    sx={{ marginBottom: "0.5rem" }}
+                                  >
                                     <Grid
                                       item
                                       xs={0.5}
                                       sx={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                      }}>
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                      }}
+                                    >
                                       <Radio disabled />
                                     </Grid>
                                     <Grid
                                       item
                                       xs={8.5}
                                       sx={{
-                                        display: 'flex',
-                                        alignItems: 'center',
+                                        display: "flex",
+                                        alignItems: "center",
                                         gap: 2,
-                                      }}>
+                                      }}
+                                    >
                                       {isSurveyLanguageInEnglish && (
                                         <TextField
                                           sx={{
-                                            width: isSurveyLanguageInKhmer ? '50%' : '100%',
+                                            width: isSurveyLanguageInKhmer
+                                              ? "50%"
+                                              : "100%",
                                           }}
-                                          label={GetContext('option', lang)}
+                                          label={GetContext("option", lang)}
                                           value={optionValue.en}
-                                          onChange={event => {
-                                            handleOptionValueChangeEn(form.order, optionIndex, event.target.value);
+                                          onChange={(event) => {
+                                            handleOptionValueChangeEn(
+                                              form.order,
+                                              optionIndex,
+                                              event.target.value,
+                                            );
                                           }}
                                           required
                                         />
@@ -923,76 +1095,120 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                                       {isSurveyLanguageInKhmer && (
                                         <TextField
                                           sx={{
-                                            width: isSurveyLanguageInEnglish ? '50%' : '100%',
+                                            width: isSurveyLanguageInEnglish
+                                              ? "50%"
+                                              : "100%",
                                           }}
-                                          label='ជម្រើស'
+                                          label="ជម្រើស"
                                           value={optionValue.km}
-                                          onChange={event => {
-                                            handleOptionValueChangeKm(form.order, optionIndex, event.target.value);
+                                          onChange={(event) => {
+                                            handleOptionValueChangeKm(
+                                              form.order,
+                                              optionIndex,
+                                              event.target.value,
+                                            );
                                           }}
                                           required
                                         />
                                       )}
                                     </Grid>
                                     <Grid item xs={3}>
-                                      {(hasSkipLogic || !getSectionSkipLogicStatus(form.section?.order || 0)) && (
+                                      {(hasSkipLogic ||
+                                        !getSectionSkipLogicStatus(
+                                          form.section?.order || 0,
+                                        )) && (
                                         <Button
-                                          variant='outlined'
-                                          color={hasSkipLogic ? 'success' : 'primary'}
+                                          variant="outlined"
+                                          color={
+                                            hasSkipLogic ? "success" : "primary"
+                                          }
                                           onClick={() => {
-                                            const formIndex = dataDesignForms.findIndex(f => f.order === form.order);
+                                            const formIndex =
+                                              dataDesignForms.findIndex(
+                                                (f) => f.order === form.order,
+                                              );
                                             setActiveDialog({
                                               isOpen: true,
                                               formIndex: formIndex,
                                               optionValue: optionIndex,
                                             });
-                                          }}>
-                                          {hasSkipLogic ? 'Edit Skip Logic' : 'Add Skip Logic'}
+                                          }}
+                                        >
+                                          {hasSkipLogic
+                                            ? "Edit Skip Logic"
+                                            : "Add Skip Logic"}
                                         </Button>
                                       )}
                                       <IconButton
-                                        disabled={isEdit && isEdit === true}
-                                        onClick={() => handleRemoveOption(form.order, optionIndex)}>
+                                        disabled={
+                                          // form.id !== undefined &&
+                                          isEdit && isEdit === true
+                                        }
+                                        onClick={() =>
+                                          handleRemoveOption(
+                                            form.order,
+                                            optionIndex,
+                                          )
+                                        }
+                                      >
                                         <CloseIcon />
                                       </IconButton>
                                     </Grid>
                                   </Grid>
                                 );
                               })}
-                              <Button onClick={() => handleAddOption(form.order)}>{GetContext('add_option', lang)}</Button>
+                              <Button
+                                onClick={() => handleAddOption(form.order)}
+                              >
+                                {GetContext("add_option", lang)}
+                              </Button>
                             </Grid>
                           )}
-                          {form.type === 'dropdown' && (
+                          {form.type === "dropdown" && (
                             <Grid item xs={12}>
                               {form.options.map((optionValue, optionIndex) => {
-                                const formIndex = dataDesignForms.findIndex(f => f.order === form.order);
+                                const formIndex = dataDesignForms.findIndex(
+                                  (f) => f.order === form.order,
+                                );
                                 const hasSkipLogic =
-                                  formIndex >= 0 && form.skip_logics?.some(logic => logic.answer_index === optionIndex);
+                                  formIndex >= 0 &&
+                                  form.skip_logics?.some(
+                                    (logic) =>
+                                      logic.answer_index === optionIndex,
+                                  );
 
                                 return (
                                   <Grid
                                     container
                                     spacing={2}
-                                    alignItems='center'
+                                    alignItems="center"
                                     key={optionIndex}
-                                    sx={{ marginBottom: '0.5rem' }}>
+                                    sx={{ marginBottom: "0.5rem" }}
+                                  >
                                     <Grid
                                       item
                                       xs={9}
                                       sx={{
-                                        display: 'flex',
-                                        alignItems: 'center',
+                                        display: "flex",
+                                        alignItems: "center",
                                         gap: 2,
-                                      }}>
+                                      }}
+                                    >
                                       {isSurveyLanguageInEnglish && (
                                         <TextField
                                           sx={{
-                                            width: isSurveyLanguageInKhmer ? '50%' : '100%',
+                                            width: isSurveyLanguageInKhmer
+                                              ? "50%"
+                                              : "100%",
                                           }}
-                                          label={GetContext('option', lang)}
+                                          label={GetContext("option", lang)}
                                           value={optionValue.en}
-                                          onChange={event => {
-                                            handleOptionValueChangeEn(form.order, optionIndex, event.target.value);
+                                          onChange={(event) => {
+                                            handleOptionValueChangeEn(
+                                              form.order,
+                                              optionIndex,
+                                              event.target.value,
+                                            );
                                           }}
                                           required
                                         />
@@ -1000,80 +1216,127 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                                       {isSurveyLanguageInKhmer && (
                                         <TextField
                                           sx={{
-                                            width: isSurveyLanguageInEnglish ? '50%' : '100%',
+                                            width: isSurveyLanguageInEnglish
+                                              ? "50%"
+                                              : "100%",
                                           }}
-                                          label='ជម្រើស'
+                                          label="ជម្រើស"
                                           value={optionValue.km}
-                                          onChange={event => {
-                                            handleOptionValueChangeKm(form.order, optionIndex, event.target.value);
+                                          onChange={(event) => {
+                                            handleOptionValueChangeKm(
+                                              form.order,
+                                              optionIndex,
+                                              event.target.value,
+                                            );
                                           }}
                                           required
                                         />
                                       )}
                                     </Grid>
                                     <Grid item xs={3}>
-                                      {(hasSkipLogic || !getSectionSkipLogicStatus(form.section?.order || 0)) && (
+                                      {(hasSkipLogic ||
+                                        !getSectionSkipLogicStatus(
+                                          form.section?.order || 0,
+                                        )) && (
                                         <Button
-                                          variant='outlined'
-                                          color={hasSkipLogic ? 'success' : 'primary'}
+                                          variant="outlined"
+                                          color={
+                                            hasSkipLogic ? "success" : "primary"
+                                          }
                                           onClick={() => {
-                                            const formIndex = dataDesignForms.findIndex(f => f.order === form.order);
+                                            const formIndex =
+                                              dataDesignForms.findIndex(
+                                                (f) => f.order === form.order,
+                                              );
                                             setActiveDialog({
                                               isOpen: true,
                                               formIndex: formIndex,
                                               optionValue: optionIndex,
                                             });
-                                          }}>
-                                          {hasSkipLogic ? 'Edit Skip Logic' : 'Add Skip Logic'}
+                                          }}
+                                        >
+                                          {hasSkipLogic
+                                            ? "Edit Skip Logic"
+                                            : "Add Skip Logic"}
                                         </Button>
                                       )}
-                                      <IconButton onClick={() => handleRemoveOption(form.order, optionIndex)}>
+                                      <IconButton
+                                        onClick={() =>
+                                          handleRemoveOption(
+                                            form.order,
+                                            optionIndex,
+                                          )
+                                        }
+                                      >
                                         <CloseIcon />
                                       </IconButton>
                                     </Grid>
                                   </Grid>
                                 );
                               })}
-                              <Button onClick={() => handleAddOption(form.order)}>{GetContext('add_option', lang)}</Button>
+                              <Button
+                                onClick={() => handleAddOption(form.order)}
+                              >
+                                {GetContext("add_option", lang)}
+                              </Button>
                             </Grid>
                           )}
-                          {form.type === 'multiple' && (
+                          {form.type === "multiple" && (
                             <Grid item xs={12}>
                               {form.options.map((optionValue, optionIndex) => {
+                                const formIndex = dataDesignForms.findIndex(
+                                  (f) => f.order === form.order,
+                                );
+                                const hasSkipLogic =
+                                  formIndex >= 0 &&
+                                  form.skip_logics?.some(
+                                    (logic) =>
+                                      logic.answer_index === optionIndex,
+                                  );
+
                                 return (
                                   <Grid
                                     container
                                     spacing={2}
-                                    alignItems='center'
+                                    alignItems="center"
                                     key={optionIndex}
-                                    sx={{ marginBottom: '0.5rem' }}>
+                                    sx={{ marginBottom: "0.5rem" }}
+                                  >
                                     <Grid
                                       item
                                       xs={0.5}
                                       sx={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                      }}>
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                      }}
+                                    >
                                       <Checkbox disabled />
                                     </Grid>
                                     <Grid
                                       item
                                       xs={8.5}
                                       sx={{
-                                        display: 'flex',
-                                        alignItems: 'center',
+                                        display: "flex",
+                                        alignItems: "center",
                                         gap: 2,
-                                      }}>
+                                      }}
+                                    >
                                       {isSurveyLanguageInEnglish && (
                                         <TextField
                                           sx={{
-                                            width: isSurveyLanguageInKhmer ? '50%' : '100%',
+                                            width: isSurveyLanguageInKhmer
+                                              ? "50%"
+                                              : "100%",
                                           }}
-                                          label={GetContext('option', lang)}
+                                          label={GetContext("option", lang)}
                                           value={optionValue.en}
-                                          onChange={event => {
-                                            handleOptionValueChangeEn(form.order, optionIndex, event.target.value);
+                                          onChange={(event) => {
+                                            handleOptionValueChangeEn(
+                                              form.order,
+                                              optionIndex,
+                                              event.target.value,
+                                            );
                                           }}
                                           required
                                         />
@@ -1081,31 +1344,55 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
                                       {isSurveyLanguageInKhmer && (
                                         <TextField
                                           sx={{
-                                            width: isSurveyLanguageInEnglish ? '50%' : '100%',
+                                            width: isSurveyLanguageInEnglish
+                                              ? "50%"
+                                              : "100%",
                                           }}
-                                          label='ជម្រើស'
+                                          label="ជម្រើស"
                                           value={optionValue.km}
-                                          onChange={event => {
-                                            handleOptionValueChangeKm(form.order, optionIndex, event.target.value);
+                                          onChange={(event) => {
+                                            handleOptionValueChangeKm(
+                                              form.order,
+                                              optionIndex,
+                                              event.target.value,
+                                            );
                                           }}
                                           required
                                         />
                                       )}
                                     </Grid>
+                                    <IconButton
+                                      disabled={
+                                        // form.id !== undefined &&
+                                        isEdit && isEdit === true
+                                      }
+                                      onClick={() =>
+                                        handleRemoveOption(
+                                          form.order,
+                                          optionIndex,
+                                        )
+                                      }
+                                    >
+                                      <CloseIcon />
+                                    </IconButton>
                                   </Grid>
                                 );
                               })}
-                              <Button onClick={() => handleAddOption(form.order)}>{GetContext('add_option', lang)}</Button>
+                              <Button
+                                onClick={() => handleAddOption(form.order)}
+                              >
+                                {GetContext("add_option", lang)}
+                              </Button>
                             </Grid>
                           )}
-                          {form.type === 'date' && (
+                          {form.type === "date" && (
                             <Grid item xs={12}>
-                              <TextField fullWidth type='date' disabled />
+                              <TextField fullWidth type="date" disabled />
                             </Grid>
                           )}
-                          {form.type === 'time' && (
+                          {form.type === "time" && (
                             <Grid item xs={12}>
-                              <TextField fullWidth type='time' disabled />
+                              <TextField fullWidth type="time" disabled />
                             </Grid>
                           )}
                         </Grid>
@@ -1116,12 +1403,13 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
               </SortableContext>
 
               {/* Add question button for this section */}
-              <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
+              <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
                 <Button
-                  variant='contained'
-                  color='primary'
+                  variant="contained"
+                  color="primary"
                   startIcon={<AddCircleOutlineIcon />}
-                  onClick={() => handleAddQuestion(section.order)}>
+                  onClick={() => handleAddQuestion(section.order)}
+                >
                   Add Question To Section
                 </Button>
               </Box>
@@ -1131,62 +1419,90 @@ const DatasetDesignTab: React.FC<DatasetDesignTabProps> = ({
       </DndContext>
 
       {/* Global form actions */}
-      <Box sx={{ display: 'flex', gap: 1, mt: 3 }}>
-        <Button variant='contained' color='info' startIcon={<AddCircleOutlineIcon />} onClick={handleAddSection}>
+      <Box sx={{ display: "flex", gap: 1, mt: 3 }}>
+        <Button
+          variant="contained"
+          color="info"
+          startIcon={<AddCircleOutlineIcon />}
+          onClick={handleAddSection}
+        >
           Add Section
         </Button>
-        <Button variant='contained' color='info' startIcon={<AddCircleOutlineIcon />} onClick={handleShowDataStructure}>
+        <Button
+          variant="contained"
+          color="info"
+          startIcon={<AddCircleOutlineIcon />}
+          onClick={handleShowDataStructure}
+        >
           Show Data Structure
         </Button>
       </Box>
 
       {/* Skip Logic Confirmation Dialog */}
-      <Dialog open={confirmDialog.isOpen} onClose={confirmDialog.onCancel} maxWidth='md'>
+      <Dialog
+        open={confirmDialog.isOpen}
+        onClose={confirmDialog.onCancel}
+        maxWidth="md"
+      >
         <DialogTitle>Skip Logic Conflict Warning</DialogTitle>
         <DialogContent>
-          <Typography variant='body1' sx={{ marginBottom: 2 }}>
+          <Typography variant="body1" sx={{ marginBottom: 2 }}>
             Moving this section will break the following skip logic rules:
           </Typography>
           {confirmDialog.conflicts.map((conflict, index) => (
-            <Typography key={index} variant='body2' sx={{ marginLeft: 2, marginBottom: 1 }}>
-              • Question {conflict.questionLabel} skips to section {conflict.targetSection}
+            <Typography
+              key={index}
+              variant="body2"
+              sx={{ marginLeft: 2, marginBottom: 1 }}
+            >
+              • Question {conflict.questionLabel} skips to section{" "}
+              {conflict.targetSection}
             </Typography>
           ))}
-          <Typography variant='body1' sx={{ marginTop: 2, fontWeight: 'bold' }}>
+          <Typography variant="body1" sx={{ marginTop: 2, fontWeight: "bold" }}>
             The skip logic will be removed. Do you want to continue?
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={confirmDialog.onCancel} color='inherit'>
+          <Button onClick={confirmDialog.onCancel} color="inherit">
             Cancel
           </Button>
-          <Button onClick={confirmDialog.onConfirm} color='error' variant='contained'>
+          <Button
+            onClick={confirmDialog.onConfirm}
+            color="error"
+            variant="contained"
+          >
             Continue & Remove Skip Logic
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* Skip Logic Dialog */}
-      {activeDialog.isOpen && activeDialog.formIndex !== null && activeDialog.optionValue !== null && (
-        <SkipLogicDialog
-          lang={lang}
-          open={activeDialog.isOpen}
-          onClose={() =>
-            setActiveDialog({
-              isOpen: false,
-              formIndex: null,
-              optionValue: null,
-            })
-          }
-          formList={dataDesignForms}
-          sectionList={sections}
-          optionValue={activeDialog.optionValue}
-          formIndex={activeDialog.formIndex}
-          handleSkipLogicSave={handleSkipLogicSave}
-          handleSkipLogicRemove={handleSkipLogicRemove}
-          currentSkipLogic={getSkipLogicForOption(activeDialog.formIndex, activeDialog.optionValue)}
-        />
-      )}
+      {activeDialog.isOpen &&
+        activeDialog.formIndex !== null &&
+        activeDialog.optionValue !== null && (
+          <SkipLogicDialog
+            lang={lang}
+            open={activeDialog.isOpen}
+            onClose={() =>
+              setActiveDialog({
+                isOpen: false,
+                formIndex: null,
+                optionValue: null,
+              })
+            }
+            formList={dataDesignForms}
+            sectionList={sections}
+            optionValue={activeDialog.optionValue}
+            formIndex={activeDialog.formIndex}
+            handleSkipLogicSave={handleSkipLogicSave}
+            handleSkipLogicRemove={handleSkipLogicRemove}
+            currentSkipLogic={getSkipLogicForOption(
+              activeDialog.formIndex,
+              activeDialog.optionValue,
+            )}
+          />
+        )}
     </Box>
   );
 };
