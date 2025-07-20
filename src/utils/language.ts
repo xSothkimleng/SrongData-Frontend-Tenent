@@ -939,6 +939,22 @@ const language: {
     en: 'Project Indicator',
     km: 'សូចនាករគម្រោង',
   },
+  no_request_logs: {
+    en: 'No Request Logs Found',
+    km: 'មិនមានទិន្នន័យស្នើ',
+  },
+  today: {
+    en: 'Today',
+    km: 'ថ្ងៃនេះ',
+  },
+  yesterday: {
+    en: 'Yesterday',
+    km: 'ម្សិលមិញ',
+  },
+  at: {
+    en: 'at',
+    km: 'នៅ',
+  },
 };
 
 export const GetContext = (key: string, lang: string) => {
