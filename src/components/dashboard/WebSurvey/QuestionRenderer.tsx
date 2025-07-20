@@ -238,6 +238,36 @@ const QuestionRenderer: React.FC<QuestionRendererProps> = ({
           </FormControl>
         );
 
+      case "date":
+        return (
+          <TextField
+            fullWidth
+            type="date"
+            variant="outlined"
+            size="small"
+            value={selectedValues}
+            onChange={handleTextChange}
+            InputLabelProps={{
+              shrink: true,
+            }}
+          />
+        );
+
+      case "time":
+        return (
+          <TextField
+            fullWidth
+            type="time"
+            variant="outlined"
+            size="small"
+            value={selectedValues}
+            onChange={handleTextChange}
+            InputLabelProps={{
+              shrink: true,
+            }}
+          />
+        );
+
       default:
         return (
           <Typography color="error">Unknown question type: {type}</Typography>
