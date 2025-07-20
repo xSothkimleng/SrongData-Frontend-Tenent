@@ -556,7 +556,7 @@ const ChartCard: React.FC<{
                 {
                   dataKey: 'freq',
                   label: getLocaleValue(question.label, lang),
-                  color: question.color || undefined,
+                  color: question.color || '#009688',
                 },
               ]}
               height={300}
@@ -591,7 +591,6 @@ const DataViewPage = () => {
 
   // Combined master project details from all projects
   const [masterProjectDetails, setMasterProjectDetails] = useState<ProjectDetail | null>(null);
-
   const [selectedQuestions, setSelectedQuestions] = useState<Question[]>([]);
   const [rowSize, setRowSize] = useState<number>(0);
   const [totalData, setTotalData] = useState<number>(0);
@@ -601,6 +600,9 @@ const DataViewPage = () => {
   const [currentFilter, setCurrentFilter] = useState<QuestionFilter[]>([]);
   const [dataMaps, setDataMaps] = useState<MapData[]>([]);
   const [isMapOpen, setIsMapOpen] = useState(false);
+
+  // loading state and shit
+  const [isFetchingProject, setIsFetchingProject] = useState<boolean>(false);
 
   // New state for chart data
   const [chartDataMap, setChartDataMap] = useState<{
@@ -645,18 +647,28 @@ const DataViewPage = () => {
     return selectedQuestions.slice(startIndex, endIndex);
   };
 
-  useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        const response = await axios.get('/api/config', {
-          params: { endpoint: 'project/all?status=1,2' },
-        });
-        setProjects(response.data.data.projects);
-      } catch (error) {
-        console.error('Error fetching users with status 1:', error);
-      }
-    };
+  const fetchProjects = async () => {
+    try {
+      setIsFetchingProject(true);
+      const response = await axios.get('/api/config', {
+        params: { endpoint: 'project/all?data_collected=1' },
+      });
+      const projectsWithData = response.data.data.projects.filter((project: { data_collected: number }) => {
+        return project.data_collected > 0;
+      });
+      console.log('Fetched projects:', response.data.data.projects);
+      console.log('Project with data:', projectsWithData);
+      setProjects(projectsWithData);
+      setIsFetchingProject(false);
+    } catch (error) {
+      console.error('Error fetching users with status 1:', error);
+      setIsFetchingProject(false);
+    } finally {
+      setIsFetchingProject(false);
+    }
+  };
 
+  useEffect(() => {
     fetchProjects();
   }, []);
 
@@ -1504,15 +1516,16 @@ const DataViewPage = () => {
   return (
     <AuthorizationCheck requiredPermissions={permissionCode.viewDataView}>
       <div>
-        <Box sx={{ mb: 4 }}>
+        <Box>
           <Typography variant='h5' fontWeight='bold' gutterBottom>
             {GetContext('multi_project_view', lang)}
           </Typography>
 
           {/* Project Selection */}
-          <Paper variant='outlined' sx={{ p: 2, mb: 2 }}>
-            <Typography variant='subtitle1' fontWeight='bold' gutterBottom>
+          <Box sx={{ mb: 2 }}>
+            <Typography variant='subtitle1' fontWeight='bold' gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               1. {GetContext('select_project', lang)}
+              {isFetchingProject == true && <CircularProgress color='success' size='20px' />}
             </Typography>
 
             <FormControl sx={{ width: '100%', mb: 2 }}>
@@ -1521,9 +1534,10 @@ const DataViewPage = () => {
               </InputLabel>
 
               <Select
+                multiple
+                disabled={isFetchingProject}
                 variant='standard'
                 id='project-select'
-                multiple
                 value={selectedProjects}
                 label='Projects'
                 onChange={handleProjectChange}>
@@ -1560,13 +1574,8 @@ const DataViewPage = () => {
 
             {/* Load Projects Button */}
             {selectedProjects.length > 0 && !isLoadingProjects && (
-              <Button
-                variant='contained'
-                color='primary'
-                onClick={loadAllSelectedProjects}
-                startIcon={<RefreshIcon />}
-                sx={{ mr: 1 }}>
-                Load Selected Projects
+              <Button variant='contained' color='primary' onClick={loadAllSelectedProjects} sx={{ mr: 1 }}>
+                View Selected Projects
               </Button>
             )}
 
@@ -1576,7 +1585,7 @@ const DataViewPage = () => {
                 Cancel Loading
               </Button>
             )}
-          </Paper>
+          </Box>
 
           {/* Project Loading Status */}
           {isLoadingProjects && (
@@ -1768,12 +1777,6 @@ const DataViewPage = () => {
                 {/*     Export All Charts */}
                 {/*   </Button> */}
                 {/* )} */}
-
-                {masterProjectDetails && (
-                  <Button variant='outlined' onClick={() => (isMapOpen ? setIsMapOpen(false) : setIsMapOpen(true))}>
-                    {isMapOpen ? GetContext('close_map', lang) : GetContext('open_map', lang)}
-                  </Button>
-                )}
               </Box>
             </Paper>
           )}
@@ -1810,18 +1813,26 @@ const DataViewPage = () => {
               </Box>
             </Paper>
           )}
+
+          <Box sx={{ mb: 2 }}>
+            {masterProjectDetails && (
+              <Button variant='outlined' onClick={() => (isMapOpen ? setIsMapOpen(false) : setIsMapOpen(true))}>
+                {isMapOpen ? GetContext('close_map', lang) : GetContext('open_map', lang)}
+              </Button>
+            )}
+          </Box>
         </Box>
 
         {/* Map View */}
         {isDataReady && isMapOpen && (
-          <Box sx={{ width: '100%', height: '400px', marginTop: '1rem', mb: 2 }}>
-            <Paper variant='outlined' sx={{ p: 2, height: '100%' }}>
-              <Typography variant='subtitle1' fontWeight='bold' gutterBottom>
-                Map View
-              </Typography>
+          <Paper variant='outlined' sx={{ p: 2, height: '100%', mb: 2 }}>
+            <Typography variant='subtitle1' fontWeight='bold' sx={{ mb: 2 }}>
+              Map View
+            </Typography>
+            <Box sx={{ width: '100%', height: '100vh', marginTop: '1rem' }}>
               <Map data={dataMaps} />
-            </Paper>
-          </Box>
+            </Box>
+          </Paper>
         )}
 
         {/* Chart Grid */}
