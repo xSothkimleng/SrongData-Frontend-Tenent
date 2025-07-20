@@ -218,8 +218,9 @@ const DashboardInfoSection: React.FC<ChartsSectionProps> = ({
           <Box sx={{ width: '100%' }}>
             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
               <Tabs value={requestLogsTabValue} onChange={handleChangeTab} aria-label='basic tabs example'>
-                <Tab label='Request' {...a11yProps(0)} />
-                <Tab label='Activity' {...a11yProps(1)} />
+                {/* <Tab label='Request' {...a11yProps(0)} /> */}
+                <Tab label={GetContext('request_logs', lang)} {...a11yProps(0)} />
+                <Tab label={GetContext('activity_logs', lang)} {...a11yProps(1)} />
               </Tabs>
             </Box>
 
