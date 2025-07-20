@@ -82,13 +82,13 @@ const SkipLogicDialog: React.FC<LogicDialogProps> = ({
 
   const sectionHasSkipLogic = () => {
     const currentSectionOrder = currentForm.section.order;
-    // Check if any other question in this section already has skip logic
+    // Check if any OTHER question (different question order) in this section has skip logic
     return formList.some(
       form =>
         form.section?.order === currentSectionOrder &&
+        form.order !== currentForm.order && // This is the key change - exclude current question entirely
         form.skip_logics &&
-        form.skip_logics.length > 0 &&
-        !(form.order === currentForm.order && form.skip_logics.some(logic => logic.answer_index === optionValue)),
+        form.skip_logics.length > 0,
     );
   };
 
