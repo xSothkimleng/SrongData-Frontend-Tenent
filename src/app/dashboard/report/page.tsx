@@ -118,9 +118,14 @@ const ReportPage = () => {
     },
   });
 
-  const { data: indicatorDetails, isLoading } = useQuery<indicatorDetails>({
-    queryKey: ["indicatorDetails", selectedProject?.id],
+  const {
+    data: indicatorDetails,
+    isLoading,
+    refetch,
+  } = useQuery<indicatorDetails>({
+    queryKey: ["indicatorDetails", selectedProject?.id, selectedIndicatorIndex],
     queryFn: async () => {
+      console.log("selected index req api: ", selectedIndicatorIndex);
       const encodedIds = encodeURIComponent(
         `${selectedProject?.id}/${selectedIndicatorIndex}`,
       );
@@ -147,7 +152,8 @@ const ReportPage = () => {
 
       return response.data.data;
     },
-    enabled: !!selectedProject?.indicators,
+    staleTime: 0,
+    enabled: selectedIndicatorIndex !== null,
   });
 
   const columns: GridColDef[] = React.useMemo(
@@ -187,6 +193,7 @@ const ReportPage = () => {
     event: SyntheticEvent<Element, Event>,
     newValue: string | null,
   ) => {
+    console.log("new label: ", newValue);
     setSelectedIndicatorLabel(newValue);
     const selectedIndex = selectedProject?.indicators.findIndex(
       (item) => item.label === newValue,
@@ -194,7 +201,10 @@ const ReportPage = () => {
     console.log("Selected Index:", selectedIndex);
 
     if (selectedIndex !== -1) {
-      setSelectedIndicatorIndex(selectedIndex as number);
+      console.log("selected index if not -1: ");
+
+      setSelectedIndicatorIndex(selectedIndex ?? 0);
+      // refetch();
     } else {
       console.log("Indicator not found");
       setSelectedIndicatorIndex(null);
