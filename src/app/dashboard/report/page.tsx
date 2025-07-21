@@ -109,12 +109,21 @@ const ReportPage = () => {
     },
   });
 
-  const { data: indicatorDetails, isLoading } = useQuery<indicatorDetails>({
-    queryKey: ['indicatorDetails', selectedProject?.id],
+  const {
+    data: indicatorDetails,
+    isLoading,
+    refetch,
+  } = useQuery<indicatorDetails>({
+    queryKey: ["indicatorDetails", selectedProject?.id, selectedIndicatorIndex],
     queryFn: async () => {
-      const encodedIds = encodeURIComponent(`${selectedProject?.id}/${selectedIndicatorIndex}`);
-      const response = await axios.get(`/api/get-indicator-report/${encodedIds}`);
-      console.log('Report Detail:', response.data.data);
+      console.log("selected index req api: ", selectedIndicatorIndex);
+      const encodedIds = encodeURIComponent(
+        `${selectedProject?.id}/${selectedIndicatorIndex}`,
+      );
+      const response = await axios.get(
+        `/api/get-indicator-report/${encodedIds}`,
+      );
+      console.log("Report Detail:", response.data.data);
       const selectedFilter = response.data.data?.result;
       if (selectedFilter) {
         const updatedSelectedFilterDataset = [
@@ -134,7 +143,8 @@ const ReportPage = () => {
 
       return response.data.data;
     },
-    enabled: !!selectedProject?.indicators,
+    staleTime: 0,
+    enabled: selectedIndicatorIndex !== null,
   });
 
   const columns: GridColDef[] = React.useMemo(
@@ -170,13 +180,20 @@ const ReportPage = () => {
     }
   };
 
-  const handleIndicatorChange = (event: SyntheticEvent<Element, Event>, newValue: string | null) => {
+  const handleIndicatorChange = (
+    event: SyntheticEvent<Element, Event>,
+    newValue: string | null,
+  ) => {
+    console.log("new label: ", newValue);
     setSelectedIndicatorLabel(newValue);
     const selectedIndex = selectedProject?.indicators.findIndex(item => item.label === newValue);
     console.log('Selected Index:', selectedIndex);
 
     if (selectedIndex !== -1) {
-      setSelectedIndicatorIndex(selectedIndex as number);
+      console.log("selected index if not -1: ");
+
+      setSelectedIndicatorIndex(selectedIndex ?? 0);
+      // refetch();
     } else {
       console.log('Indicator not found');
       setSelectedIndicatorIndex(null);
