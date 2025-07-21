@@ -251,6 +251,22 @@ const WebSurveyForm: React.FC<SurveyContainerProps> = ({
       return;
     }
 
+    // Validate required fields on the current section
+    const currentSection = survey.sections[currentPage];
+    for (const question of currentSection.questions) {
+      const answer = answers[question.id];
+      if (question.is_required) {
+        const value = answer?.value;
+        if (value === undefined || value === null || value === "") {
+          showSnackbar(
+            "Please fill all required fields before submitting.",
+            "info",
+          );
+          return;
+        }
+      }
+    }
+
     const responseId = getCookie("response_id");
 
     if (responseId) {
