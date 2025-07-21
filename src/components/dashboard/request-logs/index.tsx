@@ -267,7 +267,9 @@ const RequestLogs = () => {
           </>
         ) : (
           <>
-            {requestLogs.length == 0 && <Typography className='text-center'>No Request</Typography>}
+            {requestLogs.length == 0 && (
+              <Typography className='text-center mt-4'>{GetContext('no_request_logs', lang)}</Typography>
+            )}
             {requestLogs.map((item, index) => (
               <React.Fragment key={index}>
                 <RequestNotification

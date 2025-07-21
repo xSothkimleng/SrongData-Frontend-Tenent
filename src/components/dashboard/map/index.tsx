@@ -10,7 +10,7 @@ import { GetContext } from '@/utils/language';
 import useLang from '@/store/lang';
 
 type MapProps = {
-  data?: any,
+  data?: any;
 };
 
 const Map: React.FC<MapProps> = ({ data }) => {
@@ -27,7 +27,7 @@ const Map: React.FC<MapProps> = ({ data }) => {
   }, []);
 
   return (
-    <MapContainer center={[11.582789, 104.8980768]} zoom={15} style={{ height: '80vh', width: '100%' }}>
+    <MapContainer center={[11.582789, 104.8980768]} zoom={15} style={{ height: '100%', width: '100%' }}>
       <TileLayer
         url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

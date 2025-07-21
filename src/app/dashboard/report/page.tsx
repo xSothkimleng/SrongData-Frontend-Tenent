@@ -1,15 +1,15 @@
-"use client";
-import React, { useRef, useState, SyntheticEvent } from "react";
-import theme from "@/theme";
-import axios from "axios";
-import Image from "next/image";
-import { useQuery } from "@tanstack/react-query";
-import PieChartCard from "@/components/charts/pie-chart";
-import LineChartCard from "@/components/charts/line-chart";
-import BarChartCard from "@/components/charts/bar-chart";
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import html2canvas from "html2canvas";
-import { Indicator } from "@/types/indicatorOperation";
+'use client';
+import React, { useRef, useState, SyntheticEvent } from 'react';
+import theme from '@/theme';
+import axios from 'axios';
+import Image from 'next/image';
+import { useQuery } from '@tanstack/react-query';
+import PieChartCard from '@/components/charts/pie-chart';
+import LineChartCard from '@/components/charts/line-chart';
+import BarChartCard from '@/components/charts/bar-chart';
+import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import html2canvas from 'html2canvas';
+import { Indicator } from '@/types/indicatorOperation';
 import {
   FormControl,
   InputLabel,
@@ -27,15 +27,15 @@ import {
   DialogActions,
   TextField,
   Autocomplete,
-} from "@mui/material";
-import AuthorizationCheck from "@/components/AuthorizationCheck";
-import { permissionCode } from "@/utils/permissionCode";
-import useCheckFeatureAuthorization from "@/hooks/useCheckFeatureAuthorization";
-import useLang from "@/store/lang";
-import { GetContext, getLocaleValue } from "@/utils/language";
-import { Locale } from "@/types/projectDetail";
+} from '@mui/material';
+import AuthorizationCheck from '@/components/AuthorizationCheck';
+import { permissionCode } from '@/utils/permissionCode';
+import useCheckFeatureAuthorization from '@/hooks/useCheckFeatureAuthorization';
+import useLang from '@/store/lang';
+import { GetContext, getLocaleValue } from '@/utils/language';
+import { Locale } from '@/types/projectDetail';
 
-type ChartType = "bar" | "barVertical" | "pie" | "donut" | "line" | "lineArea";
+type ChartType = 'bar' | 'barVertical' | 'pie' | 'donut' | 'line' | 'lineArea';
 
 interface ChartItem {
   image: string;
@@ -57,17 +57,17 @@ type indicatorDetails = {
 };
 
 const chartList: ChartItem[] = [
-  { image: "/dist/images/charts/chart-vertical.png", value: "barVertical" },
-  { image: "/dist/images/charts/pie-chart.png", value: "pie" },
-  { image: "/dist/images/charts/line-chart.png", value: "line" },
-  { image: "/dist/images/charts/horizontal-chart.png", value: "bar" },
-  { image: "/dist/images/charts/donut-chart.png", value: "donut" },
-  { image: "/dist/images/charts/area-chart.png", value: "lineArea" },
+  { image: '/dist/images/charts/chart-vertical.png', value: 'barVertical' },
+  { image: '/dist/images/charts/pie-chart.png', value: 'pie' },
+  { image: '/dist/images/charts/line-chart.png', value: 'line' },
+  { image: '/dist/images/charts/horizontal-chart.png', value: 'bar' },
+  { image: '/dist/images/charts/donut-chart.png', value: 'donut' },
+  { image: '/dist/images/charts/area-chart.png', value: 'lineArea' },
 ];
 
 const getRandomColor = () => {
-  const letters = "0123456789ABCDEF";
-  let color = "#";
+  const letters = '0123456789ABCDEF';
+  let color = '#';
   for (let i = 0; i < 6; i++) {
     color += letters[Math.floor(Math.random() * 16)];
   }
@@ -75,24 +75,15 @@ const getRandomColor = () => {
 };
 
 const ReportPage = () => {
-  const lang = useLang((state) => state.lang);
+  const lang = useLang(state => state.lang);
   const chartRef = useRef<HTMLDivElement>(null);
-  const [selectedProject, setSelectedProject] = React.useState<Project | null>(
-    null,
-  );
-  const [selectedChart, setSelectedChart] =
-    React.useState<ChartType>("barVertical");
+  const [selectedProject, setSelectedProject] = React.useState<Project | null>(null);
+  const [selectedChart, setSelectedChart] = React.useState<ChartType>('barVertical');
   const [openPickChartDialog, setOpenPickChartDialog] = React.useState(false);
-  const [selectedIndicatorLabel, setSelectedIndicatorLabel] = React.useState<
-    string | null
-  >(null);
-  const [selectedIndicatorIndex, setSelectedIndicatorIndex] = React.useState<
-    number | null
-  >(0);
-  const [inputValue, setInputValue] = useState<string>("");
-  const canExportGraph = useCheckFeatureAuthorization(
-    permissionCode.exportGraph,
-  );
+  const [selectedIndicatorLabel, setSelectedIndicatorLabel] = React.useState<string | null>(null);
+  const [selectedIndicatorIndex, setSelectedIndicatorIndex] = React.useState<number | null>(0);
+  const [inputValue, setInputValue] = useState<string>('');
+  const canExportGraph = useCheckFeatureAuthorization(permissionCode.exportGraph);
   const [selectedFilterDataset, setSelectedFilterDataset] = useState<
     {
       id: number;
@@ -103,9 +94,9 @@ const ReportPage = () => {
   >([]);
 
   const { data: allProjects = [] } = useQuery<Project[]>({
-    queryKey: ["allProjects"],
+    queryKey: ['allProjects'],
     queryFn: async () => {
-      const response = await axios.get("/api/get-all-project");
+      const response = await axios.get('/api/get-all-project');
       const projects = response?.data?.data?.projects
         .filter((project: any) => project.status === 1 || project.status == 2)
         .map((project: any) => ({
@@ -144,10 +135,10 @@ const ReportPage = () => {
             color: getRandomColor(),
           })),
         ];
-        console.log("Updated Filter Dataset:", updatedSelectedFilterDataset);
+        console.log('Updated Filter Dataset:', updatedSelectedFilterDataset);
         setSelectedFilterDataset(updatedSelectedFilterDataset);
       } else {
-        console.warn("indicatorDetails.result is empty or not found.");
+        console.warn('indicatorDetails.result is empty or not found.');
       }
 
       return response.data.data;
@@ -159,15 +150,15 @@ const ReportPage = () => {
   const columns: GridColDef[] = React.useMemo(
     () => [
       {
-        field: "value",
-        headerName: GetContext("value", lang),
-        cellClassName: "text-left",
+        field: 'value',
+        headerName: GetContext('value', lang),
+        cellClassName: 'text-left',
         flex: 1,
       },
       {
-        field: "freq",
-        headerName: GetContext("frequency", lang),
-        cellClassName: "text-left",
+        field: 'freq',
+        headerName: GetContext('frequency', lang),
+        cellClassName: 'text-left',
         flex: 1,
       },
     ],
@@ -195,10 +186,8 @@ const ReportPage = () => {
   ) => {
     console.log("new label: ", newValue);
     setSelectedIndicatorLabel(newValue);
-    const selectedIndex = selectedProject?.indicators.findIndex(
-      (item) => item.label === newValue,
-    );
-    console.log("Selected Index:", selectedIndex);
+    const selectedIndex = selectedProject?.indicators.findIndex(item => item.label === newValue);
+    console.log('Selected Index:', selectedIndex);
 
     if (selectedIndex !== -1) {
       console.log("selected index if not -1: ");
@@ -206,7 +195,7 @@ const ReportPage = () => {
       setSelectedIndicatorIndex(selectedIndex ?? 0);
       // refetch();
     } else {
-      console.log("Indicator not found");
+      console.log('Indicator not found');
       setSelectedIndicatorIndex(null);
     }
   };
@@ -214,9 +203,9 @@ const ReportPage = () => {
   const handleDownloadChart = async () => {
     if (chartRef.current) {
       const canvas = await html2canvas(chartRef.current);
-      const link = document.createElement("a");
-      link.href = canvas.toDataURL("image/png");
-      link.download = "chart.png";
+      const link = document.createElement('a');
+      link.href = canvas.toDataURL('image/png');
+      link.download = 'chart.png';
       link.click();
     }
   };
@@ -226,26 +215,23 @@ const ReportPage = () => {
       {useCheckFeatureAuthorization(permissionCode.viewReport) && (
         <div>
           <Box>
-            <FormControl sx={{ minWidth: "100%", marginBottom: 2 }}>
-              <InputLabel id="project-filter-label">
-                {selectedProject
-                  ? GetContext("select_project", lang)
-                  : GetContext("select_project_msg", lang)}
+            <FormControl sx={{ minWidth: '100%', marginBottom: 2 }}>
+              <InputLabel id='project-filter-label'>
+                {selectedProject ? GetContext('select_project', lang) : GetContext('select_project_msg', lang)}
               </InputLabel>
               <Select
-                variant="standard"
-                labelId="project-filter-label"
-                id="last-name-filter"
-                value={selectedProject ? JSON.stringify(selectedProject) : ""}
-                label="Last Name"
-                onChange={handleProjectChange}
-              >
+                variant='standard'
+                labelId='project-filter-label'
+                id='last-name-filter'
+                value={selectedProject ? JSON.stringify(selectedProject) : ''}
+                label='Last Name'
+                onChange={handleProjectChange}>
                 {allProjects.length == 0 && (
-                  <MenuItem key="empty" value="" disabled>
-                    {GetContext("no_project", lang)}
+                  <MenuItem key='empty' value='' disabled>
+                    {GetContext('no_project', lang)}
                   </MenuItem>
                 )}
-                {allProjects.map((item) => (
+                {allProjects.map(item => (
                   <MenuItem key={item.id} value={JSON.stringify(item)}>
                     {getLocaleValue(item.name, lang)}
                   </MenuItem>
@@ -253,106 +239,68 @@ const ReportPage = () => {
               </Select>
             </FormControl>
             {selectedProject && (
-              <Box sx={{ minWidth: "100%", marginBottom: 2 }}>
+              <Box sx={{ minWidth: '100%', marginBottom: 2 }}>
                 <Autocomplete
                   fullWidth
-                  value={selectedIndicatorLabel ?? ""}
+                  value={selectedIndicatorLabel ?? ''}
                   onChange={handleIndicatorChange}
                   inputValue={inputValue}
                   onInputChange={(event, newInputValue) => {
                     setInputValue(newInputValue);
                   }}
-                  options={
-                    selectedProject?.indicators.map((item) => item.label) ?? []
-                  }
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      variant="standard"
-                      label={GetContext("select_indicator_msg", lang)}
-                    />
+                  options={selectedProject?.indicators?.map(item => item.label) ?? []}
+                  renderInput={params => (
+                    <TextField {...params} variant='standard' label={GetContext('select_indicator_msg', lang)} />
                   )}
                 />
               </Box>
             )}
           </Box>
           {selectedProject && (
-            <Box className="g-dashboard-boxShadow p-[1rem]">
+            <Box className='g-dashboard-boxShadow p-[1rem]'>
               <Grid container spacing={2}>
-                <Grid item xs={12} className="flex justify-center items-center">
+                <Grid item xs={12} className='flex justify-center items-center'>
                   <h2>{getLocaleValue(selectedProject.name, lang)}</h2>
                 </Grid>
                 <Grid item xs={12}>
-                  <Box className="flex items-center">
-                    <p className="mr-2 text-[1.8rem]">
-                      {GetContext("indicator_no", lang)}
-                    </p>
+                  <Box className='flex items-center'>
+                    <p className='mr-2 text-[1.8rem]'>{GetContext('indicator_no', lang)}</p>
                     <Avatar
                       sx={{
                         bgcolor: theme.palette.primary.main,
                         width: 26,
                         height: 26,
-                        padding: "1rem",
-                      }}
-                    >
-                      {selectedIndicatorIndex != null
-                        ? selectedIndicatorIndex + 1
-                        : 1}
+                        padding: '1rem',
+                      }}>
+                      {selectedIndicatorIndex != null ? selectedIndicatorIndex + 1 : 1}
                     </Avatar>
-                    <Box
-                      component="p"
-                      sx={{ color: theme.palette.primary.main }}
-                      className="ml-2 text-[1.8rem]"
-                    >
+                    <Box component='p' sx={{ color: theme.palette.primary.main }} className='ml-2 text-[1.8rem]'>
                       {indicatorDetails?.label}
                     </Box>
                   </Box>
-                  <Typography variant="body2" className="mt-2">
-                    {GetContext("description", lang)} :{" "}
-                    {indicatorDetails?.description}
+                  <Typography variant='body2' className='mt-2'>
+                    {GetContext('description', lang)} : {indicatorDetails?.description}
                   </Typography>
                 </Grid>
 
                 <Grid item xs={12}>
-                  <Button
-                    variant="contained"
-                    className="mr-2"
-                    onClick={() => setOpenPickChartDialog(true)}
-                  >
-                    {GetContext("select_chart", lang)}
+                  <Button variant='contained' className='mr-2' onClick={() => setOpenPickChartDialog(true)}>
+                    {GetContext('select_chart', lang)}
                   </Button>
                   {canExportGraph && (
-                    <Button onClick={handleDownloadChart} variant="contained">
-                      {GetContext("export", lang)}
+                    <Button onClick={handleDownloadChart} variant='contained'>
+                      {GetContext('export', lang)}
                     </Button>
                   )}
                 </Grid>
                 <Grid item xs={12}>
-                  <div className="h-[50vh]" ref={chartRef}>
-                    {selectedChart === "bar" && (
-                      <BarChartCard dataset={selectedFilterDataset} />
-                    )}
-                    {selectedChart === "barVertical" && (
-                      <BarChartCard
-                        dataset={selectedFilterDataset}
-                        layout="vertical"
-                      />
-                    )}
-                    {selectedChart === "pie" && (
-                      <PieChartCard dataset={selectedFilterDataset} />
-                    )}
-                    {selectedChart === "donut" && (
-                      <PieChartCard dataset={selectedFilterDataset} />
-                    )}
-                    {selectedChart === "line" && (
-                      <LineChartCard dataset={selectedFilterDataset} />
-                    )}
-                    {selectedChart == "lineArea" && (
-                      <LineChartCard
-                        dataset={selectedFilterDataset}
-                        isArea={true}
-                      />
-                    )}
+                  <div className='h-[50vh]' ref={chartRef}>
+                    {selectedChart === 'bar' && <BarChartCard dataset={selectedFilterDataset} />}
+                    {selectedChart === 'barVertical' && <BarChartCard dataset={selectedFilterDataset} layout='vertical' />}
+                    {selectedChart === 'pie' && <PieChartCard dataset={selectedFilterDataset} />}
+                    {selectedChart === 'donut' && <PieChartCard dataset={selectedFilterDataset} />}
+                    {selectedChart === 'line' && <LineChartCard dataset={selectedFilterDataset} />}
+                    {selectedChart == 'lineArea' && <LineChartCard dataset={selectedFilterDataset} isArea={true} />}
                   </div>
                 </Grid>
                 <Grid item xs={12}>
@@ -363,7 +311,7 @@ const ReportPage = () => {
                       filter: {
                         filterModel: {
                           items: [],
-                          quickFilterValues: [""],
+                          quickFilterValues: [''],
                         },
                       },
                       pagination: {
@@ -375,53 +323,39 @@ const ReportPage = () => {
                     autoHeight
                     disableRowSelectionOnClick
                     pageSizeOptions={[10]}
-                    sx={{ width: "100%", height: "100%" }}
+                    sx={{ width: '100%', height: '100%' }}
                   />
                 </Grid>
               </Grid>
-              <Dialog
-                fullWidth
-                maxWidth="md"
-                open={openPickChartDialog}
-                onClose={() => setOpenPickChartDialog(false)}
-              >
+              <Dialog fullWidth maxWidth='md' open={openPickChartDialog} onClose={() => setOpenPickChartDialog(false)}>
                 <DialogTitle>Select Chart</DialogTitle>
                 <DialogContent>
-                  <Grid container justifyContent="center" alignItems="center">
+                  <Grid container justifyContent='center' alignItems='center'>
                     {chartList.map((item, index) => (
-                      <Grid item xs={4} key={index} sx={{ padding: "1rem" }}>
+                      <Grid item xs={4} key={index} sx={{ padding: '1rem' }}>
                         <Box
                           onClick={() => setSelectedChart(item.value)}
                           sx={{
-                            display: "flex",
-                            justifyContent: "center",
-                            background: "none",
-                            padding: "1rem",
-                            borderRadius: "16px",
+                            display: 'flex',
+                            justifyContent: 'center',
+                            background: 'none',
+                            padding: '1rem',
+                            borderRadius: '16px',
                             ...(selectedChart === item.value && {
-                              background: "rgba(0, 150, 136, 0.1)",
+                              background: 'rgba(0, 150, 136, 0.1)',
                             }),
-                            "&:hover": {
-                              background: "rgba(0, 150, 136, 0.1)",
+                            '&:hover': {
+                              background: 'rgba(0, 150, 136, 0.1)',
                             },
-                          }}
-                        >
-                          <Image
-                            src={item.image}
-                            alt={`${item.value} Chart`}
-                            width={150}
-                            height={150}
-                          />
+                          }}>
+                          <Image src={item.image} alt={`${item.value} Chart`} width={150} height={150} />
                         </Box>
                       </Grid>
                     ))}
                   </Grid>
                 </DialogContent>
                 <DialogActions>
-                  <Button
-                    onClick={() => setOpenPickChartDialog(false)}
-                    variant="outlined"
-                  >
+                  <Button onClick={() => setOpenPickChartDialog(false)} variant='outlined'>
                     Close
                   </Button>
                 </DialogActions>

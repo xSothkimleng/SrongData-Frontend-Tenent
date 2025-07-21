@@ -14,6 +14,7 @@ import {
   Button,
   Paper,
   LinearProgress,
+  CircularProgress,
 } from '@mui/material';
 import { ProjectLoadingStatus } from '..';
 
@@ -29,6 +30,7 @@ interface SelectProjectsProps {
   projects: Project[];
   projectLoadingStatus: ProjectLoadingStatus[];
   isLoadingProjects: boolean;
+  isFetchingProject: boolean;
   handleProjectChange: (event: SelectChangeEvent<string[]>) => void | Promise<void>;
   handleRemoveProject: (projectId: string) => void;
   getProjectName: (project: Project) => string;
@@ -46,13 +48,15 @@ const DataViewSelectProjects = ({
   projectLoadingStatus = [],
   loadAllSelectedProjects,
   isLoadingProjects = false,
+  isFetchingProject = true,
 }: SelectProjectsProps) => {
   const lang = useLang(state => state.lang);
 
   return singleProjectView === false ? (
     <>
-      <Typography variant='subtitle1' fontWeight='bold' gutterBottom>
-        1. Select Projects
+      <Typography variant='subtitle1' fontWeight='bold' gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        1. {GetContext('select_project', lang)}
+        {isFetchingProject == true && <CircularProgress color='success' size='20px' />}
       </Typography>
 
       <FormControl sx={{ width: '100%', mb: 2 }}>
@@ -60,6 +64,7 @@ const DataViewSelectProjects = ({
           {selectedProjects.length === 0 ? GetContext('select_project_msg', lang) : GetContext('select_project', lang)}{' '}
         </InputLabel>
         <Select
+          disabled={isFetchingProject}
           variant='standard'
           id='project-select'
           multiple
@@ -124,7 +129,7 @@ const DataViewSelectProjects = ({
 
       {/* Error Status */}
       {!isLoadingProjects && projectLoadingStatus.some(p => p.status === 'error') && (
-        <Paper variant='outlined' sx={{ p: 2, mb: 2, borderLeft: '4px solid #d32f2f' }}>
+        <Paper variant='outlined' sx={{ p: 2, mb: 2, borderLeft: '4px solid skyblue' }}>
           <Box
             sx={{
               display: 'flex',
@@ -132,9 +137,9 @@ const DataViewSelectProjects = ({
               justifyContent: 'space-between',
             }}>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <ErrorIcon color='error' sx={{ mr: 1 }} />
-              <Typography fontWeight='bold' color='error'>
-                Failed to load projects
+              <ErrorIcon color='info' sx={{ mr: 1 }} />
+              <Typography fontWeight='bold' color='info'>
+                No Data Available
               </Typography>
             </Box>
             <Button variant='outlined' color='primary' onClick={loadAllSelectedProjects} startIcon={<RefreshIcon />}>
