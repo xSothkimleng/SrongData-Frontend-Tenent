@@ -36,8 +36,8 @@ type Project = {
 };
 
 interface Response {
-  question: string;
-  answer: string | number;
+  question: Locale;
+  answer: Locale | string | number;
 }
 
 interface RequestLogsData {
@@ -203,9 +203,13 @@ const RequestNotification: React.FC<RequestNotificationProps> = ({
                     <Box
                       sx={{ background: "rgba(0,0,0,0.2)", padding: "0.5rem" }}
                     >
-                      {response.question}
+                      {getLocaleValue(response.question, lang)}
                     </Box>
-                    <Box sx={{ padding: "0.5rem" }}>{response.answer}</Box>
+                    <Box sx={{ padding: "0.5rem" }}>
+                      {typeof response.answer === "object"
+                        ? getLocaleValue(response.answer, lang)
+                        : response.answer}
+                    </Box>
                   </Box>
                 ))}
               </Box>
@@ -218,9 +222,13 @@ const RequestNotification: React.FC<RequestNotificationProps> = ({
                     <Box
                       sx={{ background: "rgba(0,0,0,0.2)", padding: "0.5rem" }}
                     >
-                      {response.question}
+                      {getLocaleValue(response.question, lang)}
                     </Box>
-                    <Box sx={{ padding: "0.5rem" }}>{response.answer}</Box>
+                    <Box sx={{ padding: "0.5rem" }}>
+                      {typeof response.answer === "object"
+                        ? getLocaleValue(response.answer, lang)
+                        : response.answer}
+                    </Box>
                   </Box>
                 ))}
               </Box>
