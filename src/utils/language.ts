@@ -1,36 +1,43 @@
-import { Locale } from '@/types/projectDetail';
+import { Locale } from "@/types/projectDetail";
 
 export const getStatusLabel = (status: number, lang: string) => {
   switch (status) {
     case -1:
-      GetContext('all_project', lang);
+      GetContext("all_project", lang);
     case 0:
-      return GetContext('inactive', lang);
+      return GetContext("inactive", lang);
     case 1:
-      return GetContext('active', lang);
+      return GetContext("active", lang);
     case 2:
-      return GetContext('completed_project', lang);
+      return GetContext("completed_project", lang);
     default:
-      return GetContext('not_set', lang);
+      return GetContext("not_set", lang);
   }
 };
 
 export const getCollectionMethodLabel = (method: number, lang: string) => {
   switch (method) {
     case -1:
-      GetContext('all_project', lang);
+      GetContext("all_project", lang);
     case 0:
-      return GetContext('capi', lang);
+      return GetContext("capi", lang);
     case 1:
-      return GetContext('web_survey', lang);
+      return GetContext("web_survey", lang);
     default:
-      return GetContext('not_set', lang);
+      return GetContext("not_set", lang);
   }
 };
 
-export function getLocaleValue(locale: Locale | undefined, lang: string, fallback: string = 'N/A'): string {
+export function getLocaleValue(
+  locale: Locale | undefined,
+  lang: string,
+  fallback: string = "N/A",
+): string {
   if (!locale) return fallback;
-  return lang === 'en' ? locale.en ?? fallback : locale.km ?? fallback;
+
+  const value = lang === "en" ? locale.en : locale.km;
+
+  return value?.trim() ? value : fallback;
 }
 
 const language: {
@@ -40,939 +47,947 @@ const language: {
   };
 } = {
   dashboard: {
-    en: 'Dashboard',
-    km: 'ផ្ទាំងគ្រប់គ្រង',
+    en: "Dashboard",
+    km: "ផ្ទាំងគ្រប់គ្រង",
   },
   user_mangement: {
-    en: 'User Management',
-    km: 'ការគ្រប់គ្រងអ្នកប្រើប្រាស់',
+    en: "User Management",
+    km: "ការគ្រប់គ្រងអ្នកប្រើប្រាស់",
   },
   create_project: {
-    en: 'Create Project',
-    km: 'បង្កើតគម្រោង',
+    en: "Create Project",
+    km: "បង្កើតគម្រោង",
   },
   project_management: {
-    en: 'Project Mangement',
-    km: 'ការគ្រប់គ្រងគម្រោង',
+    en: "Project Mangement",
+    km: "ការគ្រប់គ្រងគម្រោង",
   },
   report: {
-    en: 'Report',
-    km: 'របាយការណ៍',
+    en: "Report",
+    km: "របាយការណ៍",
   },
   data_view: {
-    en: 'Data View',
-    km: 'ទិន្នន័យ',
+    en: "Data View",
+    km: "ទិន្នន័យ",
   },
   chart_view: {
-    en: 'Chart View',
-    km: 'ទិដ្ឋភាពគំនូសតាង',
+    en: "Chart View",
+    km: "ទិដ្ឋភាពគំនូសតាង",
   },
   user: {
-    en: 'Users',
-    km: 'អ្នកប្រើប្រាស់',
+    en: "Users",
+    km: "អ្នកប្រើប្រាស់",
   },
   role: {
-    en: 'Role',
-    km: 'តួនាទី',
+    en: "Role",
+    km: "តួនាទី",
   },
   role_permission: {
-    en: 'Role Permission',
-    km: 'គ្រប់គ្រងតួនាទី',
+    en: "Role Permission",
+    km: "គ្រប់គ្រងតួនាទី",
   },
   total_project: {
-    en: 'Total Project',
-    km: 'ចំនួនគម្រោងសរុប',
+    en: "Total Project",
+    km: "ចំនួនគម្រោងសរុប",
   },
   active_project: {
-    en: 'Active Project',
-    km: 'គម្រោងសកម្ម',
+    en: "Active Project",
+    km: "គម្រោងសកម្ម",
   },
   inactive_project: {
-    en: 'Inactive Project',
-    km: 'គម្រោងអសកម្ម',
+    en: "Inactive Project",
+    km: "គម្រោងអសកម្ម",
   },
   completed_project: {
-    en: 'Completed Project',
-    km: 'គម្រោងដែលបានបញ្ចប់',
+    en: "Completed Project",
+    km: "គម្រោងដែលបានបញ្ចប់",
   },
   project_summary: {
-    en: 'Project Summary',
-    km: 'សង្ខេប​គម្រោង',
+    en: "Project Summary",
+    km: "សង្ខេប​គម្រោង",
   },
   project: {
-    en: 'Project',
-    km: 'គម្រោង',
+    en: "Project",
+    km: "គម្រោង",
   },
   description: {
-    en: 'Description',
-    km: 'ការពិពណ៌នា',
+    en: "Description",
+    km: "ការពិពណ៌នា",
   },
   responses: {
-    en: 'Responses',
-    km: 'ទិន្នន័យដែលបានប្រមូល',
+    en: "Responses",
+    km: "ទិន្នន័យដែលបានប្រមូល",
   },
   status: {
-    en: 'Status',
-    km: 'ស្ថានភាព',
+    en: "Status",
+    km: "ស្ថានភាព",
   },
   virtualize_project: {
-    en: 'Responses in each Province in Project',
-    km: 'ការឆ្លើយតបតាមខេត្តនីមួយៗក្នុងគម្រោង៖',
+    en: "Responses in each Province in Project",
+    km: "ការឆ្លើយតបតាមខេត្តនីមួយៗក្នុងគម្រោង៖",
   },
   project_in_locations: {
-    en: 'Projects in Each Location',
-    km: 'គម្រោងនៅទីតាំងនីមួយៗ៖',
+    en: "Projects in Each Location",
+    km: "គម្រោងនៅទីតាំងនីមួយៗ៖",
   },
   calibrate: {
-    en: 'Calibrate',
-    km: 'បង្កើតQR',
+    en: "Calibrate",
+    km: "បង្កើតQR",
   },
   request_logs: {
-    en: 'All Logs',
-    km: 'ទិន្នន័យដែលបានស្នើសុំ',
+    en: "All Logs",
+    km: "ទិន្នន័យដែលបានស្នើសុំ",
   },
   activity_logs: {
-    en: 'Activity Logs',
-    km: 'កំណត់ហេតុសកម្មភាព',
+    en: "Activity Logs",
+    km: "កំណត់ហេតុសកម្មភាព",
   },
   active: {
-    en: 'Active',
-    km: 'សកម្ម',
+    en: "Active",
+    km: "សកម្ម",
   },
   inactive: {
-    en: 'Inactive',
-    km: 'អសកម្ម',
+    en: "Inactive",
+    km: "អសកម្ម",
   },
   no: {
-    en: 'No',
-    km: 'លេខ',
+    en: "No",
+    km: "លេខ",
   },
   first_name: {
-    en: 'First Name',
-    km: 'នាមខ្លួន',
+    en: "First Name",
+    km: "នាមខ្លួន",
   },
   last_name: {
-    en: 'Last Name',
-    km: 'ត្រកូល',
+    en: "Last Name",
+    km: "ត្រកូល",
   },
   email: {
-    en: 'Email',
-    km: 'អ៊ីមែល',
+    en: "Email",
+    km: "អ៊ីមែល",
   },
   phone: {
-    en: 'Phone',
-    km: 'លេខទូរស័ព្ទ',
+    en: "Phone",
+    km: "លេខទូរស័ព្ទ",
   },
   action: {
-    en: 'Action',
-    km: 'សកម្មភាព',
+    en: "Action",
+    km: "សកម្មភាព",
   },
   invite: {
-    en: 'Invite',
-    km: 'អញ្ជើញ',
+    en: "Invite",
+    km: "អញ្ជើញ",
   },
   delete_message: {
-    en: 'Are you sure you want to delete? This action cannot be undone.',
-    km: 'តើអ្នកប្រាកដថាចង់លុបទេ? សកម្មភាពនេះមិនអាចត្រឡប់វិញបានទេ។',
+    en: "Are you sure you want to delete? This action cannot be undone.",
+    km: "តើអ្នកប្រាកដថាចង់លុបទេ? សកម្មភាពនេះមិនអាចត្រឡប់វិញបានទេ។",
   },
   delete: {
-    en: 'Delete',
-    km: 'លុប',
+    en: "Delete",
+    km: "លុប",
   },
   edit: {
-    en: 'Edit',
-    km: 'កែប្រែ',
+    en: "Edit",
+    km: "កែប្រែ",
   },
   password: {
-    en: 'Password',
-    km: 'ពាក្យសម្ងាត់',
+    en: "Password",
+    km: "ពាក្យសម្ងាត់",
   },
   search: {
-    en: 'Search',
-    km: 'ស្វែងរក',
+    en: "Search",
+    km: "ស្វែងរក",
   },
   permission: {
-    en: 'Permission',
-    km: 'ការអនុញ្ញាត',
+    en: "Permission",
+    km: "ការអនុញ្ញាត",
   },
   permission_group: {
-    en: 'Permission Group',
-    km: 'ក្រុមអនុញ្ញាត',
+    en: "Permission Group",
+    km: "ក្រុមអនុញ្ញាត",
   },
   back: {
-    en: 'Back',
-    km: 'ត្រឡប់',
+    en: "Back",
+    km: "ត្រឡប់",
   },
   next: {
-    en: 'Next',
-    km: 'បន្ទាប់',
+    en: "Next",
+    km: "បន្ទាប់",
   },
   select_all: {
-    en: 'Select All',
-    km: 'ជ្រើស​ទាំងអស់',
+    en: "Select All",
+    km: "ជ្រើស​ទាំងអស់",
   },
   unselect_all: {
-    en: 'Unselect All',
-    km: 'ដកចេញទាំងអស់',
+    en: "Unselect All",
+    km: "ដកចេញទាំងអស់",
   },
   province: {
-    en: 'Provinces',
-    km: 'ខេត្ត',
+    en: "Provinces",
+    km: "ខេត្ត",
   },
   district: {
-    en: 'Districts',
-    km: 'ស្រុក',
+    en: "Districts",
+    km: "ស្រុក",
   },
   commune: {
-    en: 'Communes',
-    km: 'ឃុំ',
+    en: "Communes",
+    km: "ឃុំ",
   },
   villages: {
-    en: 'Villages',
-    km: 'ភូមិ',
+    en: "Villages",
+    km: "ភូមិ",
   },
   project_detail: {
-    en: 'Project Detail',
-    km: 'គម្រោងលម្អិត',
+    en: "Project Detail",
+    km: "គម្រោងលម្អិត",
   },
-  'location selection': {
-    en: 'Location Selection',
-    km: 'ការជ្រើសរើសទីតាំង',
+  "location selection": {
+    en: "Location Selection",
+    km: "ការជ្រើសរើសទីតាំង",
   },
   dataset_design: {
-    en: 'Dataset Design',
-    km: 'បង្កើតសំណួរ',
+    en: "Dataset Design",
+    km: "បង្កើតសំណួរ",
   },
   indicator_design: {
-    en: 'Indicator Design',
-    km: 'បង្កើតសូចនាករ',
+    en: "Indicator Design",
+    km: "បង្កើតសូចនាករ",
   },
   assign_user: {
-    en: 'Assign User',
-    km: 'កំណត់អ្នកប្រើប្រាស់',
+    en: "Assign User",
+    km: "កំណត់អ្នកប្រើប្រាស់",
   },
   project_name: {
-    en: 'Project Name',
-    km: 'ឈ្មោះគម្រោង',
+    en: "Project Name",
+    km: "ឈ្មោះគម្រោង",
   },
   project_description: {
-    en: 'Project Description',
-    km: 'ការពិពណ៌នាគម្រោង',
+    en: "Project Description",
+    km: "ការពិពណ៌នាគម្រោង",
   },
   project_name_msg: {
-    en: 'Please specify the name for the project',
-    km: 'សូមបញ្ជាក់ឈ្មោះសម្រាប់គម្រោង',
+    en: "Please specify the name for the project",
+    km: "សូមបញ្ជាក់ឈ្មោះសម្រាប់គម្រោង",
   },
   project_description_msg: {
-    en: 'Please specify the description for the project',
-    km: 'សូមបញ្ជាក់ការពិពណ៌នាសម្រាប់គម្រោង',
+    en: "Please specify the description for the project",
+    km: "សូមបញ្ជាក់ការពិពណ៌នាសម្រាប់គម្រោង",
   },
   question_type: {
-    en: 'Question Type',
-    km: 'ប្រភេទសំណួរ',
+    en: "Question Type",
+    km: "ប្រភេទសំណួរ",
   },
   is_required: {
-    en: 'Is Required',
-    km: 'តំរូវ​អោយ​ដាក់បញ្ខូល',
+    en: "Is Required",
+    km: "តំរូវ​អោយ​ដាក់បញ្ខូល",
   },
   remove: {
-    en: 'Remove',
-    km: 'ដកចេញ',
+    en: "Remove",
+    km: "ដកចេញ",
   },
   add_form: {
-    en: 'Add Form',
-    km: 'បន្ថែមទម្រង់',
+    en: "Add Form",
+    km: "បន្ថែមទម្រង់",
   },
   add_indicator: {
-    en: 'Add Indicator',
-    km: 'បន្ថែមសូចនាករ',
+    en: "Add Indicator",
+    km: "បន្ថែមសូចនាករ",
   },
   indicator_name: {
-    en: 'Indicator Name',
-    km: 'ឈ្មោះសូចនាករ',
+    en: "Indicator Name",
+    km: "ឈ្មោះសូចនាករ",
   },
   indicator_description: {
-    en: 'Indicator Description',
-    km: 'ការពិពណ៌នាអំពីសូចនាករ',
+    en: "Indicator Description",
+    km: "ការពិពណ៌នាអំពីសូចនាករ",
   },
   filter: {
-    en: 'Filter',
-    km: 'តម្រង',
+    en: "Filter",
+    km: "តម្រង",
   },
   delete_indicator: {
-    en: 'Delete Indicator',
-    km: 'លុបសូចនាករ',
+    en: "Delete Indicator",
+    km: "លុបសូចនាករ",
   },
   field: {
-    en: 'Field',
-    km: 'វាល',
+    en: "Field",
+    km: "វាល",
   },
   operation: {
-    en: 'Operation',
-    km: 'ប្រតិបត្តិការ',
+    en: "Operation",
+    km: "ប្រតិបត្តិការ",
   },
   submit_project: {
-    en: 'Submit Project',
-    km: 'បង្កើតគម្រោង',
+    en: "Submit Project",
+    km: "បង្កើតគម្រោង",
   },
   data_collected: {
-    en: 'Data Collected',
-    km: 'បានបញ្ខូលទិន្នន៍យ',
+    en: "Data Collected",
+    km: "បានបញ្ខូលទិន្នន៍យ",
   },
   update_project_status: {
-    en: 'Update Project Status',
-    km: 'ធ្វើបច្ចុប្បន្នភាពស្ថានភាពគម្រោង',
+    en: "Update Project Status",
+    km: "ធ្វើបច្ចុប្បន្នភាពស្ថានភាពគម្រោង",
   },
   edit_project: {
-    en: 'Edit Project',
-    km: 'កែសម្រួលគម្រោង',
+    en: "Edit Project",
+    km: "កែសម្រួលគម្រោង",
   },
   delete_project: {
-    en: 'Delete Project',
-    km: 'លុបគម្រោង',
+    en: "Delete Project",
+    km: "លុបគម្រោង",
   },
   clone_project: {
-    en: 'Clone Project',
-    km: 'ចម្លងគម្រោង',
+    en: "Clone Project",
+    km: "ចម្លងគម្រោង",
   },
   clone_msg: {
-    en: 'Are you sure you want to Clone this project status? This action cannot be undone.',
-    km: 'តើអ្នកប្រាកដថាចង់ក្លូនស្ថានភាពគម្រោងនេះទេ? សកម្មភាពនេះមិនអាចត្រឡប់វិញបានទេ។',
+    en: "Are you sure you want to Clone this project status? This action cannot be undone.",
+    km: "តើអ្នកប្រាកដថាចង់ក្លូនស្ថានភាពគម្រោងនេះទេ? សកម្មភាពនេះមិនអាចត្រឡប់វិញបានទេ។",
   },
   update_project_status_msg: {
-    en: 'Are you sure you want to Update this project status? This action cannot be undone.',
-    km: 'តើអ្នកប្រាកដថាចង់ធ្វើបច្ចុប្បន្នភាពស្ថានភាពគម្រោងនេះទេ? សកម្មភាពនេះមិនអាចត្រឡប់វិញបានទេ។',
+    en: "Are you sure you want to Update this project status? This action cannot be undone.",
+    km: "តើអ្នកប្រាកដថាចង់ធ្វើបច្ចុប្បន្នភាពស្ថានភាពគម្រោងនេះទេ? សកម្មភាពនេះមិនអាចត្រឡប់វិញបានទេ។",
   },
   cancel: {
-    en: 'Cancel',
-    km: 'បោះបង់',
+    en: "Cancel",
+    km: "បោះបង់",
   },
   edit_project_title: {
-    en: 'Edit Project Title: ',
-    km: 'កែសម្រួលគម្រោង៖',
+    en: "Edit Project Title: ",
+    km: "កែសម្រួលគម្រោង៖",
   },
   confirm_edit: {
-    en: 'Confirm Edit',
-    km: 'កែសម្រួល',
+    en: "Confirm Edit",
+    km: "កែសម្រួល",
   },
   select_project: {
-    en: 'Select Project',
-    km: 'ជ្រើសរើសគម្រោង',
+    en: "Select Project",
+    km: "ជ្រើសរើសគម្រោង",
   },
   select_indicator_msg: {
-    en: 'Please select indicator',
-    km: 'សូមជ្រើសរើសសូចនាករ',
+    en: "Please select indicator",
+    km: "សូមជ្រើសរើសសូចនាករ",
   },
   select_chart: {
-    en: 'Select Chart',
-    km: 'ជ្រើសរើសគំនូសតាង',
+    en: "Select Chart",
+    km: "ជ្រើសរើសគំនូសតាង",
   },
   export: {
-    en: 'Export',
-    km: 'នាំចេញ',
+    en: "Export",
+    km: "នាំចេញ",
   },
   select_project_msg: {
-    en: 'Please select project to see activity',
-    km: 'សូមជ្រើសរើសគម្រោងដើម្បីឃើញសកម្មភាព',
+    en: "Please select project to see activity",
+    km: "សូមជ្រើសរើសគម្រោងដើម្បីឃើញសកម្មភាព",
   },
   select_question: {
-    en: 'Select Question',
-    km: 'ជ្រើសរើសសំណួរ',
+    en: "Select Question",
+    km: "ជ្រើសរើសសំណួរ",
   },
   select_question_msg: {
-    en: 'Please select question to see data collected',
-    km: 'សូមជ្រើសរើសសំណួរដើម្បីមើលទិន្នន័យដែលប្រមូលបាន',
+    en: "Please select question to see data collected",
+    km: "សូមជ្រើសរើសសំណួរដើម្បីមើលទិន្នន័យដែលប្រមូលបាន",
   },
   clear_filter: {
-    en: 'Clear Filter',
-    km: 'ជម្រះតម្រង',
+    en: "Clear Filter",
+    km: "ជម្រះតម្រង",
   },
   open_map: {
-    en: 'Open Map',
-    km: 'បើកផែនទី',
+    en: "Open Map",
+    km: "បើកផែនទី",
   },
   close_map: {
-    en: 'Close Map',
-    km: 'បិទផែនទី',
+    en: "Close Map",
+    km: "បិទផែនទី",
   },
   total: {
-    en: 'Total',
-    km: 'សរុប',
+    en: "Total",
+    km: "សរុប",
   },
   visualize_data_msg: {
-    en: 'Please select a question to see chart',
-    km: 'សូមជ្រើសរើសសំណួរដើម្បីមើលតារាង',
+    en: "Please select a question to see chart",
+    km: "សូមជ្រើសរើសសំណួរដើម្បីមើលតារាង",
   },
   close_chart: {
-    en: 'Close Chart',
-    km: 'បិទគំនូសតាង',
+    en: "Close Chart",
+    km: "បិទគំនូសតាង",
   },
   profile: {
-    en: 'Profile',
-    km: 'ប្រវត្តិរូប',
+    en: "Profile",
+    km: "ប្រវត្តិរូប",
   },
   logout: {
-    en: 'Logout',
-    km: 'ចាកចេញ',
+    en: "Logout",
+    km: "ចាកចេញ",
   },
   edit_profile: {
-    en: 'Edit Profile',
-    km: 'កែសម្រួលប្រវត្តិរូប',
+    en: "Edit Profile",
+    km: "កែសម្រួលប្រវត្តិរូប",
   },
   change_password: {
-    en: 'Change Password',
-    km: 'ផ្លាស់ប្តូរពាក្យសម្ងាត់',
+    en: "Change Password",
+    km: "ផ្លាស់ប្តូរពាក្យសម្ងាត់",
   },
   profile_detail: {
-    en: 'Profile Detail',
-    km: 'ពត៌មានលំអិត',
+    en: "Profile Detail",
+    km: "ពត៌មានលំអិត",
   },
   organization_detail: {
-    en: 'Organization Detail',
-    km: 'ព័ត៌មានលម្អិតអំពីអង្គការ',
+    en: "Organization Detail",
+    km: "ព័ត៌មានលម្អិតអំពីអង្គការ",
   },
   dob: {
-    en: 'Date of Birth',
-    km: 'ថ្ងៃខែ​ឆ្នាំ​កំណើត',
+    en: "Date of Birth",
+    km: "ថ្ងៃខែ​ឆ្នាំ​កំណើត",
   },
   project_limit: {
-    en: 'Project Limit',
-    km: 'ដែនកំណត់គម្រោង',
+    en: "Project Limit",
+    km: "ដែនកំណត់គម្រោង",
   },
   user_limit: {
-    en: 'User Limit',
-    km: 'ដែនកំណត់អ្នកប្រើប្រាស់',
+    en: "User Limit",
+    km: "ដែនកំណត់អ្នកប្រើប្រាស់",
   },
   response_limit: {
-    en: 'Response Limit',
-    km: 'ដែនកំណត់ទិន្នន័យ',
+    en: "Response Limit",
+    km: "ដែនកំណត់ទិន្នន័យ",
   },
   upgrade_plan: {
-    en: 'Upgrade Plan',
-    km: 'ធ្វើបច្ចុប្បន្នភាពផែនការ',
+    en: "Upgrade Plan",
+    km: "ធ្វើបច្ចុប្បន្នភាពផែនការ",
   },
   subscription_plan: {
-    en: 'Subscription Plan',
-    km: 'ការជាវគម្រោង',
+    en: "Subscription Plan",
+    km: "ការជាវគម្រោង",
   },
   current_plan: {
-    en: 'Current Plan',
-    km: 'ផែនការបច្ចុប្បន្ន',
+    en: "Current Plan",
+    km: "ផែនការបច្ចុប្បន្ន",
   },
   payment_details: {
-    en: 'Payment Details',
-    km: 'ព័ត៌មានលម្អិតអំពីការទូទាត់',
+    en: "Payment Details",
+    km: "ព័ត៌មានលម្អិតអំពីការទូទាត់",
   },
   payment_msg: {
-    en: 'Enter your Credit Card Details',
-    km: 'បញ្ចូលព័ត៌មានលម្អិតអំពីប័ណ្ណឥណទានរបស់អ្នក។',
+    en: "Enter your Credit Card Details",
+    km: "បញ្ចូលព័ត៌មានលម្អិតអំពីប័ណ្ណឥណទានរបស់អ្នក។",
   },
   checkout_summary: {
-    en: 'Checkout Summary',
-    km: 'សង្ខេបការចេញ',
+    en: "Checkout Summary",
+    km: "សង្ខេបការចេញ",
   },
   billing_cycle: {
-    en: 'Billing Cycle',
-    km: 'វដ្តវិក្កយបត្រ',
+    en: "Billing Cycle",
+    km: "វដ្តវិក្កយបត្រ",
   },
   annual: {
-    en: 'Annual',
-    km: 'ប្រចាំឆ្នាំ',
+    en: "Annual",
+    km: "ប្រចាំឆ្នាំ",
   },
   monthly: {
-    en: 'Monthly',
-    km: 'ប្រចាំខែ',
+    en: "Monthly",
+    km: "ប្រចាំខែ",
   },
   subtotal: {
-    en: 'Subtotal',
-    km: 'សរុបរង',
+    en: "Subtotal",
+    km: "សរុបរង",
   },
   subscribe: {
-    en: 'Subscribe',
-    km: 'ជាវ',
+    en: "Subscribe",
+    km: "ជាវ",
   },
   update_organization_name: {
-    en: 'Update Organization Name',
-    km: 'កែសម្រួលឈ្មោះអង្គការ',
+    en: "Update Organization Name",
+    km: "កែសម្រួលឈ្មោះអង្គការ",
   },
   project_status: {
-    en: 'Project Status',
-    km: 'ស្ថានភាពគម្រោង',
+    en: "Project Status",
+    km: "ស្ថានភាពគម្រោង",
   },
   generateqr: {
-    en: 'Generate QR Code',
-    km: 'បង្កើត QR Code',
+    en: "Generate QR Code",
+    km: "បង្កើត QR Code",
   },
   select_province: {
-    en: 'Select Province',
-    km: 'ជ្រើសរើសខេត្ត',
+    en: "Select Province",
+    km: "ជ្រើសរើសខេត្ត",
   },
   select_district: {
-    en: 'Select District',
-    km: 'ជ្រើសរើសស្រុក',
+    en: "Select District",
+    km: "ជ្រើសរើសស្រុក",
   },
   select_commune: {
-    en: 'Select Commune',
-    km: 'ជ្រើសរើសឃុំ',
+    en: "Select Commune",
+    km: "ជ្រើសរើសឃុំ",
   },
   select_village: {
-    en: 'Select Village',
-    km: 'ជ្រើសរើសភូមិ',
+    en: "Select Village",
+    km: "ជ្រើសរើសភូមិ",
   },
   calibrate_msg: {
-    en: 'Please pick a project and click the generate QR code button to see the QR code.',
-    km: 'សូមជ្រើសរើសគម្រោងមួយ ហើយចុចប៊ូតុងបង្កើតកូដ QR ដើម្បីមើលកូដ QR ។',
+    en: "Please pick a project and click the generate QR code button to see the QR code.",
+    km: "សូមជ្រើសរើសគម្រោងមួយ ហើយចុចប៊ូតុងបង្កើតកូដ QR ដើម្បីមើលកូដ QR ។",
   },
   organization_name: {
-    en: 'Organization Name',
-    km: 'ឈ្មោះ​អង្គការ',
+    en: "Organization Name",
+    km: "ឈ្មោះ​អង្គការ",
   },
   project_notavailable: {
-    en: 'Project Not Available',
-    km: 'មិនមានគម្រោង',
+    en: "Project Not Available",
+    km: "មិនមានគម្រោង",
   },
   loading: {
-    en: 'Loading',
-    km: 'កំពុងដំណើរការ',
+    en: "Loading",
+    km: "កំពុងដំណើរការ",
   },
   fail_loaddata: {
-    en: 'failed to load data',
-    km: 'បរាជ័យក្នុងការផ្ទុកទិន្នន័យ',
+    en: "failed to load data",
+    km: "បរាជ័យក្នុងការផ្ទុកទិន្នន័យ",
   },
   all_project: {
-    en: 'All Project',
-    km: 'គម្រោងទាំងអស់',
+    en: "All Project",
+    km: "គម្រោងទាំងអស់",
   },
   not_set: {
-    en: 'Not Set',
-    km: 'មិនបានជ្រើសរើស',
+    en: "Not Set",
+    km: "មិនបានជ្រើសរើស",
   },
   success: {
-    en: 'Success',
-    km: 'ជោគជ័យ',
+    en: "Success",
+    km: "ជោគជ័យ",
   },
   close: {
-    en: 'Close',
-    km: 'បិទ',
+    en: "Close",
+    km: "បិទ",
   },
   required_field_msg: {
-    en: 'Please Select All Required Field',
-    km: 'សូមជ្រើសរើសទម្រង់ដែលត្រូវការទាំងអស់',
+    en: "Please Select All Required Field",
+    km: "សូមជ្រើសរើសទម្រង់ដែលត្រូវការទាំងអស់",
   },
   unknown: {
-    en: 'Unknown',
-    km: 'មិនស្គាល់',
+    en: "Unknown",
+    km: "មិនស្គាល់",
   },
   request_to: {
-    en: 'request to',
-    km: 'ស្នើសុំ',
+    en: "request to",
+    km: "ស្នើសុំ",
   },
   record: {
-    en: 'Record in Project',
-    km: 'ទិន្នន័យក្នុងគម្រោង',
+    en: "Record in Project",
+    km: "ទិន្នន័យក្នុងគម្រោង",
   },
   active_response: {
-    en: 'Active Response',
-    km: 'ទិន្នន័យសកម្ម',
+    en: "Active Response",
+    km: "ទិន្នន័យសកម្ម",
   },
   pending_response: {
-    en: 'Pending Response',
-    km: 'ទិន្នន័យកំពុងស្នើ',
+    en: "Pending Response",
+    km: "ទិន្នន័យកំពុងស្នើ",
   },
   approve: {
-    en: 'Approve',
-    km: 'យល់ព្រម',
+    en: "Approve",
+    km: "យល់ព្រម",
   },
   reject: {
-    en: 'Reject',
-    km: 'មិនយល់ព្រម',
+    en: "Reject",
+    km: "មិនយល់ព្រម",
   },
   password_error: {
-    en: 'Password mush match',
-    km: 'ពាក្យសម្ងាត់ត្រូវត្រូវគ្នា',
+    en: "Password mush match",
+    km: "ពាក្យសម្ងាត់ត្រូវត្រូវគ្នា",
   },
   join_on: {
-    en: 'Join on',
-    km: 'ចូលនៅថ្ងៃទី',
+    en: "Join on",
+    km: "ចូលនៅថ្ងៃទី",
   },
   acc_status: {
-    en: 'Account Status',
-    km: 'ស្ថានភាពគណនី',
+    en: "Account Status",
+    km: "ស្ថានភាពគណនី",
   },
   month: {
-    en: 'Month',
-    km: 'ខែ',
+    en: "Month",
+    km: "ខែ",
   },
   new_organization_name: {
-    en: 'New Organization Name',
-    km: 'ឈ្មោះអង្គការថ្មី',
+    en: "New Organization Name",
+    km: "ឈ្មោះអង្គការថ្មី",
   },
   khmer: {
-    en: 'Khmer',
-    km: 'ខ្មែរ',
+    en: "Khmer",
+    km: "ខ្មែរ",
   },
   english: {
-    en: 'English',
-    km: 'អង់គ្លេស',
+    en: "English",
+    km: "អង់គ្លេស",
   },
   invite_user: {
-    en: 'Invite User',
-    km: 'អញ្ជើញអ្នកប្រើប្រាស់',
+    en: "Invite User",
+    km: "អញ្ជើញអ្នកប្រើប្រាស់",
   },
   edit_role: {
-    en: 'Edit Role',
-    km: 'កែប្រែតួនាទី',
+    en: "Edit Role",
+    km: "កែប្រែតួនាទី",
   },
   role_name: {
-    en: 'Role Name',
-    km: 'ឈ្មោះតួនាទី',
+    en: "Role Name",
+    km: "ឈ្មោះតួនាទី",
   },
   role_description: {
-    en: 'Role Description',
-    km: 'ការពិពណ៌នាអំពីតួនាទី',
+    en: "Role Description",
+    km: "ការពិពណ៌នាអំពីតួនាទី",
   },
   create_role: {
-    en: 'Create Role',
-    km: 'បង្កើតតួនាទី',
+    en: "Create Role",
+    km: "បង្កើតតួនាទី",
   },
   view_role_detail: {
-    en: 'View Role Details',
-    km: 'មើលព័ត៌មានលម្អិតអំពីតួនាទី',
+    en: "View Role Details",
+    km: "មើលព័ត៌មានលម្អិតអំពីតួនាទី",
   },
   create: {
-    en: 'Create',
-    km: 'បង្កើត',
+    en: "Create",
+    km: "បង្កើត",
   },
   name: {
-    en: 'Name',
-    km: 'ឈ្មោះ',
+    en: "Name",
+    km: "ឈ្មោះ",
   },
   district_404: {
-    en: 'No District found, Please select Province at least one',
-    km: 'សូមជ្រើសរើសខេត្តយ៉ាងហោចណាស់មួយ',
+    en: "No District found, Please select Province at least one",
+    km: "សូមជ្រើសរើសខេត្តយ៉ាងហោចណាស់មួយ",
   },
   commune_404: {
-    en: 'No Commune found, Please select District at least one',
-    km: 'សូមជ្រើសរើសស្រុកយ៉ាងហោចណាស់មួយ',
+    en: "No Commune found, Please select District at least one",
+    km: "សូមជ្រើសរើសស្រុកយ៉ាងហោចណាស់មួយ",
   },
   village_404: {
-    en: 'No Village found, Please select Commune at least one',
-    km: 'សូមជ្រើសរើសឃុំយ៉ាងហោចណាស់មួយ',
+    en: "No Village found, Please select Commune at least one",
+    km: "សូមជ្រើសរើសឃុំយ៉ាងហោចណាស់មួយ",
   },
   add_form_msg: {
-    en: 'Please add a form to get started.',
-    km: 'សូមបញ្ចូលទម្រង់បែបបទដើម្បីចាប់ផ្តើម។',
+    en: "Please add a form to get started.",
+    km: "សូមបញ្ចូលទម្រង់បែបបទដើម្បីចាប់ផ្តើម។",
   },
   question: {
-    en: 'Question',
-    km: 'សំណួរ',
+    en: "Question",
+    km: "សំណួរ",
   },
   yes: {
-    en: 'Yes',
-    km: 'បាទ/ចាស',
+    en: "Yes",
+    km: "បាទ/ចាស",
   },
   noo: {
-    en: 'No',
-    km: 'ទេ',
+    en: "No",
+    km: "ទេ",
   },
   question_no: {
-    km: 'សំណួរទី',
-    en: 'Question No.',
+    km: "សំណួរទី",
+    en: "Question No.",
   },
   indicator_no: {
-    en: 'Indicator No.',
-    km: 'សូចនាករទី',
+    en: "Indicator No.",
+    km: "សូចនាករទី",
   },
   add_filter: {
-    en: 'Add Filter',
-    km: 'បន្ថែមតម្រង',
+    en: "Add Filter",
+    km: "បន្ថែមតម្រង",
   },
   confirm_password: {
-    en: 'Confirm Password',
-    km: 'បញ្ជាក់ពាក្យសម្ងាត់',
+    en: "Confirm Password",
+    km: "បញ្ជាក់ពាក្យសម្ងាត់",
   },
   confirm_password_msg: {
-    en: 'Please confirm it with your password.',
-    km: 'សូមបញ្ជាក់ពាក្យសម្ងាត់របស់អ្នក',
+    en: "Please confirm it with your password.",
+    km: "សូមបញ្ជាក់ពាក្យសម្ងាត់របស់អ្នក",
   },
   value: {
-    km: 'តម្លៃ',
-    en: 'Value',
+    km: "តម្លៃ",
+    en: "Value",
   },
   frequency: {
-    en: 'Frequency',
-    km: 'ប្រេកង់',
+    en: "Frequency",
+    km: "ប្រេកង់",
   },
   select_option: {
-    en: 'Select Option',
-    km: 'ជ្រើសរើសជម្រើស',
+    en: "Select Option",
+    km: "ជ្រើសរើសជម្រើស",
   },
   enter_first_num: {
-    en: 'Enter First Number',
-    km: 'បញ្ចូលលេខទីមួយ',
+    en: "Enter First Number",
+    km: "បញ្ចូលលេខទីមួយ",
   },
   enter_second_num: {
-    en: 'Enter Second Number',
-    km: 'បញ្ចូលលេខទីពីរ',
+    en: "Enter Second Number",
+    km: "បញ្ចូលលេខទីពីរ",
   },
   enter_text: {
-    en: 'Enter Text',
-    km: 'បញ្ចូលអត្ថបទ',
+    en: "Enter Text",
+    km: "បញ្ចូលអត្ថបទ",
   },
   lat: {
-    en: 'Latitude',
-    km: 'រយៈទទឹង',
+    en: "Latitude",
+    km: "រយៈទទឹង",
   },
   lon: {
-    en: 'longitude',
-    km: 'រយៈបណ្តោយ',
+    en: "longitude",
+    km: "រយៈបណ្តោយ",
   },
   submitter: {
-    en: 'Submmited By',
-    km: 'អ្នកបញ្ចូលទិន្នន័យ',
+    en: "Submmited By",
+    km: "អ្នកបញ្ចូលទិន្នន័យ",
   },
   created_since: {
-    en: 'Created Since',
-    km: 'បង្កើតឡើងតាំងពី',
+    en: "Created Since",
+    km: "បង្កើតឡើងតាំងពី",
   },
   edit_user: {
-    en: 'Edit User',
-    km: 'កែសម្រួលអ្នកប្រើប្រាស់',
+    en: "Edit User",
+    km: "កែសម្រួលអ្នកប្រើប្រាស់",
   },
   delete_user: {
-    en: 'Delete User',
-    km: 'លុបអ្នកប្រើប្រាស់',
+    en: "Delete User",
+    km: "លុបអ្នកប្រើប្រាស់",
   },
   delete_msg: {
-    en: 'Are you sure you want to delete this user? This action can not be undone.',
-    km: 'តើអ្នកប្រាកដថាចង់លុបអ្នកប្រើប្រាស់នេះទេ? សកម្មភាពនេះមិនអាចត្រឡប់វិញបានទេ',
+    en: "Are you sure you want to delete this user? This action can not be undone.",
+    km: "តើអ្នកប្រាកដថាចង់លុបអ្នកប្រើប្រាស់នេះទេ? សកម្មភាពនេះមិនអាចត្រឡប់វិញបានទេ",
   },
   pending: {
-    en: 'Pending',
-    km: 'កំពុងរង់ចាំ',
+    en: "Pending",
+    km: "កំពុងរង់ចាំ",
   },
   accountSetting: {
-    en: 'Account Setting',
-    km: 'គណនី',
+    en: "Account Setting",
+    km: "គណនី",
   },
   selected_package: {
-    en: 'Selected Package',
-    km: 'កញ្ចប់ដែលបានជ្រើស',
+    en: "Selected Package",
+    km: "កញ្ចប់ដែលបានជ្រើស",
   },
   change_personal_info: {
-    en: 'Change Personal Information',
-    km: 'ផ្លាស់ប្តូរព័ត៌មានផ្ទាល់ខ្លួន',
+    en: "Change Personal Information",
+    km: "ផ្លាស់ប្តូរព័ត៌មានផ្ទាល់ខ្លួន",
   },
   value_end: {
-    en: 'Value End',
-    km: 'តម្លៃទី២',
+    en: "Value End",
+    km: "តម្លៃទី២",
   },
   value_start: {
-    en: 'Value Start',
-    km: 'តម្លៃទី១',
+    en: "Value Start",
+    km: "តម្លៃទី១",
   },
   created_at: {
-    en: 'Created At',
-    km: 'បានបង្កើតនៅ',
+    en: "Created At",
+    km: "បានបង្កើតនៅ",
   },
   add_option: {
-    en: 'Add Option',
-    km: 'បង្កើតជម្រើស',
+    en: "Add Option",
+    km: "បង្កើតជម្រើស",
   },
   option: {
-    en: 'Option',
-    km: 'ជម្រើស',
+    en: "Option",
+    km: "ជម្រើស",
   },
   update_profile_info: {
-    en: 'Update your Profile Info',
-    km: 'កែសម្រួលព័ត៌មានប្រវត្តិរូបរបស់អ្នក',
+    en: "Update your Profile Info",
+    km: "កែសម្រួលព័ត៌មានប្រវត្តិរូបរបស់អ្នក",
   },
   current_password: {
-    en: 'Current Password',
-    km: 'ពាក្យសំងាត់​បច្ចុប្បន្ន',
+    en: "Current Password",
+    km: "ពាក្យសំងាត់​បច្ចុប្បន្ន",
   },
   new_password: {
-    en: 'New Password',
-    km: 'ពាក្យសម្ងាត់​ថ្មី',
+    en: "New Password",
+    km: "ពាក្យសម្ងាត់​ថ្មី",
   },
   match_password: {
-    en: 'Passwords must match',
-    km: 'ពាក្យសំងាត់​ត្រូវតែ​ដូចគ្នា',
+    en: "Passwords must match",
+    km: "ពាក្យសំងាត់​ត្រូវតែ​ដូចគ្នា",
   },
   change_password_msg: {
-    en: 'Are you sure you want to change your password?',
-    km: 'តើអ្នកប្រាកដថាចង់ប្តូរពាក្យសម្ងាត់របស់អ្នកទេ?',
+    en: "Are you sure you want to change your password?",
+    km: "តើអ្នកប្រាកដថាចង់ប្តូរពាក្យសម្ងាត់របស់អ្នកទេ?",
   },
   password_confirmation: {
-    en: 'Password Confirmation',
-    km: 'ការ​បញ្ជាក់​ពាក្យ​សម្ងាត់',
+    en: "Password Confirmation",
+    km: "ការ​បញ្ជាក់​ពាក្យ​សម្ងាត់",
   },
   change: {
-    en: 'Change',
-    km: 'ប្តូរ',
+    en: "Change",
+    km: "ប្តូរ",
   },
   edit_profile_msg: {
-    en: 'Are you sure you want to edit your profile?',
-    km: 'តើអ្នកប្រាកដថាចង់កែសម្រួលព័ត៌មានរបស់អ្នកទេ?',
+    en: "Are you sure you want to edit your profile?",
+    km: "តើអ្នកប្រាកដថាចង់កែសម្រួលព័ត៌មានរបស់អ្នកទេ?",
   },
   no_project: {
-    en: 'No Project Found',
-    km: 'មិនមានគម្រោង',
+    en: "No Project Found",
+    km: "មិនមានគម្រោង",
   },
   copy_link: {
-    en: 'Copy Link',
-    km: 'ចម្លងតំណរលីង',
+    en: "Copy Link",
+    km: "ចម្លងតំណរលីង",
   },
   combined_project: {
-    en: 'Combined Project',
-    km: 'គម្រោងរួមបញ្ចូលគ្នា',
+    en: "Combined Project",
+    km: "គម្រោងរួមបញ្ចូលគ្នា",
   },
   thank_you_web: {
-    en: 'Thank you for your response!',
-    km: 'សូមអរគុណចំពោះការឆ្លើយតបរបស់អ្នក!',
+    en: "Thank you for your response!",
+    km: "សូមអរគុណចំពោះការឆ្លើយតបរបស់អ្នក!",
   },
   thank_you_web_description: {
-    en: 'We are looking forward to work with you again later. Have a good day!',
-    km: 'យើងរំពឹងថានឹងបានធ្វើការជាមួយអ្នកម្ដងទៀត។ សូមអរគុណ និងសូមអោយមានថ្ងៃល្អ!',
+    en: "We are looking forward to work with you again later. Have a good day!",
+    km: "យើងរំពឹងថានឹងបានធ្វើការជាមួយអ្នកម្ដងទៀត។ សូមអរគុណ និងសូមអោយមានថ្ងៃល្អ!",
   },
   thank_you_web_note: {
-    en: 'Note: Only one email is allowed per response.',
-    km: 'ចំណាំ៖ អ៊ីមែលតែមួយប៉ុណ្ណោះត្រូវបានអនុញ្ញាតសម្រាប់ការឆ្លើយតបមួយដង។',
+    en: "Note: Only one email is allowed per response.",
+    km: "ចំណាំ៖ អ៊ីមែលតែមួយប៉ុណ្ណោះត្រូវបានអនុញ្ញាតសម្រាប់ការឆ្លើយតបមួយដង។",
   },
   thank_you_edit: {
-    en: 'You have edited your data successfully!',
-    km: 'អ្នកបានកែសម្រួលទិន្នន័យដោយជោគជ័យ!',
+    en: "You have edited your data successfully!",
+    km: "អ្នកបានកែសម្រួលទិន្នន័យដោយជោគជ័យ!",
   },
   thank_you_edit_description: {
-    en: 'Your submission has been updated. Thank you!',
-    km: 'ការដាក់ស្នើរបស់អ្នកត្រូវបានធ្វើបច្ចុប្បន្នភាព។ សូមអរគុណ!',
+    en: "Your submission has been updated. Thank you!",
+    km: "ការដាក់ស្នើរបស់អ្នកត្រូវបានធ្វើបច្ចុប្បន្នភាព។ សូមអរគុណ!",
   },
   thank_you_edit_note: {
-    en: 'Click here to go back',
-    km: 'ចុចទីនេះដើម្បីត្រលប់ក្រោយ',
+    en: "Click here to go back",
+    km: "ចុចទីនេះដើម្បីត្រលប់ក្រោយ",
   },
   google_login_title: {
-    en: 'Please Login to Continue',
-    km: 'សូមចូលគណនីដើម្បីបន្ត',
+    en: "Please Login to Continue",
+    km: "សូមចូលគណនីដើម្បីបន្ត",
   },
   google_login_desc: {
-    en: 'Please login with Google account to access the survey',
-    km: 'សូមចូលគណនី Google របស់អ្នកដើម្បីចូលប្រើសំណួរ',
+    en: "Please login with Google account to access the survey",
+    km: "សូមចូលគណនី Google របស់អ្នកដើម្បីចូលប្រើសំណួរ",
   },
   google_login_button: {
-    en: 'Login with Google',
-    km: 'ចូលដោយប្រើ Google',
+    en: "Login with Google",
+    km: "ចូលដោយប្រើ Google",
   },
   google_login_not_now: {
-    en: 'Not now',
-    km: 'មិនមែនឥឡូវនេះទេ',
+    en: "Not now",
+    km: "មិនមែនឥឡូវនេះទេ",
   },
   location_request_title: {
-    en: 'ENABLE YOUR LOCATION',
-    km: 'អនុញ្ញាតឲ្យប្រើទីតាំងរបស់អ្នក',
+    en: "ENABLE YOUR LOCATION",
+    km: "អនុញ្ញាតឲ្យប្រើទីតាំងរបស់អ្នក",
   },
   location_request_description: {
-    en: 'Please allow us to access your location service',
-    km: 'សូមអនុញ្ញាតឲ្យយើងបានចូលប្រើសេវាទីតាំងរបស់អ្នក',
+    en: "Please allow us to access your location service",
+    km: "សូមអនុញ្ញាតឲ្យយើងបានចូលប្រើសេវាទីតាំងរបស់អ្នក",
   },
   section_title: {
-    en: 'Section',
-    km: 'ផ្នែក',
+    en: "Section",
+    km: "ផ្នែក",
   },
   location_about: {
-    en: 'Locations',
-    km: 'ទីតាំង',
+    en: "Locations",
+    km: "ទីតាំង",
   },
   capi: {
-    en: 'CAPI (Mobile App)',
-    km: 'CAPI (ប្រមូលទិន្នន័យតាមកម្មវិធីទូរស័ព្ទ)',
+    en: "CAPI (Mobile App)",
+    km: "CAPI (ប្រមូលទិន្នន័យតាមកម្មវិធីទូរស័ព្ទ)",
   },
   web_survey: {
-    en: 'Online Survey (Web-based Survey)',
-    km: 'សំណួរអនឡាញ',
+    en: "Online Survey (Web-based Survey)",
+    km: "សំណួរអនឡាញ",
   },
   respondent_id: {
-    en: 'Respondent ID',
-    km: 'អត្តសញ្ញាណអ្នកឆ្លើយ',
+    en: "Respondent ID",
+    km: "អត្តសញ្ញាណអ្នកឆ្លើយ",
   },
   respondent_email: {
-    en: 'Respondent Email',
-    km: 'អ៊ីមែលអ្នកឆ្លើយ',
+    en: "Respondent Email",
+    km: "អ៊ីមែលអ្នកឆ្លើយ",
   },
   survey_language: {
-    en: 'Survey Languages',
-    km: 'ភាសាស្ទង់មតិ',
+    en: "Survey Languages",
+    km: "ភាសាស្ទង់មតិ",
   },
   survey_method: {
-    en: 'Survey Method',
-    km: 'វិធីសាស្រ្តស្ទង់មតិ',
+    en: "Survey Method",
+    km: "វិធីសាស្រ្តស្ទង់មតិ",
   },
   view_project_detail: {
-    en: 'View Detail',
-    km: 'មើលព័ត៌មានលម្អិត',
+    en: "View Detail",
+    km: "មើលព័ត៌មានលម្អិត",
   },
   collection_method: {
-    en: 'Collection Method',
-    km: 'វិធីសាស្រ្តប្រមូល',
+    en: "Collection Method",
+    km: "វិធីសាស្រ្តប្រមូល",
   },
   started_collection: {
-    en: 'Started Collection',
-    km: 'បានចាប់ផ្តើមប្រមូល',
+    en: "Started Collection",
+    km: "បានចាប់ផ្តើមប្រមូល",
   },
   multi_project_view: {
-    en: 'Multi-Project Data Visualization',
-    km: 'ការមើលឃើញទិន្នន័យច្រើនគម្រោង',
+    en: "Multi-Project Data Visualization",
+    km: "ការមើលឃើញទិន្នន័យច្រើនគម្រោង",
   },
   skip_logic: {
-    en: 'Skip Logic',
-    km: 'រំលងតក្កវិជ្ជា',
+    en: "Skip Logic",
+    km: "រំលងតក្កវិជ្ជា",
   },
   project_location: {
-    en: 'Project Location',
-    km: 'ទីតាំងគម្រោង',
+    en: "Project Location",
+    km: "ទីតាំងគម្រោង",
   },
   project_questions: {
-    en: 'Project Questions',
-    km: 'សំណួរគម្រោង',
+    en: "Project Questions",
+    km: "សំណួរគម្រោង",
   },
   project_indicator: {
-    en: 'Project Indicator',
-    km: 'សូចនាករគម្រោង',
+    en: "Project Indicator",
+    km: "សូចនាករគម្រោង",
   },
   no_request_logs: {
-    en: 'No Request Logs Found',
-    km: 'មិនមានទិន្នន័យស្នើ',
+    en: "No Request Logs Found",
+    km: "មិនមានទិន្នន័យស្នើ",
   },
   today: {
-    en: 'Today',
-    km: 'ថ្ងៃនេះ',
+    en: "Today",
+    km: "ថ្ងៃនេះ",
   },
   yesterday: {
-    en: 'Yesterday',
-    km: 'ម្សិលមិញ',
+    en: "Yesterday",
+    km: "ម្សិលមិញ",
   },
   at: {
-    en: 'at',
-    km: 'នៅ',
+    en: "at",
+    km: "នៅ",
   },
 };
 
 export const GetContext = (key: string, lang: string) => {
   const context = language[key];
   if (!context) {
-    return 'invalid key';
+    return "invalid key";
   }
-  return lang == 'km' ? context.km : context.en;
+  return lang == "km" ? context.km : context.en;
 };
 
-export function parseLocaleValue(value: Locale | string | number, lang: string): string {
-  if (value && typeof value === 'object' && typeof (value as any).en === 'string' && typeof (value as any).km === 'string') {
+export function parseLocaleValue(
+  value: Locale | string | number,
+  lang: string,
+): string {
+  if (
+    value &&
+    typeof value === "object" &&
+    typeof (value as any).en === "string" &&
+    typeof (value as any).km === "string"
+  ) {
     return getLocaleValue(value as Locale, lang);
   }
 
-  if (typeof value === 'string' || typeof value === 'number') {
+  if (typeof value === "string" || typeof value === "number") {
     return String(value);
   }
 
-  return 'N/A';
+  return "N/A";
 }
